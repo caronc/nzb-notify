@@ -88,30 +88,3 @@ Here is simple example:
 # below:
 python Notify.py -s xbmc://192.168.0.2
 ```
-
-You can scan multiple directories with the following command:
-```bash
-# Scan a single directory (recursively) for english subtitles
-python Notify.py -s -f -S "/usr/share/TVShows, /usr/share/Movies"
-```
-
-Another nice feature this tool offers is the ability to _expire_ the
-need to check certain content over and over again.  Considering that most of
-us keep all our videos in one common location.  It would be excessive overkill
-to poll the internet each and every time for each and every file we have (for
-subtitles) over and over again.  We can assume, that if there are no subtitles for
-a given video within the _last 24 hours_ of it's existance on our system, then there
-simply aren't going to be any later. _I realize this isn't always the case; but
-for most situations it will be._
-
-In the above examples, I provided a __--force__ (__-f__) switch which bypasses
-this feature. But if you want to set up a cron entry to scan your library on
-a regular basis, this feature can save you time and effort. A cron could be
-easily configured to scan your library every hour as so:
-```bash
-# $> crontab -e
-0 * * * * /path/to/Notify.py -s -S "/usr/share/TVShows, /usr/share/Movies"
-```
-If 24 hours seems to short of a window for you, then just specify the
-__--age__ (__-a__) switch and adjust the time to your needs. Remember: it's
-value is represented in hours.
