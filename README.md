@@ -86,5 +86,14 @@ Here is simple example:
 # Send a notification to XBMC (assuming its listening on
 # port 8080 at the ip 192.168.0.2 with respect to the example
 # below:
-python Notify.py -s xbmc://192.168.0.2
+python Notify.py -s xbmc://192.168.0.2 -t "Hello" -b "World!"
+```
+
+You can also mix and match as many servers as you want by separating
+your urls with a comma and/or space.
+```bash
+# Send a notification to XBMC and a Growl Server
+python Notify.py \
+    -s growl://192.168.0.10,xbmc://user:pass@192.168.0.2 \
+    -t "Hello" -b "World!"
 ```
