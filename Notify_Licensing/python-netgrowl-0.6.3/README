@@ -1,0 +1,5 @@
+Growl 0.6 Network Protocol Client for Python
+Version: 0.6.3
+Author: Rui Carmo (http://the.taoofmac.com)
+License: (C) 2004 Rui Carmo. Code under BSD License.
+Contributors: Ingmar J Stein (Growl Team), John Morrissey (hashlib patch)
