@@ -88,6 +88,10 @@ Here is simple example:
 # port 8080 at the ip 192.168.0.2 with respect to the example
 # below:
 python Notify.py -s xbmc://192.168.0.2 -t "Hello" -b "World!"
+
+# you can also use it's new name (kodi) to achive the same
+# results:
+python Notify.py -s kodi://192.168.0.2 -t "Hello" -b "World!"
 ```
 
 You can also mix and match as many servers as you want by separating

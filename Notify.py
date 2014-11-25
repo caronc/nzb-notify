@@ -54,6 +54,7 @@
 # The following services are currently supported:
 #  - growl:// -> A Growl Server
 #  - xbmc:// -> An XBMC Server
+#  - kodi:// -> An KODI Server (XBMC Server)
 #  - pbul:// -> A PushBullet Notification
 
 # NOTE: If no port is specified, then the default port for the service
@@ -117,9 +118,15 @@ GROWL_APPLICATION = 'NZBGet'
 GROWL_NOTIFICATION = 'Post-Process NZBGet Notification'
 NOTIFY_GROWL_SCHEMA = 'growl'
 NOTIFY_XBMC_SCHEMA = 'xbmc'
+NOTIFY_KODI_SCHEMA = 'kodi'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
+NOTIFY_KODIS_SCHEMA = 'kodis'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 SCHEMA_MAP = {
+    # KODI Server
+    NOTIFY_KODI_SCHEMA: NotifyXBMC,
+    # Secure KODI Server
+    NOTIFY_KODIS_SCHEMA: NotifyXBMC,
     # Growl Server
     NOTIFY_GROWL_SCHEMA: NotifyGrowl,
     # XBMC Server
@@ -198,13 +205,15 @@ class NotifyScript(PostProcessScript):
                 )
 
             # #######################################################################
-            # XBMC Server Support
+            # KODI (XBMC) Server Support
             # #######################################################################
-            elif server['schema'] in \
-                    (NOTIFY_XBMC_SCHEMA, NOTIFY_XBMCS_SCHEMA):
+            elif server['schema'] in (
+                NOTIFY_XBMC_SCHEMA, NOTIFY_XBMCS_SCHEMA,
+                NOTIFY_KODI_SCHEMA, NOTIFY_KODIS_SCHEMA):
 
                 # Secure Flag
-                secure = (server['schema'] == NOTIFY_XBMCS_SCHEMA)
+                secure = (server['schema'] in (NOTIFY_XBMCS_SCHEMA,
+                                               NOTIFY_KODIS_SCHEMA))
 
                 nobj = NotifyXBMC(
                     # Base
