@@ -15,6 +15,39 @@ There were several libraries patched for various reasons:
 The patches identified are exclusive the version they were created against and
 will most likely not work if applied against anything else.
 
+### pyOpenSSL v0.14
+I had an issue with unicode strings not correctly processing so I made a small
+patch that seems to resolve the issue.
+
+| Patch | Description |
+| ----- | ----------- |
+| [pyOpenSSL-bytecheck.fix.patch](https://github.com/caronc/nzbget-notify/blob/master/patches/pyOpenSSL-bytecheck.fix.patch) | A small fix to support certain SSL requests allowing it to accept unicode strings.
+
+| pyOpenSSL v0.14 Source |
+| ---------------------- |
+| https://pypi.python.org/packages/source/p/pyOpenSSL/pyOpenSSL-0.14.tar.gz |
+
+You can apply the patch as follows (Linux example):
+```bash
+# Assuming you have our dependencies fullfilled
+# - RedHat/CentOS/Fedora: yum install -y curl tar patch
+# - Ubuntu/Debian: sudo apt-get install curl tar patch
+#
+# Retrieve the package
+curl -L -O https://pypi.python.org/packages/source/p/pyOpenSSL/pyOpenSSL-0.14.tar.gz
+
+# Retrieve the patch
+curl -L -O https://raw.githubusercontent.com/caronc/nzbget-notify/master/patches/pyOpenSSL-bytecheck.fix.patch
+
+# Extract our downloaded archive
+tar xvfz pyOpenSSL-0.14.tar.gz
+
+# Apply our patch
+patch -d pyOpenSSL-0.14 -p1 < pyOpenSSL-bytecheck.fix.patch
+
+# You're done!
+```
+
 ### Requests v2.3.0
 Requests greatly simplifies webpage interaction and content extraction in
 python. The actual retreival of subtitles is through this library itself.

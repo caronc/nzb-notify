@@ -965,6 +965,8 @@ class Connection(object):
         """
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        elif isinstance(buf, basestring):
+            buf = bytes(buf)
         if not isinstance(buf, bytes):
             raise TypeError("buf must be a byte string")
 

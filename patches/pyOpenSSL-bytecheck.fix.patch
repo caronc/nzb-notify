@@ -1,0 +1,12 @@
+diff -Naur pyOpenSSL-0.14/OpenSSL/SSL.py pyOpenSSL-0.14.patched/OpenSSL/SSL.py
+--- pyOpenSSL-0.14/OpenSSL/SSL.py	2014-02-22 07:53:47.000000000 -0500
++++ pyOpenSSL-0.14.patched/OpenSSL/SSL.py	2014-11-24 19:43:10.000000000 -0500
+@@ -965,6 +965,8 @@
+         """
+         if isinstance(buf, _memoryview):
+             buf = buf.tobytes()
++        elif isinstance(buf, basestring):
++            buf = bytes(buf)
+         if not isinstance(buf, bytes):
+             raise TypeError("buf must be a byte string")
+ 
