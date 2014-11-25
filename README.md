@@ -3,10 +3,14 @@ Notify Processing Script
 This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_
 wrapper to different forms of notification services.
 
+NZBGet users can be notified on supported devices of the status of a download
+they made.  Non-NZBGet users can also use this tool as a standalone app that
+can message their devices as they please.
+
 Installation Instructions
 =========================
 1. Ensure you have at least Python v2.6 or higher installed onto your system.
-2. Simply place the __Notify.py__ and __Notify directory together.
+2. Simply place the __Notify.py__ and __Notify__ directory together.
    * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
 
 The Non-NZBGet users can also use this script from the command line.
@@ -28,6 +32,7 @@ location that content is retrieved from.
 | Growl   | growl://   | (UDP) 9887   |
 | PushBullet   | pbul://   | (TCP) 443   |
 | XBMC    | xbmc://    | (TCP) 8080   |
+| KODI    | kodi://    | (TCP) 8080   |
 
 Dependencies
 ============
