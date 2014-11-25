@@ -92,7 +92,7 @@ class NotifyPushBullet(NotifyBase):
                 )
 
             elif recipient[0] == '#':
-                payload['channel_tag'] = recipient
+                payload['channel_tag'] = recipient[1:]
                 self.logger.debug(
                     "Recipient '%s' is a channel" % \
                     recipient,
