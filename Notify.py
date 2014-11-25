@@ -33,10 +33,6 @@
 # License: GPLv3 (http://www.gnu.org/licenses/gpl.html).
 # Script Version: 0.1.0.
 #
-# Growl implimentation is a wrapper for "netgrowl";
-# a python library to search and download subtitles, written
-# by Rui Carmo (http://the.taoofmac.com/space/projects/netgrowl).
-#
 
 ###########################################################################
 ### OPTIONS
@@ -58,6 +54,7 @@
 # The following services are currently supported:
 #  - growl:// -> A Growl Server
 #  - xbmc:// -> An XBMC Server
+#  - pbul:// -> A PushBullet Notification
 
 # NOTE: If no port is specified, then the default port for the service
 # identifed is always used instead.
@@ -67,6 +64,17 @@
 # to actually send something to your Mac, so make sure you have "Allow
 # application registration" enabled on Growl's preference pane. Additionally,
 # you should make sure that you set a password.
+# NOTE: PushBullet requires a access token it uses to comuncate with the
+# remote server.  This is specified inline with the service request like
+# so:
+#  - pbul://accesstoken
+# NOTE: PushBullet can support emails, devices and channels, you can also
+# do this by specifying them on the path; as an example (mix and match
+# as you feel). If no path is specified, then it is assumed you want to
+# notify all deies.:
+#  - pbul://accesstoken/#channel/#channel2/device/email@email.com
+
+# identifed is always used instead.
 #
 # Specify the URL that identifies all of the servers you wish to notify.
 #Servers=
@@ -95,12 +103,14 @@
 import sys
 from os.path import join
 from os.path import dirname
+from urllib import unquote
 sys.path.insert(0, join(dirname(__file__), 'Notify'))
 
 from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
 
 from NotifyGrowl import NotifyGrowl
+from NotifyPushBullet import NotifyPushBullet
 from NotifyXBMC import NotifyXBMC
 
 GROWL_APPLICATION = 'NZBGet'
@@ -108,6 +118,7 @@ GROWL_NOTIFICATION = 'Post-Process NZBGet Notification'
 NOTIFY_GROWL_SCHEMA = 'growl'
 NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
+NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 SCHEMA_MAP = {
     # Growl Server
     NOTIFY_GROWL_SCHEMA: NotifyGrowl,
@@ -115,6 +126,8 @@ SCHEMA_MAP = {
     NOTIFY_XBMC_SCHEMA: NotifyXBMC,
     # Secure XBMC Server
     NOTIFY_XBMCS_SCHEMA: NotifyXBMC,
+    # PushBullet Server
+    NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
 }
 
 class NotifyScript(PostProcessScript):
@@ -167,6 +180,24 @@ class NotifyScript(PostProcessScript):
                 )
 
             # #######################################################################
+            # PushBullet Server Support
+            # #######################################################################
+            if server['schema'] == NOTIFY_PUSHBULLET_SCHEMA:
+                nobj = NotifyPushBullet(
+                    # Base
+                    port=server['port'],
+                    username=server['user'],
+                    password=server['password'],
+
+                    # Notify Specific
+                    accesstoken=server['host'],
+                    recipients=unquote(server['fullpath']),
+
+                    # Logger Details
+                    logger=self.logger,
+                )
+
+            # #######################################################################
             # XBMC Server Support
             # #######################################################################
             elif server['schema'] in \
@@ -201,10 +232,10 @@ class NotifyScript(PostProcessScript):
                     logger=self.logger,
                 )
 
-            if not nobj.notify(body=body, title=title):
-                self.logger.error('Could not notify: %s' % server['url'])
-                continue
-            self.logger.debug('Notified %s successfully' % server['url'])
+            nobj.notify(body=body, title=title)
+
+        # Always return true
+        return True
 
 
     def postprocess_main(self, *args, **kwargs):

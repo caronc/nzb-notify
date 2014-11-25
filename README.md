@@ -26,6 +26,7 @@ location that content is retrieved from.
 | Service | Service ID | Default Port |
 | ------- | ---------- | ------------ |
 | Growl   | growl://   | (UDP) 9887   |
+| PushBullet   | pbul://   | (TCP) 443   |
 | XBMC    | xbmc://    | (TCP) 8080   |
 
 Dependencies
@@ -44,8 +45,8 @@ should be known that Notify.py depends on the following packages:
 | requests **[P]**             | 2.3.0   | https://pypi.python.org/pypi/requests/2.3.0                                          |
 | six                          | 1.6.1   | https://pypi.python.org/pypi/six/1.6.1                                               |
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |
-| pyOpenSSL                    | 0.14    | https://pypi.python.org/pypi/pyOpenSSL/0.14                                          |
-| netgrowl                     | 0.6.3   | http://the.taoofmac.com      pyOpenSSL/0.14                                          |
+| pyOpenSSL **[P]**            | 0.14    | https://pypi.python.org/pypi/pyOpenSSL/0.14                                          |
+| netgrowl                     | 0.6.3   | http://the.taoofmac.com/                                                             |
 | urllib3 **[P]**              | 1.9     | https://pypi.python.org/pypi/urllib3/1.9                                             |
 
 **Note:** The items above denoted with a **[P]** were patched in efforts to:
