@@ -102,6 +102,7 @@
 ### NZBGET POST-PROCESSING SCRIPT
 ###########################################################################
 import sys
+import re
 from os.path import join
 from os.path import dirname
 from urllib import unquote
@@ -111,12 +112,14 @@ from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
 
 from NotifyGrowl import NotifyGrowl
+from NotifyProwl import NotifyProwl
 from NotifyPushBullet import NotifyPushBullet
 from NotifyXBMC import NotifyXBMC
 
 GROWL_APPLICATION = 'NZBGet'
 GROWL_NOTIFICATION = 'Post-Process NZBGet Notification'
 NOTIFY_GROWL_SCHEMA = 'growl'
+NOTIFY_PROWL_SCHEMA = 'prowl'
 NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_KODI_SCHEMA = 'kodi'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
@@ -129,6 +132,8 @@ SCHEMA_MAP = {
     NOTIFY_KODIS_SCHEMA: NotifyXBMC,
     # Growl Server
     NOTIFY_GROWL_SCHEMA: NotifyGrowl,
+    # Prowl Server
+    NOTIFY_PROWL_SCHEMA: NotifyProwl,
     # XBMC Server
     NOTIFY_XBMC_SCHEMA: NotifyXBMC,
     # Secure XBMC Server
@@ -136,6 +141,10 @@ SCHEMA_MAP = {
     # PushBullet Server
     NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
 }
+
+# Used to break apart list of potential recipients by their delimiter
+# into a usable list.
+PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
 class NotifyScript(PostProcessScript):
     """Inheriting PostProcessScript grants you access to of the API defined
@@ -187,9 +196,41 @@ class NotifyScript(PostProcessScript):
                 )
 
             # #######################################################################
+            # PROWL Server Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_PROWL_SCHEMA:
+
+                # optionally find the provider key
+                try:
+                    providerkey = filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']),
+                    ))[0]
+
+                    if not providerkey:
+                        providerkey = None
+
+                except IndexError:
+                    providerkey = None
+
+
+                nobj = NotifyProwl(
+                    # Base
+                    port=server['port'],
+                    username=server['user'],
+                    password=server['password'],
+
+                    # Notify Specific
+                    apikey=server['host'],
+                    providerkey=providerkey,
+
+                    # Logger Details
+                    logger=self.logger,
+                )
+
+            # #######################################################################
             # PushBullet Server Support
             # #######################################################################
-            if server['schema'] == NOTIFY_PUSHBULLET_SCHEMA:
+            elif server['schema'] == NOTIFY_PUSHBULLET_SCHEMA:
                 nobj = NotifyPushBullet(
                     # Base
                     port=server['port'],
@@ -235,6 +276,7 @@ class NotifyScript(PostProcessScript):
                     # Base
                     host=server['host'],
                     port=server['port'],
+                    username=server['user'],
                     password=server['password'],
 
                     # Logger Details
@@ -307,8 +349,7 @@ if __name__ == "__main__":
         "--servers",
         dest="servers",
         help="Specify 1 or more servers in their URL format ie: " + \
-            "growl://mypass@localhost"
-            "the command line.",
+            "growl://mypass@localhost",
         metavar="URL(s)",
     )
     parser.add_option(

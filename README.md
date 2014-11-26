@@ -30,6 +30,7 @@ location that content is retrieved from.
 | Service | Service ID | Default Port |
 | ------- | ---------- | ------------ |
 | Growl   | growl://   | (UDP) 9887   |
+| Prowl   | prowl://   | (TCP) 443   |
 | PushBullet   | pbul://   | (TCP) 443   |
 | XBMC    | xbmc://    | (TCP) 8080   |
 | KODI    | kodi://    | (TCP) 8080   |
@@ -76,7 +77,7 @@ Options:
   -h, --help            show this help message and exit
   -s URL(s), --servers=URL(s)
                         Specify 1 or more servers in their URL format ie:
-                        growl://mypass@localhostthe command line.
+                        growl://mypass@localhost
   -t TITLE, --title=TITLE
                         Specify the title of the notification message.
   -b BODY, --body=BODY  Specify the body of the notification message.
