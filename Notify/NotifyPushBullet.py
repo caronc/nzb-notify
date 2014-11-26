@@ -66,7 +66,10 @@ class NotifyPushBullet(NotifyBase):
         Perform PushBullet Notification
         """
 
-        headers = {'content-type': 'application/json'}
+        headers = {
+            'User-Agent': "NZBGet-Notify",
+            'Content-Type': 'application/json'
+        }
         auth = (self.accesstoken, '')
 
         for recipient in self.recipients:
