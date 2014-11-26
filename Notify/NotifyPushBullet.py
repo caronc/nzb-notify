@@ -50,7 +50,6 @@ class NotifyPushBullet(NotifyBase):
 
         self.accesstoken = accesstoken
         if isinstance(recipients, basestring):
-            print str(recipients)
             self.recipients = filter(bool, RECIPIENTS_LIST_DELIM.split(
                 recipients,
             ))
@@ -70,8 +69,6 @@ class NotifyPushBullet(NotifyBase):
         headers = {'content-type': 'application/json'}
         auth = (self.accesstoken, '')
 
-        print len(self.recipients)
-        print str(self.recipients)
         for recipient in self.recipients:
             # prepare JSON Object
             payload = {
