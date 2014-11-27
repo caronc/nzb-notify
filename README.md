@@ -31,9 +31,7 @@ location that content is retrieved from.
 | -------------------- | ---------- | ------------ | -------------- |
 | Growl                | growl://   | (UDP) 9887   | growl://hostname/appid <br /> growl://hostname:portno/appid               |
 | JSON (Simple)        | json://    | (TCP) 80 or 443 | json://hostname<br
-/>json://user@hostname<br
-/>json://user:password@hostname:port<br
-/>json://hostname/a/path/to/post/to |
+/>json://user@hostname<br/>json://user:password@hostname:port<br />json://hostname/a/path/to/post/to |
 | Prowl                | prowl://   | (TCP) 443    |                |
 | PushBullet           | pbul://    | (TCP) 443    |                |
 | [Pushover](https://pushover.net)   | pover://   | (TCP) 443   |                |
