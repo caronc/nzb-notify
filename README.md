@@ -29,12 +29,11 @@ location that content is retrieved from.
 
 | Notification Service | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
-| Growl                | growl://   | (UDP) 9887   | growl://hostname/appid
-growl://hostname:portno/appid               |
-| JSON (Simple)        | json://    | (TCP) 80 or 443 | json://hostname
-json://user@hostname
-json://user:password@hostname:port
-json://hostname/a/path/to/post/to |
+| Growl                | growl://   | (UDP) 9887   | growl://hostname/appid <br /> growl://hostname:portno/appid               |
+| JSON (Simple)        | json://    | (TCP) 80 or 443 | json://hostname<br
+/>json://user@hostname<br
+/>json://user:password@hostname:port<br
+/>json://hostname/a/path/to/post/to |
 | Prowl                | prowl://   | (TCP) 443    |                |
 | PushBullet           | pbul://    | (TCP) 443    |                |
 | [Pushover](https://pushover.net)   | pover://   | (TCP) 443   |                |
