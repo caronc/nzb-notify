@@ -29,13 +29,13 @@ location that content is retrieved from.
 
 | Notification Service | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
-| [Growl](http://growl.info/)  | growl://   | (UDP) 9887   | ''growl://hostname/appid''<br />''growl://hostname:portno/appid''
-| JSON (Simple)        | json:// or jsons://   | (TCP) 80 or 443 | ''json://hostname''<br />''json://user@hostname''<br />''json://user:password@hostname:port''<br />''json://hostname/a/path/to/post/to''
-| [Prowl](http://www.prowlapp.com/) | prowl://   | (TCP) 443    | ''prowl://apikey''<br />''prowl://apikey/providerkey''
-| [PushBullet](https://www.pushbullet.com/) | pbul://    | (TCP) 443    | ''pbul://accesstoken'' _sends to all devices_<br />''pbul://accesstoken/#channel'' _sends to a specific channel_<br/>''pbul://accesstoken/A_DEVICE_ID'' _sends to a specific device_<br />''pbul://accesstoken/email@address.com _sends to a specific email address_<br />pbul://accesstoken/#channel/#channel2/email@address.net/DEVICE'' _You can mix and match too_
-| [Pushover](https://pushover.net/)  | pover://   | (TCP) 443   | ''pover://user@token'' _you must specify both your user_id and token_
-| [XBMC](http://kodi.tv/) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | ''xbmc://hostname''<br />''xbmc://user@hostname''<br />''xbmc://user:password@hostname:port''
-| [KODI](http://kodi.tv/) | kodi:// or kodis://    | (TCP) 8080 or 443   | ''kodi://hostname''<br />''kodi://user@hostname''<br />''kodi://user:password@hostname:port''
+| [Growl](http://growl.info/)  | growl://   | (UDP) 9887   | **growl://hostname/appid**<br />**growl://hostname:portno/appid**
+| JSON (Simple)        | json:// or jsons://   | (TCP) 80 or 443 | **json://hostname**<br />**json://user@hostname**<br />**json://user:password@hostname:port**<br />**json://hostname/a/path/to/post/to**
+| [Prowl](http://www.prowlapp.com/) | prowl://   | (TCP) 443    | **prowl://apikey**<br />**prowl://apikey/providerkey**
+| [PushBullet](https://www.pushbullet.com/) | pbul://    | (TCP) 443    | **pbul://accesstoken** _sends to all devices_<br />**pbul://accesstoken/#channel** _sends to a specific channel_<br/>**pbul://accesstoken/A_DEVICE_ID** _sends to a specific device_<br />**pbul://accesstoken/email@address.com _sends to a specific email address_<br />pbul://accesstoken/#channel/#channel2/email@address.net/DEVICE** _You can mix and match too_
+| [Pushover](https://pushover.net/)  | pover://   | (TCP) 443   | **pover://user@token** _you must specify both your user_id and token_
+| [XBMC](http://kodi.tv/) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | **xbmc://hostname**<br />**xbmc://user@hostname**<br />**xbmc://user:password@hostname:port**
+| [KODI](http://kodi.tv/) | kodi:// or kodis://    | (TCP) 8080 or 443   | **kodi://hostname**<br />**kodi://user@hostname**<br />**kodi://user:password@hostname:port**
 
 Dependencies
 ============
