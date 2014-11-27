@@ -17,6 +17,10 @@ from NotifyBase import NotifyBase
 from NotifyBase import HTTP_ERROR_MAP
 from json import dumps as to_json
 import requests
+import re
+
+# Flag used as a placeholder to sending to all devices
+PUSHOVER_SEND_TO_ALL = 'ALL_DEVICES'
 
 # Pushover uses the http protocol with JSON requests
 PUSHOVER_URL = 'https://api.pushover.net/1/messages.json'
@@ -37,17 +41,32 @@ PUSHOVER_PRIORITIES = (
     PushoverPriority.EMERGENCY,
 )
 
+# Used to break path apart into list of devices
+DEVICE_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
+
 class NotifyPushover(NotifyBase):
     """
     A wrapper for Pushover Notifications
     """
-    def __init__(self, token, priority=PushoverPriority.NORMAL,
+    def __init__(self, token, devices=None,
+                 priority=PushoverPriority.NORMAL,
                  logger=True, **kwargs):
         super(NotifyPushover, self).__init__(logger=logger, **kwargs)
 
         # The token associated with the account
         self.token = token
 
+        if isinstance(devices, basestring):
+            self.devices = filter(bool, DEVICE_LIST_DELIM.split(
+                devices,
+            ))
+        elif isinstance(devices, (tuple, list)):
+            self.devices = devices
+        else:
+            self.devices = list()
+
+        if len(self.devices) == 0:
+            self.devices = (PUSHOVER_SEND_TO_ALL, )
         # The Priority of the message
         if priority not in PUSHOVER_PRIORITIES:
             self.priority = PushoverPriority.NORMAL
@@ -71,42 +90,48 @@ class NotifyPushover(NotifyBase):
         }
         auth = (self.token, '')
 
-        # prepare JSON Object
-        payload = {
-            'token': self.token,
-            'user': self.user,
-            'title': title,
-            'message': body,
-        }
+        for device in self.devices:
+            # prepare JSON Object
+            payload = {
+                'token': self.token,
+                'user': self.user,
+                'priority': self.priority,
+                'title': title,
+                'message': body,
+            }
 
-        try:
-            self.logger.debug('Pushover POST URL: %s' % PUSHOVER_URL)
-            r = requests.post(
-                PUSHOVER_URL,
-                data=to_json(payload),
-                headers=headers,
-                auth=auth,
-            )
-            if r.status_code != 200:
-                try:
-                    error_msg = HTTP_ERROR_MAP[r.status_code]
-                except IndexError:
-                    error_msg = 'Failed to send Pushover notification'
+            if device != PUSHOVER_SEND_TO_ALL:
+                # Send to a specific device
+                payload['device'] = device
 
-                self.logger.error('%s (error=%s)' % (
-                        error_msg,
-                        r.status_code,
-                ))
-                self.logger.debug(
-                    'Pushover Server returned error %s' % str(r.raw))
-            else:
-                self.logger.info('Sent Pushover notification successfully')
+            try:
+                self.logger.debug('Pushover POST URL: %s' % PUSHOVER_URL)
+                r = requests.post(
+                    PUSHOVER_URL,
+                    data=to_json(payload),
+                    headers=headers,
+                    auth=auth,
+                )
+                if r.status_code != 200:
+                    try:
+                        error_msg = HTTP_ERROR_MAP[r.status_code]
+                    except IndexError:
+                        error_msg = 'Failed to send Pushover notification'
 
-        except requests.ConnectionError as e:
-            self.logger.error(
-                'A Connection error occured sending Pushover ' + \
-                'notification.'
-            )
-            self.logger.debug('Socket Exception: %s' % str(e))
+                    self.logger.error('%s (error=%s)' % (
+                            error_msg,
+                            r.status_code,
+                    ))
+                    self.logger.debug(
+                        'Pushover Server returned error %s' % str(r.raw))
+                else:
+                    self.logger.info('Sent Pushover notification successfully')
+
+            except requests.ConnectionError as e:
+                self.logger.error(
+                    'A Connection error occured sending Pushover ' + \
+                    'notification.'
+                )
+                self.logger.debug('Socket Exception: %s' % str(e))
 
         return True

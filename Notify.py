@@ -161,8 +161,7 @@ SCHEMA_MAP = {
     NOTIFY_JSONS_SCHEMA: NotifyJSON,
 }
 
-# Used to break apart list of potential recipients by their delimiter
-# into a usable list.
+# Used to break a path list into parts
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
 class NotifyScript(PostProcessScript):
@@ -263,9 +262,15 @@ class NotifyScript(PostProcessScript):
             # Pushover Server Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PUSHOVER_SCHEMA:
+                try:
+                    devices = unquote(server['fullpath'])
+                except AttributeError:
+                    devices = ''
+
                 nobj = NotifyPushover(
                     # Notify Specific
                     token=server['host'],
+                    devices=devices,
 
                     # Logger Details
                     logger=self.logger,
