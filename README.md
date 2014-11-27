@@ -27,13 +27,19 @@ Supported Notify Services
 The table below identifies the provider _Notify.py_ supports and the
 location that content is retrieved from.
 
-| Service | Service ID | Default Port |
-| ------- | ---------- | ------------ |
-| Growl   | growl://   | (UDP) 9887   |
-| Prowl   | prowl://   | (TCP) 443   |
-| PushBullet   | pbul://   | (TCP) 443   |
-| XBMC    | xbmc://    | (TCP) 8080   |
-| KODI    | kodi://    | (TCP) 8080   |
+| Notification Service | Service ID | Default Port | Example Syntax |
+| -------------------- | ---------- | ------------ | -------------- |
+| Growl                | growl://   | (UDP) 9887   | ```growl://hostname/appid
+growl://hostname:portno/appid```               |
+| JSON (Simple)        | json://    | (TCP) 80 or 443 | ```json://hostname
+json://user@hostname
+json://user:password@hostname:port
+json://hostname/a/path/to/post/to```
+| Prowl                | prowl://   | (TCP) 443    |                |
+| PushBullet           | pbul://    | (TCP) 443    |                |
+| [Pushover](https://pushover.net)   | pover://   | (TCP) 443   |                |
+| XBMC                 | xbmc://    | (TCP) 8080   |                |
+| KODI                 | kodi://    | (TCP) 8080   |                |
 
 Dependencies
 ============

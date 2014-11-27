@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 #
-# Prowl Notify Wrapper
+# Pushover Notify Wrapper
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
@@ -14,104 +14,97 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 from NotifyBase import NotifyBase
+from NotifyBase import HTTP_ERROR_MAP
 from json import dumps as to_json
-
 import requests
 
-# Prowl uses the http protocol with JSON requests
-PROWL_URL = 'https://api.prowlapp.com/publicapi/add'
+# Pushover uses the http protocol with JSON requests
+PUSHOVER_URL = 'https://api.pushover.net/1/messages.json'
 
 # Priorities
-class ProwlPriority(object):
+class PushoverPriority(object):
     VERY_LOW = -2
     MODERATE = -1
     NORMAL = 0
     HIGH = 1
     EMERGENCY = 2
 
-PROWL_PRIORITIES = (
-    ProwlPriority.VERY_LOW,
-    ProwlPriority.MODERATE,
-    ProwlPriority.NORMAL,
-    ProwlPriority.HIGH,
-    ProwlPriority.EMERGENCY,
+PUSHOVER_PRIORITIES = (
+    PushoverPriority.VERY_LOW,
+    PushoverPriority.MODERATE,
+    PushoverPriority.NORMAL,
+    PushoverPriority.HIGH,
+    PushoverPriority.EMERGENCY,
 )
 
-PROWL_ERROR_MAP = {
-    400: 'Bad Request; Unsupported Parameters',
-    401: 'Verification Failed',
-    406: 'IP address has exceeded API limit',
-    409: 'Request not aproved.',
-    500: 'Internal server error.',
-}
-
-class NotifyProwl(NotifyBase):
+class NotifyPushover(NotifyBase):
     """
-    A wrapper for Prowl Notifications
+    A wrapper for Pushover Notifications
     """
-    def __init__(self, apikey, providerkey=None,
-                 priority=ProwlPriority.NORMAL,
+    def __init__(self, token, priority=PushoverPriority.NORMAL,
                  logger=True, **kwargs):
+        super(NotifyPushover, self).__init__(logger=logger, **kwargs)
 
-        super(NotifyProwl, self).__init__(logger=logger, **kwargs)
+        # The token associated with the account
+        self.token = token
 
-        if priority not in PROWL_PRIORITIES:
-            self.priority = ProwlPriority.NORMAL
+        # The Priority of the message
+        if priority not in PUSHOVER_PRIORITIES:
+            self.priority = PushoverPriority.NORMAL
         else:
             self.priority = priority
 
-        self.apikey = apikey
-        self.providerkey = providerkey
+        if not self.user:
+            raise TypeError('No user was specified.')
+
+        if not self.token:
+            raise TypeError('No token was specified.')
 
     def notify(self, title, body, **kwargs):
         """
-        Perform Prowl Notification
+        Perform Pushover Notification
         """
 
         headers = {
             'User-Agent': "NZBGet-Notify",
             'Content-Type': 'application/json',
         }
-        auth = (self.apikey, '')
+        auth = (self.token, '')
 
         # prepare JSON Object
         payload = {
-            'apikey': self.apikey,
-            'description': body,
-            'application': 'NZBGet-Notify',
-            'event': title,
-            'priority': self.priority,
+            'token': self.token,
+            'user': self.user,
+            'title': title,
+            'message': body,
         }
 
-        if self.providerkey:
-            payload['providerkey'] = self.providerkey
-
         try:
-            self.logger.debug('Prowl POST URL: %s' % PROWL_URL)
+            self.logger.debug('Pushover POST URL: %s' % PUSHOVER_URL)
             r = requests.post(
-                PROWL_URL,
+                PUSHOVER_URL,
                 data=to_json(payload),
                 headers=headers,
                 auth=auth,
             )
             if r.status_code != 200:
                 try:
-                    error_msg = PROWL_ERROR_MAP[r.status_code]
+                    error_msg = HTTP_ERROR_MAP[r.status_code]
                 except IndexError:
-                    error_msg = 'Failed to send Prowl notification'
+                    error_msg = 'Failed to send Pushover notification'
 
                 self.logger.error('%s (error=%s)' % (
                         error_msg,
                         r.status_code,
                 ))
                 self.logger.debug(
-                    'Prowl Server returned error %s' % str(r.raw))
+                    'Pushover Server returned error %s' % str(r.raw))
             else:
-                self.logger.info('Sent Prowl notification successfully')
+                self.logger.info('Sent Pushover notification successfully')
 
         except requests.ConnectionError as e:
             self.logger.error(
-                'A Connection error occured sending Prowl ' + \
+                'A Connection error occured sending Pushover ' + \
                 'notification.'
             )
             self.logger.debug('Socket Exception: %s' % str(e))

@@ -57,6 +57,7 @@
 #  - xbmc:// -> An XBMC Server
 #  - kodi:// -> An KODI Server (XBMC Server)
 #  - pbul:// -> A PushBullet Notification
+#  - pover:// -> A Pushover Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A simple secure json query
 
@@ -72,13 +73,16 @@
 # remote server.  This is specified inline with the service request like
 # so:
 #  - pbul://accesstoken
+#
 # NOTE: PushBullet can support emails, devices and channels, you can also
 # do this by specifying them on the path; as an example (mix and match
 # as you feel). If no path is specified, then it is assumed you want to
 # notify all deies.:
 #  - pbul://accesstoken/#channel/#channel2/device/email@email.com
-
-# identifed is always used instead.
+#
+# NOTE: Pushover notifications require a user and a token to work
+# correctly. The following syntax will handle this for you:
+# - pover://user@token
 #
 # Specify the URL that identifies all of the servers you wish to notify.
 #Servers=
@@ -118,6 +122,7 @@ from NotifyGrowl import NotifyGrowl
 from NotifyJSON import NotifyJSON
 from NotifyProwl import NotifyProwl
 from NotifyPushBullet import NotifyPushBullet
+from NotifyPushover import NotifyPushover
 from NotifyXBMC import NotifyXBMC
 
 GROWL_APPLICATION = 'NZBGet'
@@ -129,6 +134,7 @@ NOTIFY_KODI_SCHEMA = 'kodi'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 NOTIFY_KODIS_SCHEMA = 'kodis'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
+NOTIFY_PUSHOVER_SCHEMA = 'pover'
 NOTIFY_JSON_SCHEMA = 'json'
 NOTIFY_JSONS_SCHEMA = 'jsons'
 
@@ -147,6 +153,8 @@ SCHEMA_MAP = {
     NOTIFY_XBMCS_SCHEMA: NotifyXBMC,
     # PushBullet Server
     NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
+    # Pushover Server
+    NOTIFY_PUSHOVER_SCHEMA: NotifyPushover,
     # Simple JSON HTTP Server
     NOTIFY_JSON_SCHEMA: NotifyJSON,
     # Simple Secure JSON HTTP Server
@@ -244,6 +252,20 @@ class NotifyScript(PostProcessScript):
                     # Notify Specific
                     accesstoken=server['host'],
                     recipients=recipients,
+
+                    # Logger Details
+                    logger=self.logger,
+
+                    # Base
+                    **server)
+
+            # #######################################################################
+            # Pushover Server Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_PUSHOVER_SCHEMA:
+                nobj = NotifyPushover(
+                    # Notify Specific
+                    token=server['host'],
 
                     # Logger Details
                     logger=self.logger,

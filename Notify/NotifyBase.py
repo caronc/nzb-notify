@@ -18,6 +18,12 @@
 from logging import Logger
 from nzbget.Logger import init_logger
 
+HTTP_ERROR_MAP = {
+    400: 'Bad Request; Unsupported Parameters',
+    401: 'Verification Failed',
+    500: 'Internal server error.',
+}
+
 class NotifyBase(object):
     """
     This is the base class for all notification services
