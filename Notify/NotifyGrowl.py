@@ -29,13 +29,10 @@ class NotifyGrowl(NotifyBase):
     A wrapper to Growl Notifications
 
     """
-    def __init__(self, host, application_id, notification_title,
-                 port=GROWL_UDP_PORT, password=None, logger=True,
+    def __init__(self, application_id, notification_title, logger=True,
                  **kwargs):
 
-        super(NotifyGrowl, self).__init__(
-            host=host, port=port, password=password,
-            logger=logger, **kwargs)
+        super(NotifyGrowl, self).__init__(logger=logger, **kwargs)
 
         if not self.port:
             self.port = GROWL_UDP_PORT
@@ -68,9 +65,8 @@ class NotifyGrowl(NotifyBase):
         try:
             s.sendto(self.reg_packet.payload(), addr)
             s.sendto(notify_packet.payload(), addr)
-            self.logger.debug('Sent Growl alert to %s:%d' % (
+            self.logger.debug('Sent Growl notification to %s' % (
                 self.host,
-                self.port,
             ))
 
         except SocketError as e:
@@ -82,10 +78,10 @@ class NotifyGrowl(NotifyBase):
             # however, if the host/server is unavailable, you will
             # get to this point of the code.
             self.logger.error(
-                'Failed to send Growl alert to %s:%d' % (
+                'A Connection error occured sending Growl ' + \
+                'notification to %s.' % (
                     self.host,
-                    self.port,
-                ))
+            ))
             self.logger.debug('Socket Exception: %s' % str(e))
             return False
 

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 #
-# XBMC Notify Wrapper
+# JSON Notify Wrapper
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
@@ -15,55 +15,41 @@
 
 from NotifyBase import NotifyBase
 from json import dumps as to_json
-
 import requests
 
-# XBMC uses the http protocol with JSON requests
-XBMC_PORT = 8080
-
-XBMC_ERROR_MAP = {
-    400: 'Bad Request; Unsupported Parameters',
-    401: 'Verification Failed',
-    500: 'Internal server error.',
-}
-
-class NotifyXBMC(NotifyBase):
+class NotifyJSON(NotifyBase):
     """
-    A wrapper for XBMC Notifications
+    A wrapper for JSON Notifications
     """
     def __init__(self, **kwargs):
-
-        super(NotifyXBMC, self).__init__(**kwargs)
+        super(NotifyJSON, self).__init__(**kwargs)
 
         if self.secure:
             self.schema = 'https'
         else:
             self.schema = 'http'
 
-        if not self.port:
-            self.port = XBMC_PORT
+        self.fullpath = kwargs.get('fullpath')
+        if not isinstance(self.fullpath, basestring):
+            self.fullpath = '/'
 
         return
 
     def notify(self, title, body, **kwargs):
         """
-        Perform XBMC Notification
+        Perform JSON Notification
         """
 
         # prepare JSON Object
         payload = {
-            'jsonrpc': '2.0',
-            'method': 'GUI.ShowNotification',
-            'params': {
-                'title': title,
-                'message': body,
-                # displaytime is defined in microseconds
-                'displaytime': 12000,
-            },
-            'id': 1,
+            'title': title,
+            'message': body,
         }
 
-        headers = {'content-type': 'application/json'}
+        headers = {
+            'User-Agent': "NZBGet-Notify",
+            'Content-Type': 'application/json',
+        }
 
         auth = None
         if self.user:
@@ -73,10 +59,10 @@ class NotifyXBMC(NotifyBase):
         if isinstance(self.port, int):
             url += ':%d' % self.port
 
-        url += '/jsonrpc'
+        url += self.fullpath
 
         try:
-            self.logger.debug('XBMC POST URL: %s' % url)
+            self.logger.debug('JSON POST URL: %s' % url)
             r = requests.post(
                 url,
                 data=to_json(payload),
@@ -84,26 +70,22 @@ class NotifyXBMC(NotifyBase):
                 auth=auth,
             )
             if r.status_code != 200:
-                try:
-                    error_msg = XBMC_ERROR_MAP[r.status_code]
-                except IndexError:
-                    error_msg = 'Failed to send XBMC notification'
-
-                self.logger.error('%s (error=%s)' % (
-                        error_msg,
+                self.logger.error(
+                    'JSON Server failed to acknowledge notification at ' + \
+                    '%s (error=%s)' % (
+                        self.host,
                         r.status_code,
                 ))
-
                 self.logger.debug(
-                    'XBMC Server returned error %s' % str(r.raw))
+                    'JSON Server returned error %s' % str(r.raw))
                 return False
 
         except requests.ConnectionError as e:
             self.logger.error(
-                'A Connection error occured sending XBMC ' + \
-                'notification to %s.' %
+                'A Connection error occured sending JSON ' + \
+                'notification to %s.' % (
                     self.host,
-            )
+            ))
             self.logger.debug('Socket Exception: %s' % str(e))
             return False
 

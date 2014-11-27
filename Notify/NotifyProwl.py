@@ -49,12 +49,10 @@ class NotifyProwl(NotifyBase):
     """
     A wrapper for Prowl Notifications
     """
-    def __init__(self, apikey, providerkey=None,
-                 priority=ProwlPriority.NORMAL,
+    def __init__(self, apikey, providerkey=None, priority=ProwlPriority.NORMAL,
                  logger=True, **kwargs):
 
-        super(NotifyProwl, self).__init__(
-            host='localhost', logger=logger, **kwargs)
+        super(NotifyProwl, self).__init__(logger=logger, **kwargs)
 
         if priority not in PROWL_PRIORITIES:
             self.priority = ProwlPriority.NORMAL
@@ -88,6 +86,7 @@ class NotifyProwl(NotifyBase):
             payload['providerkey'] = self.providerkey
 
         try:
+            self.logger.debug('Prowl POST URL: %s' % PROWL_URL)
             r = requests.post(
                 PROWL_URL,
                 data=to_json(payload),
@@ -107,11 +106,12 @@ class NotifyProwl(NotifyBase):
                 self.logger.debug(
                     'Prowl Server returned error %s' % str(r.raw))
             else:
-                self.logger.info('Sent Prowl successfully')
+                self.logger.info('Sent Prowl notification successfully')
 
         except requests.ConnectionError as e:
             self.logger.error(
-                'Failed to send Prowl alert to'
+                'A Connection error occured sending Prowl ' + \
+                'notification.'
             )
             self.logger.debug('Socket Exception: %s' % str(e))
 

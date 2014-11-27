@@ -42,11 +42,8 @@ class NotifyPushBullet(NotifyBase):
     """
     A wrapper for PushBullet Notifications
     """
-    def __init__(self, accesstoken, recipients=None,
-                 logger=True, **kwargs):
-
-        super(NotifyPushBullet, self).__init__(
-            host=accesstoken, logger=logger, **kwargs)
+    def __init__(self, accesstoken, recipients=None, logger=True, **kwargs):
+        super(NotifyPushBullet, self).__init__(logger=logger, **kwargs)
 
         self.accesstoken = accesstoken
         if isinstance(recipients, basestring):
@@ -106,6 +103,7 @@ class NotifyPushBullet(NotifyBase):
                 )
 
             try:
+                self.logger.debug('PushBullet POST URL: %s' % PUSHBULLET_URL)
                 r = requests.post(
                     PUSHBULLET_URL,
                     data=to_json(payload),
@@ -122,12 +120,14 @@ class NotifyPushBullet(NotifyBase):
                         'PushBullet Server returned error %s' % str(r.raw))
                 else:
                     self.logger.info(
-                        'Sent PushBullet:%s successfully' % recipient,
-                    )
+                        'Sent PushBullet:%s notification successfully' % (
+                            recipient,
+                    ))
 
             except requests.ConnectionError as e:
                 self.logger.error(
-                    'Failed to send PushBullet alert to'
+                    'A Connection error occured sending PushBullet ' + \
+                    'notification.'
                 )
                 self.logger.debug('Socket Exception: %s' % str(e))
 

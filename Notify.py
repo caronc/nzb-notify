@@ -43,7 +43,7 @@
 # one, simply use a comma and/or space to delimit the addresses. If the
 # server uses a non-standard port, use colon (:PORT) at the end of
 # the servers that this applies to. Some servers require a login and
-# password to work correctly, the username can also be specified in the
+# password to work correctly, the user can also be specified in the
 # url as well. The following values are valid:
 #  - service://user@host:port
 #  - service://password@host:port
@@ -53,9 +53,12 @@
 #
 # The following services are currently supported:
 #  - growl:// -> A Growl Server
+#  - prowl:// -> A Prowl Server
 #  - xbmc:// -> An XBMC Server
 #  - kodi:// -> An KODI Server (XBMC Server)
 #  - pbul:// -> A PushBullet Notification
+#  - json:// -> A simple json query
+#  - jsons:// -> A simple secure json query
 
 # NOTE: If no port is specified, then the default port for the service
 # identifed is always used instead.
@@ -112,6 +115,7 @@ from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
 
 from NotifyGrowl import NotifyGrowl
+from NotifyJSON import NotifyJSON
 from NotifyProwl import NotifyProwl
 from NotifyPushBullet import NotifyPushBullet
 from NotifyXBMC import NotifyXBMC
@@ -125,6 +129,9 @@ NOTIFY_KODI_SCHEMA = 'kodi'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 NOTIFY_KODIS_SCHEMA = 'kodis'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
+NOTIFY_JSON_SCHEMA = 'json'
+NOTIFY_JSONS_SCHEMA = 'jsons'
+
 SCHEMA_MAP = {
     # KODI Server
     NOTIFY_KODI_SCHEMA: NotifyXBMC,
@@ -140,6 +147,10 @@ SCHEMA_MAP = {
     NOTIFY_XBMCS_SCHEMA: NotifyXBMC,
     # PushBullet Server
     NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
+    # Simple JSON HTTP Server
+    NOTIFY_JSON_SCHEMA: NotifyJSON,
+    # Simple Secure JSON HTTP Server
+    NOTIFY_JSONS_SCHEMA: NotifyJSON,
 }
 
 # Used to break apart list of potential recipients by their delimiter
@@ -181,19 +192,15 @@ class NotifyScript(PostProcessScript):
             # #######################################################################
             if server['schema'] == NOTIFY_GROWL_SCHEMA:
                 nobj = NotifyGrowl(
-                    # Base
-                    host=server['host'],
-                    port=server['port'],
-                    username=server['user'],
-                    password=server['password'],
-
                     # Notify Specific
                     application_id=GROWL_APPLICATION,
                     notification_title=GROWL_NOTIFICATION,
 
                     # Logger Details
                     logger=self.logger,
-                )
+
+                    # Base
+                    **server)
 
             # #######################################################################
             # PROWL Server Support
@@ -209,79 +216,55 @@ class NotifyScript(PostProcessScript):
                     if not providerkey:
                         providerkey = None
 
-                except IndexError:
+                except (AttributeError, IndexError):
                     providerkey = None
 
 
                 nobj = NotifyProwl(
-                    # Base
-                    port=server['port'],
-                    username=server['user'],
-                    password=server['password'],
-
                     # Notify Specific
                     apikey=server['host'],
                     providerkey=providerkey,
 
                     # Logger Details
                     logger=self.logger,
-                )
+
+                    # Base
+                    **server)
 
             # #######################################################################
             # PushBullet Server Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PUSHBULLET_SCHEMA:
-                nobj = NotifyPushBullet(
-                    # Base
-                    port=server['port'],
-                    username=server['user'],
-                    password=server['password'],
+                try:
+                    recipients = unquote(server['fullpath'])
+                except AttributeError:
+                    recipients = ''
 
+                nobj = NotifyPushBullet(
                     # Notify Specific
                     accesstoken=server['host'],
-                    recipients=unquote(server['fullpath']),
+                    recipients=recipients,
 
                     # Logger Details
                     logger=self.logger,
-                )
 
-            # #######################################################################
-            # KODI (XBMC) Server Support
-            # #######################################################################
-            elif server['schema'] in (
-                NOTIFY_XBMC_SCHEMA, NOTIFY_XBMCS_SCHEMA,
-                NOTIFY_KODI_SCHEMA, NOTIFY_KODIS_SCHEMA):
-
-                # Secure Flag
-                secure = (server['schema'] in (NOTIFY_XBMCS_SCHEMA,
-                                               NOTIFY_KODIS_SCHEMA))
-
-                nobj = NotifyXBMC(
                     # Base
-                    host=server['host'],
-                    port=server['port'],
-                    username=server['user'],
-                    password=server['password'],
+                    **server)
 
-                    # Notify Specific
+            # #######################################################################
+            # GENERAL / COMMON Server Support
+            # #######################################################################
+            else:
+                secure = (server['schema'][-1] == 's')
+                nobj = SCHEMA_MAP[server['schema']](
+                    # General
                     secure=secure,
 
                     # Logger Details
                     logger=self.logger,
-                )
 
-            else:
-                # General support
-                nobj = SCHEMA_MAP[server['schema']](
                     # Base
-                    host=server['host'],
-                    port=server['port'],
-                    username=server['user'],
-                    password=server['password'],
-
-                    # Logger Details
-                    logger=self.logger,
-                )
+                    **server)
 
             nobj.notify(body=body, title=title)
 

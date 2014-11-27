@@ -23,24 +23,24 @@ class NotifyBase(object):
     This is the base class for all notification services
     """
 
-    def __init__(self, host, port=None, username=None, password=None,
-                 logger=True, debug=False, **kwargs):
+    def __init__(self, logger=True, secure=False, debug=False, **kwargs):
         """
         Initialize some general logging and common server arguments
         that will keep things consistent when working with the
         notifiers that will inherit this class
         """
 
-        self.host = host
-        self.port = None
-        if port:
+        self.host = kwargs.get('host', '')
+        self.port = kwargs.get('port')
+        if self.port:
             try:
-                self.port = port
+                self.port = int(self.port)
             except (TypeError, ValueError):
                 self.port = None
 
-        self.username = username
-        self.password = password
+        self.user = kwargs.get('user')
+        self.password = kwargs.get('password')
+        self.secure = (secure == True)
 
         # logger identifier
         self.logger_id = __name__
