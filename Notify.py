@@ -121,6 +121,7 @@ from nzbget import PostProcessScript
 from NotifyGrowl import NotifyGrowl
 from NotifyJSON import NotifyJSON
 from NotifyProwl import NotifyProwl
+from NotifyToasty import NotifyToasty
 from NotifyPushBullet import NotifyPushBullet
 from NotifyPushover import NotifyPushover
 from NotifyXBMC import NotifyXBMC
@@ -133,6 +134,7 @@ NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_KODI_SCHEMA = 'kodi'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 NOTIFY_KODIS_SCHEMA = 'kodis'
+NOTIFY_TOASTY_SCHEMA = 'toasty'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 NOTIFY_PUSHOVER_SCHEMA = 'pover'
 NOTIFY_JSON_SCHEMA = 'json'
@@ -147,6 +149,8 @@ SCHEMA_MAP = {
     NOTIFY_GROWL_SCHEMA: NotifyGrowl,
     # Prowl Server
     NOTIFY_PROWL_SCHEMA: NotifyProwl,
+    # Toasty Server
+    NOTIFY_TOASTY_SCHEMA: NotifyToasty,
     # XBMC Server
     NOTIFY_XBMC_SCHEMA: NotifyXBMC,
     # Secure XBMC Server
@@ -271,6 +275,25 @@ class NotifyScript(PostProcessScript):
                     # Notify Specific
                     token=server['host'],
                     devices=devices,
+
+                    # Logger Details
+                    logger=self.logger,
+
+                    # Base
+                    **server)
+
+            # #######################################################################
+            # Toasty Server Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_TOASTY_SCHEMA:
+                try:
+                    devices = unquote(server['fullpath'])
+                except AttributeError:
+                    devices = ''
+
+                nobj = NotifyToasty(
+                    # Notify Specific
+                    devices='%s/%s' % (server['host'], devices),
 
                     # Logger Details
                     logger=self.logger,

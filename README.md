@@ -31,11 +31,12 @@ location that content is retrieved from.
 | -------------------- | ---------- | ------------ | -------------- |
 | [Growl](http://growl.info/)  | growl://   | (UDP) 9887   | growl://hostname/appid<br />growl://hostname:portno/appid
 | JSON (Simple)        | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
+| [KODI](http://kodi.tv/) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
 | [Prowl](http://www.prowlapp.com/) | prowl://   | (TCP) 443    | prowl://apikey<br />prowl://apikey/providerkey
 | [PushBullet](https://www.pushbullet.com/) | pbul://    | (TCP) 443    | pbul://accesstoken<br />pbul://accesstoken/#channel<br/>pbul://accesstoken/A_DEVICE_ID<br />pbul://accesstoken/email@address.com<br />pbul://accesstoken/#channel/#channel2/email@address.net/DEVICE
 | [Pushover](https://pushover.net/)  | pover://   | (TCP) 443   | pover://user@token<br />pover://user@token/DEVICE<br />pover://user@token/DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and token_
+| [Toasty](http://api.supertoasty.com/)  | toasty://   | (TCP) 80   | toasty://user@DEVICE<br />toasty://user@DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and at least 1 device!_
 | [XBMC](http://kodi.tv/) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | xbmc://hostname<br />xbmc://user@hostname<br />xbmc://user:password@hostname:port
-| [KODI](http://kodi.tv/) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
 
 Dependencies
 ============
