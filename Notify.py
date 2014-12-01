@@ -56,6 +56,7 @@
 # The following services are currently supported:
 #  - boxcar:// -> A Boxcar Notification
 #  - boxcars:// -> A secure Boxcar Notification
+#  - faast:// -> A Faast Notification
 #  - growl:// -> A Growl Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A simple secure json query
