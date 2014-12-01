@@ -79,7 +79,6 @@ class NotifyPushalot(NotifyBase):
             'User-Agent': self.app_id,
             'Content-Type': 'application/json'
         }
-        auth = (self.authtoken, '')
 
         # prepare JSON Object
         payload = {
@@ -103,7 +102,6 @@ class NotifyPushalot(NotifyBase):
                 PUSHALOT_URL,
                 data=dumps(payload),
                 headers=headers,
-                auth=auth,
             )
             if r.status_code != 200:
                 # We had a problem
