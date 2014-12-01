@@ -94,7 +94,7 @@ class NotifyToasty(NotifyBase):
                     notify_type,
                 )
                 if image_url:
-                    payload['image'] = image_url
+                    payload['imageurl'] = image_url
 
             # URL to transmit content via
             url = '%s%s' % (TOASTY_URL, device)
