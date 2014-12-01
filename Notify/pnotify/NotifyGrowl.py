@@ -4,20 +4,27 @@
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# This file is part of NZBGet-Notify.
+#
+# NZBGet-Notify is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# NZBGet-Notify is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
 from NotifyBase import NotifyBase
 
 from netgrowl.netgrowl import GrowlNotificationPacket
 from netgrowl.netgrowl import GrowlRegistrationPacket
 from netgrowl.netgrowl import GROWL_UDP_PORT
+from NotifyBase import NotifyFormat
 
 from socket import AF_INET
 from socket import SOCK_DGRAM
@@ -29,32 +36,33 @@ class NotifyGrowl(NotifyBase):
     A wrapper to Growl Notifications
 
     """
-    def __init__(self, application_id, notification_title, logger=True,
-                 **kwargs):
-
-        super(NotifyGrowl, self).__init__(logger=logger, **kwargs)
+    def __init__(self, **kwargs):
+        """
+        Initialize Growl Object
+        """
+        super(NotifyGrowl, self).__init__(
+            title_maxlen=250, body_maxlen=32768,
+            notify_format=NotifyFormat.TEXT,
+            **kwargs)
 
         if not self.port:
             self.port = GROWL_UDP_PORT
 
-        self.application_id = application_id
-        self.notification_title = notification_title
-
         # Initialize Growl Registration Packet
         self.reg_packet = GrowlRegistrationPacket(
-            application=self.application_id,
+            application=self.app_id,
             password=self.password,
         )
         return
 
-    def notify(self, title, body, **kwargs):
+    def _notify(self, title, body, **kwargs):
         """
         Perform Growl Notification
         """
         # Initialize Growl Notification Packet
         notify_packet = GrowlNotificationPacket(
-            application=self.application_id,
-            notification=self.notification_title,
+            application=self.app_id,
+            notification=self.app_desc,
             title=title,
             description=body,
         )
@@ -65,7 +73,7 @@ class NotifyGrowl(NotifyBase):
         try:
             s.sendto(self.reg_packet.payload(), addr)
             s.sendto(notify_packet.payload(), addr)
-            self.logger.debug('Sent Growl notification to %s' % (
+            self.logger.info('Sent Growl notification to "%s".' % (
                 self.host,
             ))
 
@@ -77,12 +85,14 @@ class NotifyGrowl(NotifyBase):
 
             # however, if the host/server is unavailable, you will
             # get to this point of the code.
-            self.logger.error(
+            self.logger.warning(
                 'A Connection error occured sending Growl ' + \
                 'notification to %s.' % (
                     self.host,
             ))
             self.logger.debug('Socket Exception: %s' % str(e))
+
+            # Return; we're done
             return False
 
         finally:

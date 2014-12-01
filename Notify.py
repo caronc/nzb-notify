@@ -5,19 +5,20 @@
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# This file is part of NZBGet-Notify.
+#
+# NZBGet-Notify is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# NZBGet-Notify is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with subliminal.  If not, see <http://www.gnu.org/licenses/>.
-#
+# You should have received a copy of the GNU General Public License
+# along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
 ###########################################################################
 ### NZBGET POST-PROCESSING SCRIPT
@@ -56,7 +57,9 @@
 #  - prowl:// -> A Prowl Server
 #  - xbmc:// -> An XBMC Server
 #  - kodi:// -> An KODI Server (XBMC Server)
+#  - palot:// -> A Pushalot Notification
 #  - pbul:// -> A PushBullet Notification
+#  - toasty:// -> A (Super) Toasty Notification
 #  - pover:// -> A Pushover Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A simple secure json query
@@ -69,6 +72,12 @@
 # to actually send something to your Mac, so make sure you have "Allow
 # application registration" enabled on Growl's preference pane. Additionally,
 # you should make sure that you set a password.
+# NOTE: Pushalot requires an authorization token it uses to comuncate with the
+# remote server.  This is specified inline with the service request like
+# so:
+#  - palot://authorizationtoken
+#
+# NOTE: PushBullet can support emails, devices and channels, you can also
 # NOTE: PushBullet requires a access token it uses to comuncate with the
 # remote server.  This is specified inline with the service request like
 # so:
@@ -89,15 +98,22 @@
 
 # Send Notification on Failure (yes, no).
 #
-# Instruct the script to send a growl notification in the event the download
+# Instruct the script to send a notification in the event the download
 # failed.
 #OnFailure=yes
 
 # Send Notification on Success (yes, no).
 #
-# Instruct the script to send a growl notification in the event the download
+# Instruct the script to send a notification in the event the download
 # was successful.
 #OnSuccess=yes
+
+# Send a notification image when supported (yes, no).
+#
+# Instruct the script to include a supported image with the notification
+# if the protocol supports it. This is done by referencing a remote
+# (secure) URL on the internet.
+#IncludeImage=yes
 
 # Enable debugging mode (yes, no).
 #
@@ -118,27 +134,24 @@ sys.path.insert(0, join(dirname(__file__), 'Notify'))
 from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
 
-from NotifyGrowl import NotifyGrowl
-from NotifyJSON import NotifyJSON
-from NotifyProwl import NotifyProwl
-from NotifyToasty import NotifyToasty
-from NotifyPushBullet import NotifyPushBullet
-from NotifyPushover import NotifyPushover
-from NotifyXBMC import NotifyXBMC
+# Inherit Push Notification Scripts
+from pnotify import *
 
 GROWL_APPLICATION = 'NZBGet'
 GROWL_NOTIFICATION = 'Post-Process NZBGet Notification'
+
 NOTIFY_GROWL_SCHEMA = 'growl'
 NOTIFY_PROWL_SCHEMA = 'prowl'
-NOTIFY_XBMC_SCHEMA = 'xbmc'
-NOTIFY_KODI_SCHEMA = 'kodi'
-NOTIFY_XBMCS_SCHEMA = 'xbmcs'
-NOTIFY_KODIS_SCHEMA = 'kodis'
-NOTIFY_TOASTY_SCHEMA = 'toasty'
-NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
-NOTIFY_PUSHOVER_SCHEMA = 'pover'
 NOTIFY_JSON_SCHEMA = 'json'
 NOTIFY_JSONS_SCHEMA = 'jsons'
+NOTIFY_KODI_SCHEMA = 'kodi'
+NOTIFY_KODIS_SCHEMA = 'kodis'
+NOTIFY_PUSHALOT_SCHEMA = 'palot'
+NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
+NOTIFY_PUSHOVER_SCHEMA = 'pover'
+NOTIFY_TOASTY_SCHEMA = 'toasty'
+NOTIFY_XBMC_SCHEMA = 'xbmc'
+NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 
 SCHEMA_MAP = {
     # KODI Server
@@ -155,6 +168,8 @@ SCHEMA_MAP = {
     NOTIFY_XBMC_SCHEMA: NotifyXBMC,
     # Secure XBMC Server
     NOTIFY_XBMCS_SCHEMA: NotifyXBMC,
+    # Pushalot Server
+    NOTIFY_PUSHALOT_SCHEMA: NotifyPushalot,
     # PushBullet Server
     NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
     # Pushover Server
@@ -172,7 +187,7 @@ class NotifyScript(PostProcessScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
     """
-    def notify(self, servers, body, title):
+    def notify(self, servers, body, title, include_image):
         """
         processes list of servers specified
         """
@@ -198,21 +213,22 @@ class NotifyScript(PostProcessScript):
                 )
                 continue
 
+            notify_args = server.copy().items() + {
+                # Logger Details
+                'logger': self.logger,
+                # Base
+                'include_image': include_image,
+                'secure': (server['schema'][-1] == 's'),
+            }.items()
+
             # #######################################################################
             # GROWL Server Support
             # #######################################################################
             if server['schema'] == NOTIFY_GROWL_SCHEMA:
-                nobj = NotifyGrowl(
-                    # Notify Specific
-                    application_id=GROWL_APPLICATION,
-                    notification_title=GROWL_NOTIFICATION,
-
-                    # Logger Details
-                    logger=self.logger,
-
-                    # Base
-                    **server)
-
+                notify_args = notify_args + {
+                    'application_id': GROWL_APPLICATION,
+                    'notification_title': GROWL_NOTIFICATION,
+                }.items()
             # #######################################################################
             # PROWL Server Support
             # #######################################################################
@@ -230,17 +246,23 @@ class NotifyScript(PostProcessScript):
                 except (AttributeError, IndexError):
                     providerkey = None
 
+                notify_args = notify_args + {
+                    'apikey': server['host'],
+                    'providerkey': providerkey,
+                }.items()
 
-                nobj = NotifyProwl(
-                    # Notify Specific
-                    apikey=server['host'],
-                    providerkey=providerkey,
+            # #######################################################################
+            # Pushalot Server Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_PUSHALOT_SCHEMA:
+                try:
+                    recipients = unquote(server['fullpath'])
+                except AttributeError:
+                    recipients = ''
 
-                    # Logger Details
-                    logger=self.logger,
-
-                    # Base
-                    **server)
+                notify_args = notify_args + {
+                    'authtoken': server['host'],
+                }.items()
 
             # #######################################################################
             # PushBullet Server Support
@@ -251,16 +273,10 @@ class NotifyScript(PostProcessScript):
                 except AttributeError:
                     recipients = ''
 
-                nobj = NotifyPushBullet(
-                    # Notify Specific
-                    accesstoken=server['host'],
-                    recipients=recipients,
-
-                    # Logger Details
-                    logger=self.logger,
-
-                    # Base
-                    **server)
+                notify_args = notify_args + {
+                    'accesstoken': server['host'],
+                    'recipients': recipients,
+                }.items()
 
             # #######################################################################
             # Pushover Server Support
@@ -271,16 +287,10 @@ class NotifyScript(PostProcessScript):
                 except AttributeError:
                     devices = ''
 
-                nobj = NotifyPushover(
-                    # Notify Specific
-                    token=server['host'],
-                    devices=devices,
-
-                    # Logger Details
-                    logger=self.logger,
-
-                    # Base
-                    **server)
+                notify_args = notify_args + {
+                    'token': server['host'],
+                    'devices': devices,
+                }.items()
 
             # #######################################################################
             # Toasty Server Support
@@ -291,30 +301,16 @@ class NotifyScript(PostProcessScript):
                 except AttributeError:
                     devices = ''
 
-                nobj = NotifyToasty(
-                    # Notify Specific
-                    devices='%s/%s' % (server['host'], devices),
+                notify_args = notify_args + {
+                    'devices': '%s/%s' % (server['host'], devices),
+                }.items()
 
-                    # Logger Details
-                    logger=self.logger,
+            try:
+                nobj = SCHEMA_MAP[server['schema']](**dict(notify_args))
+            except TypeError:
+                # Validation Failure
+                continue
 
-                    # Base
-                    **server)
-
-            # #######################################################################
-            # GENERAL / COMMON Server Support
-            # #######################################################################
-            else:
-                secure = (server['schema'][-1] == 's')
-                nobj = SCHEMA_MAP[server['schema']](
-                    # General
-                    secure=secure,
-
-                    # Logger Details
-                    logger=self.logger,
-
-                    # Base
-                    **server)
 
             nobj.notify(body=body, title=title)
 
@@ -328,6 +324,7 @@ class NotifyScript(PostProcessScript):
 
         if not self.validate(keys=(
             'Servers',
+            'IncludeImage',
             'OnFailure',
             'OnSuccess',
         )):
@@ -336,6 +333,7 @@ class NotifyScript(PostProcessScript):
         servers = self.parse_list(self.get('Servers', ''))
         on_failure = self.parse_bool(self.get('OnFailure'))
         on_success = self.parse_bool(self.get('OnSuccess'))
+        include_image = self.parse_bool(self.get('IncludeImage'))
 
         # Contents
         title = ''
@@ -353,7 +351,12 @@ class NotifyScript(PostProcessScript):
             title = 'Download Failed'
 
         # Preform Notifications
-        return self.notify(servers, title=title, body=body)
+        return self.notify(
+            servers,
+            title=title,
+            body=body,
+            include_image=include_image,
+        )
 
     def main(self, *args, **kwargs):
         """CLI
@@ -363,13 +366,19 @@ class NotifyScript(PostProcessScript):
         servers = self.get('Servers', None)
         title = self.get('Title', 'Test Notify Title')
         body = self.get('Body', 'Test Notify Body')
+        include_image = self.parse_bool(self.get('IncludeImage', 'No'))
 
         if not servers:
             self.logger.debug('No servers were specified --servers (-s)')
             return False
 
         # Preform Notifications
-        return self.notify(servers, title=title, body=body)
+        return self.notify(
+            servers,
+            title=title,
+            body=body,
+            include_image=include_image,
+        )
 
 # Call your script as follows:
 if __name__ == "__main__":
@@ -400,6 +409,13 @@ if __name__ == "__main__":
         metavar="BODY",
     )
     parser.add_option(
+        "-i",
+        "--include_image",
+        action="store_true",
+        dest="include_image",
+        help="Include image in message if the protocol supports it.",
+    )
+    parser.add_option(
         "-L",
         "--logfile",
         dest="logfile",
@@ -425,6 +441,8 @@ if __name__ == "__main__":
     _servers = options.servers
     _body = options.body
     _title = options.title
+    _include_image = options.include_image
+
     if _servers:
         # By specifying a scandir, we know for sure the user is
         # running this as a standalone script,
@@ -449,6 +467,9 @@ if __name__ == "__main__":
 
     if _body:
         script.set('Body', _body)
+
+    if _include_image:
+        script.set('IncludeImage', _include_image)
 
     # call run() and exit() using it's returned value
     exit(script.run())

@@ -4,20 +4,28 @@
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# This file is part of NZBGet-Notify.
+#
+# NZBGet-Notify is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# NZBGet-Notify is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from NotifyBase import NotifyBase
-from json import dumps as to_json
-
+from json import dumps
 import requests
 import re
+
+from NotifyBase import NotifyBase
+from NotifyBase import NotifyFormat
+from NotifyBase import HTTP_ERROR_MAP
 
 # Flag used as a placeholder to sending to all devices
 PUSHBULLET_SEND_TO_ALL = 'ALL_DEVICES'
@@ -38,12 +46,23 @@ IS_EMAIL_RE = re.compile(
 # into a usable list.
 RECIPIENTS_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
+# Extend HTTP Error Messages
+PUSHBULLET_HTTP_ERROR_MAP = dict(HTTP_ERROR_MAP.items() + {
+    401: 'Unauthorized - Invalid Token.',
+}.items())
+
 class NotifyPushBullet(NotifyBase):
     """
     A wrapper for PushBullet Notifications
     """
-    def __init__(self, accesstoken, recipients=None, logger=True, **kwargs):
-        super(NotifyPushBullet, self).__init__(logger=logger, **kwargs)
+    def __init__(self, accesstoken, recipients=None, **kwargs):
+        """
+        Initialize PushBullet Object
+        """
+        super(NotifyPushBullet, self).__init__(
+            title_maxlen=250, body_maxlen=32768,
+            notify_format=NotifyFormat.TEXT,
+            **kwargs)
 
         self.accesstoken = accesstoken
         if isinstance(recipients, basestring):
@@ -58,18 +77,25 @@ class NotifyPushBullet(NotifyBase):
         if len(self.recipients) == 0:
             self.recipients = (PUSHBULLET_SEND_TO_ALL, )
 
-    def notify(self, title, body, **kwargs):
+    def _notify(self, title, body, **kwargs):
         """
         Perform PushBullet Notification
         """
 
         headers = {
-            'User-Agent': "NZBGet-Notify",
+            'User-Agent': self.app_id,
             'Content-Type': 'application/json'
         }
         auth = (self.accesstoken, '')
 
-        for recipient in self.recipients:
+        # error tracking (used for function return)
+        has_error = False
+
+        # Create a copy of the recipients list
+        recipients = list(self.recipients)
+        while len(recipients):
+            recipient  = recipients.pop(0)
+
             # prepare JSON Object
             payload = {
                 'type': 'note',
@@ -81,7 +107,7 @@ class NotifyPushBullet(NotifyBase):
                 # Send to all
                 pass
 
-            if IS_EMAIL_RE.match(recipient):
+            elif IS_EMAIL_RE.match(recipient):
                 payload['email'] = recipient
                 self.logger.debug(
                     "Recipient '%s' is an email address" % \
@@ -102,33 +128,45 @@ class NotifyPushBullet(NotifyBase):
                     recipient,
                 )
 
+            self.logger.debug('PushBullet POST URL: %s' % PUSHBULLET_URL)
             try:
-                self.logger.debug('PushBullet POST URL: %s' % PUSHBULLET_URL)
                 r = requests.post(
                     PUSHBULLET_URL,
-                    data=to_json(payload),
+                    data=dumps(payload),
                     headers=headers,
                     auth=auth,
                 )
                 if r.status_code != 200:
-                    self.logger.error(
-                        'Failed to send PushBullet:%s ' % recipient + \
-                        'notification (error=%s)' % (
-                            r.status_code,
-                    ))
-                    self.logger.debug(
-                        'PushBullet Server returned error %s' % str(r.raw))
-                else:
-                    self.logger.info(
-                        'Sent PushBullet:%s notification successfully' % (
-                            recipient,
-                    ))
+                    # We had a problem
+                    try:
+                        self.logger.warning(
+                            'Failed to send PushBullet notification: ' +\
+                            '%s (error=%s).' % (
+                                PUSHBULLET_HTTP_ERROR_MAP[r.status_code],
+                                r.status_code,
+                        ))
+                    except IndexError:
+                        self.logger.warning(
+                            'Failed to send PushBullet notification ' +\
+                            '(error=%s).' % (
+                                r.status_code,
+                        ))
+
+                    #self.logger.debug('Response Details: %s' % r.raw.read())
+
+                    # Return; we're done
+                    has_error = True
 
             except requests.ConnectionError as e:
-                self.logger.error(
+                self.logger.warning(
                     'A Connection error occured sending PushBullet ' + \
                     'notification.'
                 )
                 self.logger.debug('Socket Exception: %s' % str(e))
+                has_error = True
 
-        return True
+            if len(recipients):
+                # Prevent thrashing requests
+                self.throttle()
+
+        return not has_error
