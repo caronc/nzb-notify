@@ -29,7 +29,7 @@ location that content is retrieved from.
 
 | Notification Service | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
-| [Growl](http://growl.info/)  | growl://   | (UDP) 9887   | growl://hostname/appid<br />growl://hostname:portno/appid
+| [Growl](http://growl.info/)  | growl://   | (UDP) 9887   | growl://hostname<br />growl://hostname:portno
 | JSON (Simple)        | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
 | [KODI](http://kodi.tv/) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
 | [Prowl](http://www.prowlapp.com/) | prowl://   | (TCP) 443    | prowl://apikey<br />prowl://apikey/providerkey
