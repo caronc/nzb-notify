@@ -63,31 +63,45 @@
 #  - pover:// -> A Pushover Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A simple secure json query
-
+#
+#
 # NOTE: If no port is specified, then the default port for the service
 # identifed is always used instead.
+#
 # NOTE: If no user and/or password is specified, then it is assumed there isn't one.
+#
 # NOTE: Growl requires you to register the notifications your application
 # sends (and set whether or not they're enabled on the GUI) before being able
 # to actually send something to your Mac, so make sure you have "Allow
 # application registration" enabled on Growl's preference pane. Additionally,
 # you should make sure that you set a password.
+#
 # NOTE: Pushalot requires an authorization token it uses to comuncate with the
 # remote server.  This is specified inline with the service request like
 # so:
 #  - palot://authorizationtoken
 #
-# NOTE: PushBullet can support emails, devices and channels, you can also
+#
+# NOTE: Pushalot can support emails, devices and channels, you can also
+# do this by specifying them on the path; as an example (mix and match
+# as you feel). If no path is specified, then it is assumed you want to
+# notify all deies.:
+#  - palot://authorizationtoken/device/
+#  - palot://authorizationtoken/device1/device2/devicen
+#
+#
 # NOTE: PushBullet requires a access token it uses to comuncate with the
 # remote server.  This is specified inline with the service request like
 # so:
 #  - pbul://accesstoken
+#
 #
 # NOTE: PushBullet can support emails, devices and channels, you can also
 # do this by specifying them on the path; as an example (mix and match
 # as you feel). If no path is specified, then it is assumed you want to
 # notify all deies.:
 #  - pbul://accesstoken/#channel/#channel2/device/email@email.com
+#
 #
 # NOTE: Pushover notifications require a user and a token to work
 # correctly. The following syntax will handle this for you:
