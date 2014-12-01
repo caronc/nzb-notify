@@ -62,6 +62,10 @@ class NotifyJSON(NotifyBase):
 
         # prepare JSON Object
         payload = {
+            # Version: Major.Minor,  Major is only updated if the entire
+            # schema is changed. If just adding new items (or removing
+            # old ones, only increment the Minor!
+            'version': '1.0',
             'title': title,
             'message': body,
             'image': self.image_url(notify_type),
