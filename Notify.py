@@ -82,6 +82,7 @@
 # remote server.  This is specified inline with the service request like so:
 #  - nma://apikey
 #
+#
 # NOTE: Pushalot requires an authorization token it uses to comuncate with the
 # remote server.  This is specified inline with the service request like so:
 #  - palot://authorizationtoken
