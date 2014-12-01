@@ -20,6 +20,7 @@
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 from NotifyGrowl import NotifyGrowl
 from NotifyJSON import NotifyJSON
+from NotifyMyAndroid import NotifyMyAndroid
 from NotifyProwl import NotifyProwl
 from NotifyPushalot import NotifyPushalot
 from NotifyPushBullet import NotifyPushBullet

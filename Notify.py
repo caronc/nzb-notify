@@ -55,15 +55,16 @@
 #
 # The following services are currently supported:
 #  - growl:// -> A Growl Server
-#  - prowl:// -> A Prowl Server
-#  - xbmc:// -> An XBMC Server
-#  - kodi:// -> An KODI Server (XBMC Server)
-#  - palot:// -> A Pushalot Notification
-#  - pbul:// -> A PushBullet Notification
-#  - toasty:// -> A (Super) Toasty Notification
-#  - pover:// -> A Pushover Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A simple secure json query
+#  - kodi:// -> An KODI Server (XBMC Server)
+#  - nma:// -> Notify My Android Notification
+#  - palot:// -> A Pushalot Notification
+#  - pbul:// -> A PushBullet Notification
+#  - prowl:// -> A Prowl Server
+#  - pover:// -> A Pushover Notification
+#  - toasty:// -> A (Super) Toasty Notification
+#  - xbmc:// -> An XBMC Server (protocol v2)
 #
 #
 # NOTE: If no port is specified, then the default port for the service
@@ -76,6 +77,10 @@
 # to actually send something to your Mac, so make sure you have "Allow
 # application registration" enabled on Growl's preference pane. Additionally,
 # you should make sure that you set a password.
+#
+# NOTE: Notify My Android requires an API Key it uses to comuncate with the
+# remote server.  This is specified inline with the service request like so:
+#  - nma://apikey
 #
 # NOTE: Pushalot requires an authorization token it uses to comuncate with the
 # remote server.  This is specified inline with the service request like so:
@@ -166,33 +171,36 @@ NOTIFY_PUSHALOT_SCHEMA = 'palot'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 NOTIFY_PUSHOVER_SCHEMA = 'pover'
 NOTIFY_TOASTY_SCHEMA = 'toasty'
+NOTIFY_NMA_SCHEMA = 'nma'
 NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 
 SCHEMA_MAP = {
-    # KODI Server
+    # KODI Notification
     NOTIFY_KODI_SCHEMA: NotifyXBMC,
-    # Secure KODI Server
+    # Secure KODI Notification
     NOTIFY_KODIS_SCHEMA: NotifyXBMC,
-    # Growl Server
+    # Growl Notification
     NOTIFY_GROWL_SCHEMA: NotifyGrowl,
-    # Prowl Server
+    # Prowl Notification
     NOTIFY_PROWL_SCHEMA: NotifyProwl,
-    # Toasty Server
+    # Toasty Notification
     NOTIFY_TOASTY_SCHEMA: NotifyToasty,
-    # XBMC Server
+    # Notify My Android Notification
+    NOTIFY_NMA_SCHEMA: NotifyMyAndroid,
+    # XBMC Notification
     NOTIFY_XBMC_SCHEMA: NotifyXBMC,
-    # Secure XBMC Server
+    # Secure XBMC Notification
     NOTIFY_XBMCS_SCHEMA: NotifyXBMC,
-    # Pushalot Server
+    # Pushalot Notification
     NOTIFY_PUSHALOT_SCHEMA: NotifyPushalot,
-    # PushBullet Server
+    # PushBullet Notification
     NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
-    # Pushover Server
+    # Pushover Notification
     NOTIFY_PUSHOVER_SCHEMA: NotifyPushover,
-    # Simple JSON HTTP Server
+    # Simple JSON HTTP Notification
     NOTIFY_JSON_SCHEMA: NotifyJSON,
-    # Simple Secure JSON HTTP Server
+    # Simple Secure JSON HTTP Notification
     NOTIFY_JSONS_SCHEMA: NotifyJSON,
 }
 
@@ -238,7 +246,7 @@ class NotifyScript(PostProcessScript):
             }.items()
 
             # #######################################################################
-            # GROWL Server Support
+            # GROWL Notification Support
             # #######################################################################
             if server['schema'] == NOTIFY_GROWL_SCHEMA:
                 notify_args = notify_args + {
@@ -246,7 +254,15 @@ class NotifyScript(PostProcessScript):
                     'notification_title': GROWL_NOTIFICATION,
                 }.items()
             # #######################################################################
-            # PROWL Server Support
+            # Notify My Android Notification Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_NMA_SCHEMA:
+
+                notify_args = notify_args + {
+                    'apikey': server['host'],
+                }.items()
+            # #######################################################################
+            # PROWL Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PROWL_SCHEMA:
 
@@ -268,7 +284,7 @@ class NotifyScript(PostProcessScript):
                 }.items()
 
             # #######################################################################
-            # Pushalot Server Support
+            # Pushalot Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PUSHALOT_SCHEMA:
                 try:
@@ -281,7 +297,7 @@ class NotifyScript(PostProcessScript):
                 }.items()
 
             # #######################################################################
-            # PushBullet Server Support
+            # PushBullet Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PUSHBULLET_SCHEMA:
                 try:
@@ -295,7 +311,7 @@ class NotifyScript(PostProcessScript):
                 }.items()
 
             # #######################################################################
-            # Pushover Server Support
+            # Pushover Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PUSHOVER_SCHEMA:
                 try:
@@ -309,7 +325,7 @@ class NotifyScript(PostProcessScript):
                 }.items()
 
             # #######################################################################
-            # Toasty Server Support
+            # Toasty Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_TOASTY_SCHEMA:
                 try:
