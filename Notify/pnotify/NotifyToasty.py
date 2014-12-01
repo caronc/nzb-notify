@@ -94,14 +94,14 @@ class NotifyToasty(NotifyBase):
                     notify_type,
                 )
                 if image_url:
-                    payload['imageurl'] = image_url
+                    payload['image'] = image_url
 
             # URL to transmit content via
             url = '%s%s' % (TOASTY_URL, device)
 
             try:
                 self.logger.debug('Toasty POST URL: %s' % url)
-                r = requests.post(
+                r = requests.get(
                     url,
                     data=payload,
                     headers=headers,
