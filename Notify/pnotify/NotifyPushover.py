@@ -80,7 +80,7 @@ class NotifyPushover(NotifyBase):
         Initialize Pushover Object
         """
         super(NotifyPushover, self).__init__(
-            title_maxlen=250, body_maxlen=32768,
+            title_maxlen=250, body_maxlen=512,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
@@ -168,14 +168,10 @@ class NotifyPushover(NotifyBase):
                 payload['device'] = device
 
             self.logger.debug('Pushover POST URL: %s' % PUSHOVER_URL)
-            self.logger.debug('Pushover POST DATA: %s' % \
-                              '&'.join([ '%s=%s' % (k,v) \
-                                   for (k,v) in payload.items() ]))
             try:
                 r = requests.post(
                     PUSHOVER_URL,
-                    data='&'.join([ '%s=%s' % (k,v) \
-                                   for (k,v) in payload.items() ]),
+                    data=payload,
                     headers=headers,
                     auth=auth,
                 )

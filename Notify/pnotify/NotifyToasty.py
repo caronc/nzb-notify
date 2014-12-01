@@ -91,8 +91,7 @@ class NotifyToasty(NotifyBase):
                 self.logger.debug('Toasty POST URL: %s' % url)
                 r = requests.post(
                     url,
-                    data='&'.join([ '%s=%s' % (k,v) \
-                                   for (k,v) in payload.items() ]),
+                    data=payload,
                     headers=headers,
                 )
                 if r.status_code != 200:
