@@ -90,6 +90,10 @@
 #  - boxcars://host/alias/@tag/devicetoken
 #
 #
+# NOTE: Faast Notifications require an authorization token:
+#  - faast://authorizationtoken
+#
+#
 # NOTE: Growl requires you to register the notifications your application
 # sends (and set whether or not they're enabled on the GUI) before being able
 # to actually send something to your Mac, so make sure you have "Allow
@@ -106,13 +110,10 @@
 #  - palot://authorizationtoken
 #
 #
-# NOTE: PushBullet requires a access token it uses to comuncate with the
-# remote server.
-#
-# PushBullet can support emails, devices and channels, you can also
-# do this by specifying them on the path; as an example (mix and match
-# as you feel). If no path is specified, then it is assumed you want to
-# notify all devices:
+# NOTE: PushBullet notifications require a access token, They can support
+# emails, devices and channels, you can also do this by specifying them on the
+# path; as an example (mix and match as you feel). If no path is specified,
+# then it is assumed you want to notify all devices:
 #  - pbul://accesstoken
 #  - pbul://accesstoken/#channel
 #  - pbul://accesstoken/device
@@ -178,6 +179,7 @@ from pnotify import *
 
 NOTIFY_BOXCAR_SCHEMA = 'boxcar'
 NOTIFY_BOXCARS_SCHEMA = 'boxcars'
+NOTIFY_FAAST_SCHEMA = 'faast'
 NOTIFY_GROWL_SCHEMA = 'growl'
 NOTIFY_PROWL_SCHEMA = 'prowl'
 NOTIFY_JSON_SCHEMA = 'json'
@@ -197,6 +199,8 @@ SCHEMA_MAP = {
     NOTIFY_BOXCAR_SCHEMA: NotifyBoxcar,
     # Secure BOXCAR Notification
     NOTIFY_BOXCARS_SCHEMA: NotifyBoxcar,
+    # FAAST Notification
+    NOTIFY_FAAST_SCHEMA: NotifyFaast,
     # KODI Notification
     NOTIFY_KODI_SCHEMA: NotifyXBMC,
     # Secure KODI Notification
@@ -280,6 +284,14 @@ class NotifyScript(PostProcessScript):
                 }.items()
 
             # #######################################################################
+            # Faast Notification Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_FAAST_SCHEMA:
+                notify_args = notify_args + {
+                    'authtoken': server['host'],
+                }.items()
+
+            # #######################################################################
             # GROWL Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_GROWL_SCHEMA:
@@ -321,11 +333,6 @@ class NotifyScript(PostProcessScript):
             # Pushalot Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PUSHALOT_SCHEMA:
-                try:
-                    recipients = unquote(server['fullpath'])
-                except AttributeError:
-                    recipients = ''
-
                 notify_args = notify_args + {
                     'authtoken': server['host'],
                 }.items()
