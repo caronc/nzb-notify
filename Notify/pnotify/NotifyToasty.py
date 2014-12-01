@@ -25,10 +25,14 @@ import re
 
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
+from NotifyBase import NotifyImageSize
 from NotifyBase import HTTP_ERROR_MAP
 
 # Toasty uses the http protocol with JSON requests
 TOASTY_URL = 'http://api.supertoasty.com/notify/'
+
+# Image Support (128x128)
+TOASTY_IMAGE_XY = NotifyImageSize.XY_128
 
 # Used to break apart list of potential devices by their delimiter
 # into a usable list.
@@ -44,6 +48,7 @@ class NotifyToasty(NotifyBase):
         """
         super(NotifyToasty, self).__init__(
             title_maxlen=250, body_maxlen=32768,
+            image_size=TOASTY_IMAGE_XY,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
@@ -59,7 +64,7 @@ class NotifyToasty(NotifyBase):
         if not self.user:
             raise TypeError('You must specify a username.')
 
-    def _notify(self, title, body, **kwargs):
+    def _notify(self, title, body, notify_type, **kwargs):
         """
         Perform Toasty Notification
         """
@@ -83,6 +88,13 @@ class NotifyToasty(NotifyBase):
                 'title': quote(title),
                 'text': quote(body),
             }
+
+            if self.include_image:
+                image_url = self.image_url(
+                    notify_type,
+                )
+                if image_url:
+                    payload['image'] = image_url
 
             # URL to transmit content via
             url = '%s%s' % (TOASTY_URL, device)
