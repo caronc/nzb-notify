@@ -121,7 +121,7 @@ class NotifyXBMC(NotifyBase):
                 headers=headers,
                 auth=auth,
             )
-            if r.status_code != 200:
+            if r.status_code != requests.codes.ok:
                 # We had a problem
                 try:
                     self.logger.warning(

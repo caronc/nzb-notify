@@ -90,7 +90,7 @@ class NotifyJSON(NotifyBase):
                 headers=headers,
                 auth=auth,
             )
-            if r.status_code != 200:
+            if r.status_code != requests.codes.ok:
                 try:
                     self.logger.warning(
                         'Failed to send JSON notification: ' +\
