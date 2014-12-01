@@ -18,6 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
+from NotifyBoxcar import NotifyBoxcar
 from NotifyGrowl import NotifyGrowl
 from NotifyJSON import NotifyJSON
 from NotifyMyAndroid import NotifyMyAndroid

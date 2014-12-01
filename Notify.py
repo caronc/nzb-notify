@@ -54,10 +54,12 @@
 #
 #
 # The following services are currently supported:
-#  - growl:// -> A Growl Server
+#  - boxcar:// -> A Boxcar Notification
+#  - boxcars:// -> A secure Boxcar Notification
+#  - growl:// -> A Growl Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A simple secure json query
-#  - kodi:// -> An KODI Server (XBMC Server)
+#  - kodi:// -> An KODI Notification
 #  - nma:// -> Notify My Android Notification
 #  - palot:// -> A Pushalot Notification
 #  - pbul:// -> A PushBullet Notification
@@ -70,7 +72,23 @@
 # NOTE: If no port is specified, then the default port for the service
 # identifed is always used instead.
 #
-# NOTE: If no user and/or password is specified, then it is assumed there isn't one.
+# NOTE: If no user and/or password is specified, then it is assumed there
+# isn't one.
+#
+# NOTE: Boxcar requires an api key and host in order to use it. Boxcar can
+# optionally support tags, aliases and device tokens which can be specified
+# on the path:
+#  - boxcars://host
+#  - boxcars://user:host
+#  - boxcars://user@pass:host
+#  - boxcars://host/@tag
+#  - boxcars://host/@tag1/@tag2/@tagN
+#  - boxcars://host/devicetoken
+#  - boxcars://host/devicetoken1/devicetoken2/devicetokenN
+#  - boxcars://host/alias
+#  - boxcars://host/alias1/alias2/alias1
+#  - boxcars://host/alias/@tag/devicetoken
+#
 #
 # NOTE: Growl requires you to register the notifications your application
 # sends (and set whether or not they're enabled on the GUI) before being able
@@ -133,8 +151,7 @@
 # Send a notification image when supported (yes, no).
 #
 # Instruct the script to include a supported image with the notification
-# if the protocol supports it. This is done by referencing a remote
-# (secure) URL on the internet.
+# if the protocol supports it.
 #IncludeImage=yes
 
 # Enable debugging mode (yes, no).
@@ -159,9 +176,8 @@ from nzbget import PostProcessScript
 # Inherit Push Notification Scripts
 from pnotify import *
 
-GROWL_APPLICATION = 'NZBGet'
-GROWL_NOTIFICATION = 'Post-Process NZBGet Notification'
-
+NOTIFY_BOXCAR_SCHEMA = 'boxcar'
+NOTIFY_BOXCARS_SCHEMA = 'boxcars'
 NOTIFY_GROWL_SCHEMA = 'growl'
 NOTIFY_PROWL_SCHEMA = 'prowl'
 NOTIFY_JSON_SCHEMA = 'json'
@@ -177,6 +193,10 @@ NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 
 SCHEMA_MAP = {
+    # BOXCAR Notification
+    NOTIFY_BOXCAR_SCHEMA: NotifyBoxcar,
+    # Secure BOXCAR Notification
+    NOTIFY_BOXCARS_SCHEMA: NotifyBoxcar,
     # KODI Notification
     NOTIFY_KODI_SCHEMA: NotifyXBMC,
     # Secure KODI Notification
@@ -247,13 +267,25 @@ class NotifyScript(PostProcessScript):
             }.items()
 
             # #######################################################################
+            # Boxcar Notification Support
+            # #######################################################################
+            if server['schema'] in (NOTIFY_BOXCAR_SCHEMA, NOTIFY_BOXCARS_SCHEMA):
+                try:
+                    recipients = unquote(server['fullpath'])
+                except AttributeError:
+                    recipients = ''
+
+                notify_args = notify_args + {
+                    'recipients': recipients,
+                }.items()
+
+            # #######################################################################
             # GROWL Notification Support
             # #######################################################################
-            if server['schema'] == NOTIFY_GROWL_SCHEMA:
+            elif server['schema'] == NOTIFY_GROWL_SCHEMA:
                 notify_args = notify_args + {
-                    'application_id': GROWL_APPLICATION,
-                    'notification_title': GROWL_NOTIFICATION,
                 }.items()
+
             # #######################################################################
             # Notify My Android Notification Support
             # #######################################################################
@@ -262,6 +294,7 @@ class NotifyScript(PostProcessScript):
                 notify_args = notify_args + {
                     'apikey': server['host'],
                 }.items()
+
             # #######################################################################
             # PROWL Notification Support
             # #######################################################################
