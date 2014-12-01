@@ -29,3 +29,4 @@ from NotifyPushBullet import NotifyPushBullet
 from NotifyPushover import NotifyPushover
 from NotifyToasty import NotifyToasty
 from NotifyXBMC import NotifyXBMC
+from NotifyXML import NotifyXML

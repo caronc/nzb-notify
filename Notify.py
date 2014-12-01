@@ -59,7 +59,7 @@
 #  - faast:// -> A Faast Notification
 #  - growl:// -> A Growl Notification
 #  - json:// -> A simple json query
-#  - jsons:// -> A simple secure json query
+#  - jsons:// -> A secure, simple json query
 #  - kodi:// -> An KODI Notification
 #  - nma:// -> Notify My Android Notification
 #  - palot:// -> A Pushalot Notification
@@ -67,7 +67,9 @@
 #  - prowl:// -> A Prowl Server
 #  - pover:// -> A Pushover Notification
 #  - toasty:// -> A (Super) Toasty Notification
-#  - xbmc:// -> An XBMC Server (protocol v2)
+#  - xbmc:// -> An XBMC Notification (protocol v2)
+#  - xml:// -> A simple xml (SOAP) Notification
+#  - xmls:// -> A secure, simple xml (SOAP) Notification
 #
 #
 # NOTE: If no port is specified, then the default port for the service
@@ -194,6 +196,8 @@ NOTIFY_TOASTY_SCHEMA = 'toasty'
 NOTIFY_NMA_SCHEMA = 'nma'
 NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
+NOTIFY_XML_SCHEMA = 'xml'
+NOTIFY_XMLS_SCHEMA = 'xmls'
 
 SCHEMA_MAP = {
     # BOXCAR Notification
@@ -226,8 +230,12 @@ SCHEMA_MAP = {
     NOTIFY_PUSHOVER_SCHEMA: NotifyPushover,
     # Simple JSON HTTP Notification
     NOTIFY_JSON_SCHEMA: NotifyJSON,
-    # Simple Secure JSON HTTP Notification
+    # Secure Simple JSON HTTP Notification
     NOTIFY_JSONS_SCHEMA: NotifyJSON,
+    # Simple XML HTTP Notification
+    NOTIFY_XML_SCHEMA: NotifyXML,
+    # Secure Simple XML HTTP Notification
+    NOTIFY_XMLS_SCHEMA: NotifyXML,
 }
 
 # Used to break a path list into parts
