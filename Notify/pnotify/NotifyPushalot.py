@@ -64,10 +64,10 @@ class NotifyPushalot(NotifyBase):
         # Validate authtoken
         if not VALIDATE_AUTHTOKEN.match(authtoken):
             self.logger.warning(
-                'Invalid PushBullet Authorization Token Specified.'
+                'Invalid Pushalot Authorization Token Specified.'
             )
             raise TypeError(
-                'Invalid PushBullet Authorization Token Specified.'
+                'Invalid Pushalot Authorization Token Specified.'
             )
 
     def _notify(self, title, body, notify_type, **kwargs):
