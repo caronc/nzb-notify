@@ -52,6 +52,7 @@
 #  - service://host:port
 #  - service://host
 #
+#
 # The following services are currently supported:
 #  - growl:// -> A Growl Server
 #  - prowl:// -> A Prowl Server
@@ -77,37 +78,38 @@
 # you should make sure that you set a password.
 #
 # NOTE: Pushalot requires an authorization token it uses to comuncate with the
-# remote server.  This is specified inline with the service request like
-# so:
+# remote server.  This is specified inline with the service request like so:
 #  - palot://authorizationtoken
 #
 #
-# NOTE: Pushalot can support emails, devices and channels, you can also
-# do this by specifying them on the path; as an example (mix and match
-# as you feel). If no path is specified, then it is assumed you want to
-# notify all deies.:
-#  - palot://authorizationtoken/device/
-#  - palot://authorizationtoken/device1/device2/devicen
-#
-#
 # NOTE: PushBullet requires a access token it uses to comuncate with the
-# remote server.  This is specified inline with the service request like
-# so:
-#  - pbul://accesstoken
+# remote server.
 #
-#
-# NOTE: PushBullet can support emails, devices and channels, you can also
+# PushBullet can support emails, devices and channels, you can also
 # do this by specifying them on the path; as an example (mix and match
 # as you feel). If no path is specified, then it is assumed you want to
-# notify all deies.:
+# notify all devices:
+#  - pbul://accesstoken
+#  - pbul://accesstoken/#channel
+#  - pbul://accesstoken/device
+#  - pbul://accesstoken/email@domain.net
 #  - pbul://accesstoken/#channel/#channel2/device/email@email.com
 #
 #
 # NOTE: Pushover notifications require a user and a token to work
-# correctly. The following syntax will handle this for you:
-# - pover://user@token
+# correctly. You can optionally specify devices associated with the
+# account if you wish to target them specifically. Otherwise it is assumed
+# you wish to notify all devices if none are specified:
+#  - pover://user@token
+#  - pover://user@token/device/
+#  - pover://user@token/device1/device2/devicen
 #
-# Specify the URL that identifies all of the servers you wish to notify.
+#
+# NOTE: (Super) Toasty notifications requires at the very minimum at least
+# one device to notify, you can additionally specify more then one too
+# if you want:
+#  - toasty://user@device
+#  - toasty://user@device1/device2/deviceN
 #Servers=
 
 # Send Notification on Failure (yes, no).
