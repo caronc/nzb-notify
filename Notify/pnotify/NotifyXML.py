@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
+from urllib import quote
 import requests
 import re
 
@@ -81,9 +82,9 @@ class NotifyXML(NotifyBase):
         }
 
         re_map = {
-            '{MESSAGE_TYPE}': notify_type,
-            '{SUBJECT}': title,
-            '{MESSAGE}': body,
+            '{MESSAGE_TYPE}': quote(notify_type),
+            '{SUBJECT}': quote(title),
+            '{MESSAGE}': quote(body),
         }
 
         # Iterate over above list and store content accordingly
