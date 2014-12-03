@@ -233,6 +233,11 @@ class NotifyBase(object):
                 notify_type,
             ))
 
+        if not isinstance(body, basestring):
+            body = ''
+        if not isinstance(title, basestring):
+            title = ''
+
         if title:
             title = title[0:self.title_maxlen]
 
