@@ -170,6 +170,25 @@ class Mark(object):
     BAD = 'BAD'
     GOOD = 'GOOD'
 
+class QueueEvent(object):
+    # a list of all event types
+    UNKNOWN = 'UNKNOWN'
+    # An NZB file added to the queue
+    NZB_ADDED = 'NZB_ADDED'
+    # An NZB file deleted
+    NZB_DELETED = 'NZB_DELETED'
+    # A file Downloaded
+    FILE_DOWNLOADED = 'FILE_DOWNLOADED'
+    # An NZB file was Downloaded
+    NZB_DOWNLOADED = 'NZB_DOWNLOADED'
+
+QUEUE_EVENTS = (
+    QueueEvent.UNKNOWN,
+    QueueEvent.NZB_ADDED,
+    QueueEvent.FILE_DOWNLOADED,
+    QueueEvent.NZB_DOWNLOADED,
+)
+
 # Precompile Regulare Expression for Speed
 QUEUE_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % QUEUE_ENVIRO_ID)
 
@@ -203,6 +222,7 @@ class QueueScript(ScriptBase):
         paused = kwargs.get('paused')
         parse_nzbfile = kwargs.get('parse_nzbfile')
         use_database = kwargs.get('use_database')
+        event = kwargs.get('event')
 
         # Fetch/Load Queue Script Configuration
         script_config = dict([(QUEUE_OPTS_RE.match(k).group(1), v.strip()) \
@@ -283,6 +303,14 @@ class QueueScript(ScriptBase):
         else:
             self.paused = paused
 
+        # self.event
+        # Type of Queue Event
+        if event is None:
+            self.event = environ.get(
+                '%sEVENT' % QUEUE_ENVIRO_ID,
+            )
+        else:
+            self.event = event
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Error Handling
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -336,6 +364,10 @@ class QueueScript(ScriptBase):
         except:
             self.paused = False
 
+        # Event
+        if self.event not in QUEUE_EVENTS:
+            self.event = QueueEvent.UNKNOWN
+
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Enforce system/global variables for script processing
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -362,6 +394,10 @@ class QueueScript(ScriptBase):
         self.system['TOP'] = self.top
         if self.top is not None:
             environ['%sTOP' % QUEUE_ENVIRO_ID] = str(int(self.top))
+
+        self.system['EVENT'] = self.event
+        if self.event is not None:
+            environ['%sEVENT' % QUEUE_ENVIRO_ID] = str(int(self.event))
 
         self.system['PAUSED'] = self.paused
         if self.paused is not None:

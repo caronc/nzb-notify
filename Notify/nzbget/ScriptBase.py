@@ -32,9 +32,23 @@ functionality such as:
                 put here as well so that it can be retrieved by another
                 script.
 
- * get_api()  - Retreive a simple API/RPC object built from the global
-                variables NZBGet passes into an external program when
-                called.
+ * unset()    - This allows you to unset values set by set() and get() as well
+                as ones set by push().
+
+ * nzb_set()  - Similar to the set() function identified above except it is
+                used to build an nzb meta hash table which can be later pushed
+                to the server using push_dnzb().
+
+ * add_nzb()  - Using the built in API/RPC NZBGet supports, this allows you to
+                specify a path to an NZBFile which you want to enqueue for
+                downloading.
+
+ * nzb_get()  - Retieves NZB Meta information previously stored.
+
+ * nzb_unset()- Removes a variable previously set completely.
+
+ * get_logs() - Using the built in API/RPC NZBGet supports, this retrieves and
+                returns the latest logs.
 
  * get_files()- list all files in a specified directory as well as fetching
                 their details such as filesize, modified date, etc in an
@@ -72,6 +86,13 @@ functionality such as:
                   why redo grunt work if it's already done for you?
                   if no previous guess content was pushed, then an
                   empty dictionary is returned.
+ * push_dnzb()  - You can push all nzb meta information onbtained to the
+                  NZBGet server as DNZB_ meta tags.
+
+ * pull_dnzb()  - Pull all DNZB_ meta tags issued by the server and return
+                  their values in a dictionary. if no DNZB_ (NZB Meta
+                  information) was found, then an empty dictionary is returned
+                  instead.
 
 Ideally, you'll write your script using this class as your base wrapper
 requiring you to only define a main() function and call run().
@@ -120,9 +141,6 @@ from getpass import getuser
 from logging import Logger
 from datetime import datetime
 from Utils import tidy_path
-
-# Relative Includes
-from NZBGetAPI import NZBGetAPI
 
 from Logger import VERBOSE_DEBUG
 from Logger import VERY_VERBOSE_DEBUG
@@ -189,6 +207,14 @@ from os import stat
 from urlparse import urlparse
 from urllib import quote
 from urllib import unquote
+
+from base64 import standard_b64encode
+try:
+    # Python 2
+    from xmlrpclib import ServerProxy
+except ImportError:
+    # Python 3
+    from xmlrpc.client import ServerProxy
 
 # Some booleans that are read to and from nzbget
 NZBGET_BOOL_TRUE = u'yes'
@@ -590,6 +616,10 @@ class ScriptBase(object):
 
         # Initialize the default character set
         self.charset = None
+
+        # API by default is not configured; it is set up when a call to
+        # an api function is made.
+        self.api = None
 
         # Extra debug modes used from command line; it gets to be
         # too noisy if you pass this into nzbget but if you really
@@ -1123,7 +1153,7 @@ class ScriptBase(object):
         parsed = urlparse('http://%s' % host)
 
         # Parse results
-        result['host'] = parsed[1].strip().lower()
+        result['host'] = parsed[1].strip()
         result['fullpath'] = quote(unquote(tidy_path(parsed[2].strip())))
         try:
             # Handle trailing slashes removed by tidy_path
@@ -1785,35 +1815,95 @@ class ScriptBase(object):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # API Factory
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def get_api(self):
-        """This function can be used to return a XML-RCP server
-        object using the server variables defined
+    def api_connect(self, user=None, password=None,
+                    host=None, port=None, reset=False):
+        """Configures an API connection
         """
+        if reset:
+            # Reset
+            self.api = None
 
-        # System Options required for RPC calls to work
-        required_opts = set((
-            'CONTROLIP',
-            'CONTROLPORT',
-            'CONTROLUSERNAME',
-            'CONTROLPASSWORD',
-        ))
-        # Fetch standard RCP information to simplify future commands
-        if set(self.system) & required_opts != required_opts:
-            # Not enough options to extract RCP information
-            return None
+        # If we're already connected; then there is nothing more to do
+        if self.api is not None:
+            return True
 
         # if we reach here, we have enough data to build an RCP connection
-        host = self.system['CONTROLIP']
+        if host is None:
+            host = self.system['CONTROLIP']
+
         if host == "0.0.0.0":
             host = "127.0.0.1"
 
-        # Return API Controller
-        return NZBGetAPI(
-            self.system['CONTROLUSERNAME'],
-            self.system['CONTROLPASSWORD'],
+        #Build URL
+        xmlrpc_url = 'http://'
+
+        if user is None:
+            user = self.get('ControlUsername', '')
+        if password is None:
+            password = self.get('ControlPassword', '')
+        if port is None:
+            port = self.get('ControlPort', '6789')
+
+        if user and password:
+            xmlrpc_url += '%s:%s@' % (user, password)
+
+        xmlrpc_url += '%s:%s/xmlrpc' % ( \
             host,
-            self.system['CONTROLPORT'],
+            str(port),
         )
+
+        # Establish a connection to the server
+        try:
+            self.api = ServerProxy(xmlrpc_url)
+        except:
+            return False
+
+        return True
+
+
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Retrieve System Logs
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    def get_logs(self):
+        """
+        Returns log entries (via the API)
+        """
+        if not self.api_connect():
+            # Could not connect
+            return None
+
+        try:
+            logs = self.proxy.postqueue(10000)[0]['Log']
+        except KeyError:
+            # No logs
+            return None
+
+        # Return log listings
+        return logs
+
+
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Add NZB File to Queue
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    def add_nzb(self, filename):
+        """Simply add's an NZB file to NZBGet (via the API)
+        """
+        if not self.api_connect():
+            # Could not connect
+            return False
+
+        try:
+            f = open(filename, "r")
+        except:
+            return False
+
+        content = f.read()
+        f.close()
+        b64content = standard_b64encode(content)
+        try:
+            return self.api.append(filename, 'software', False, b64content)
+        except:
+            return False
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # File Retrieval
@@ -2094,12 +2184,25 @@ class ScriptBase(object):
                 if fullstats:
                     # Extend file information
                     stat_obj = stat(_file)
-                    files[_file]['modified'] = \
-                        datetime.fromtimestamp(stat_obj[ST_MTIME])
-                    files[_file]['accessed'] = \
-                        datetime.fromtimestamp(stat_obj[ST_ATIME])
-                    files[_file]['created'] = \
-                        datetime.fromtimestamp(stat_obj[ST_CTIME])
+                    try:
+                        files[_file]['modified'] = \
+                            datetime.fromtimestamp(stat_obj[ST_MTIME])
+                    except ValueError:
+                        files[_file]['modified'] = \
+                                datetime(1980, 1, 1, 0, 0, 0, 0)
+                    try:
+                        files[_file]['accessed'] = \
+                            datetime.fromtimestamp(stat_obj[ST_ATIME])
+                    except ValueError:
+                        files[_file]['accessed'] = \
+                                datetime(1980, 1, 1, 0, 0, 0, 0)
+                    try:
+                        files[_file]['created'] = \
+                            datetime.fromtimestamp(stat_obj[ST_CTIME])
+                    except ValueError:
+                        files[_file]['created'] = \
+                                datetime(1980, 1, 1, 0, 0, 0, 0)
+
                     files[_file]['filesize'] = stat_obj[ST_SIZE]
         # Return all files
         return files

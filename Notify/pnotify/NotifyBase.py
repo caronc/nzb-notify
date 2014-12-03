@@ -27,6 +27,7 @@ from logging import Logger
 from Logger import init_logger
 
 class NotifyType(object):
+    INFO = 'info'
     SUCCESS = 'success'
     FAILURE = 'failure'
 
@@ -35,6 +36,7 @@ class NotifyType(object):
 NOTIFY_THROTTLE_SEC = 5.5
 
 NOTIFY_TYPES = (
+    NotifyType.INFO,
     NotifyType.SUCCESS,
     NotifyType.FAILURE,
 )

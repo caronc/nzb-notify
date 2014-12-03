@@ -21,7 +21,7 @@
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
 ###########################################################################
-### NZBGET POST-PROCESSING SCRIPT
+### NZBGET QUEUE/POST-PROCESSING SCRIPT
 
 # NZBGet Notifications.
 #
@@ -30,9 +30,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Sun, Nov 23th, 2014.
+# Date: Tue, Dec 2nd, 2014.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.1.1.
+# Script Version: 0.1.2.
 #
 
 ###########################################################################
@@ -152,6 +152,12 @@
 # was successful.
 #OnSuccess=yes
 
+# Create Notification on Queued Content (yes, no).
+#
+# Instruct the script to send a notification in the event an item is
+# added to the download queue.
+#OnQueue=yes
+
 # Send a notification image when supported (yes, no).
 #
 # Instruct the script to include a supported image with the notification
@@ -165,7 +171,7 @@
 # if they have this extra bit of detail in your logging output.
 #Debug=no
 
-### NZBGET POST-PROCESSING SCRIPT
+### NZBGET QUEUE/POST-PROCESSING SCRIPT
 ###########################################################################
 import sys
 import re
@@ -176,6 +182,8 @@ sys.path.insert(0, join(dirname(__file__), 'Notify'))
 
 from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
+from nzbget import QueueScript
+from nzbget import QueueEvent
 
 # Inherit Push Notification Scripts
 from pnotify import *
@@ -241,14 +249,18 @@ SCHEMA_MAP = {
 # Used to break a path list into parts
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
-class NotifyScript(PostProcessScript):
+class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
     """
-    def notify(self, servers, body, title, include_image):
+    def notify(self, servers, body, title, notify_type):
         """
         processes list of servers specified
         """
+
+        # Include Image Flag
+        include_image = self.parse_bool(self.get('IncludeImage'), False)
+
         if isinstance(servers, basestring):
             # servers can be a list of URLs, or it can be
             # a string which will be parsed into this list
@@ -394,14 +406,50 @@ class NotifyScript(PostProcessScript):
                 continue
 
 
-            nobj.notify(body=body, title=title)
+            nobj.notify(body=body, title=title, notify_type=notify_type)
 
         # Always return true
         return True
 
+    def queue_main(self, *args, **kwargs):
+        """Queue Script
+        """
+
+        if not self.validate(keys=(
+            'Servers',
+            'IncludeImage',
+            'OnQueue',
+        )):
+            return False
+
+        if self.event != QueueEvent.NZB_ADDED:
+            return None
+
+        servers = self.parse_list(self.get('Servers', ''))
+        on_failure = self.parse_bool(self.get('OnFailure'))
+        on_success = self.parse_bool(self.get('OnSuccess'))
+        notify_type = NotifyType.INFO
+
+        if self.health_check():
+            if not on_success:
+                self.logger.debug('Success notifications supressed.')
+                return None
+            title = 'Queued Successfully'
+        else:
+            if not on_failure:
+                self.logger.debug('Failure notifications supressed.')
+                return None
+            title = 'Queue Failed'
+
+        return self.notify(
+            servers,
+            title=title,
+            body=self.nzbname,
+            notify_type=notify_type,
+        )
 
     def postprocess_main(self, *args, **kwargs):
-        """Write all your code here
+        """Post Processing Script
         """
 
         if not self.validate(keys=(
@@ -415,7 +463,6 @@ class NotifyScript(PostProcessScript):
         servers = self.parse_list(self.get('Servers', ''))
         on_failure = self.parse_bool(self.get('OnFailure'))
         on_success = self.parse_bool(self.get('OnSuccess'))
-        include_image = self.parse_bool(self.get('IncludeImage'))
 
         # Contents
         title = ''
@@ -425,11 +472,13 @@ class NotifyScript(PostProcessScript):
             if not on_success:
                 self.logger.debug('Success notifications supressed.')
                 return None
+            notify_type = NotifyType.SUCCESS
             title = 'Download Successful'
         else:
             if not on_failure:
                 self.logger.debug('Failure notifications supressed.')
                 return None
+            notify_type = NotifyType.FAILURE
             title = 'Download Failed'
 
         # Preform Notifications
@@ -437,7 +486,7 @@ class NotifyScript(PostProcessScript):
             servers,
             title=title,
             body=body,
-            include_image=include_image,
+            notify_type=notify_type,
         )
 
     def main(self, *args, **kwargs):
@@ -448,7 +497,7 @@ class NotifyScript(PostProcessScript):
         servers = self.get('Servers', None)
         title = self.get('Title', 'Test Notify Title')
         body = self.get('Body', 'Test Notify Body')
-        include_image = self.parse_bool(self.get('IncludeImage', 'No'))
+        notify_type = NotifyType.INFO
 
         if not servers:
             self.logger.debug('No servers were specified --servers (-s)')
@@ -459,7 +508,7 @@ class NotifyScript(PostProcessScript):
             servers,
             title=title,
             body=body,
-            include_image=include_image,
+            notify_type=notify_type,
         )
 
 # Call your script as follows:
