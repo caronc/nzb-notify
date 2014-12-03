@@ -274,7 +274,7 @@ class NotifyScript(PostProcessScript, QueueScript):
                 self.logger.error('Could not parse URL: %s' % server)
                 continue
 
-            self.logger.vdebug('Server parsed to: %s' % str(server))
+            self.logger.debug('Server parsed to: %s' % str(server))
 
             # Some basic validation
             if server['schema'] not in SCHEMA_MAP:
@@ -405,7 +405,6 @@ class NotifyScript(PostProcessScript, QueueScript):
                 # Validation Failure
                 continue
 
-
             nobj.notify(body=body, title=title, notify_type=notify_type)
 
         # Always return true
@@ -466,7 +465,6 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Contents
         title = ''
-        body = self.get('NZBFILE')
 
         if self.health_check():
             if not on_success:
@@ -485,7 +483,7 @@ class NotifyScript(PostProcessScript, QueueScript):
         return self.notify(
             servers,
             title=title,
-            body=body,
+            body=self.nzbname,
             notify_type=notify_type,
         )
 
