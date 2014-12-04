@@ -152,7 +152,7 @@
 # was successful.
 #OnSuccess=yes
 
-# Create Notification on Queued Content (yes, no).
+# Send Notification on Queued Content (yes, no).
 #
 # Instruct the script to send a notification in the event an item is
 # added to the download queue.
