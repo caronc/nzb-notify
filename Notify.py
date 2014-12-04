@@ -506,7 +506,7 @@ class NotifyScript(PostProcessScript, QueueScript):
             ]
 
             statistics_overall = [
-                ' * Total Archive Preparation Time: %.2f' % \
+                ' * Total Archive Preparation Time: %.2f sec' % \
                     stats['par_total_time_sec'],
                 ' * Unarchiving Time: %.2f sec' % stats['unpack_time_sec'],
                 ' * Total Post-Process Time: %.2f sec' % \
