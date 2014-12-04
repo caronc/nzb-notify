@@ -397,7 +397,7 @@ class QueueScript(ScriptBase):
 
         self.system['EVENT'] = self.event
         if self.event is not None:
-            environ['%sEVENT' % QUEUE_ENVIRO_ID] = str(int(self.event))
+            environ['%sEVENT' % QUEUE_ENVIRO_ID] = str(self.event).upper()
 
         self.system['PAUSED'] = self.paused
         if self.paused is not None:
