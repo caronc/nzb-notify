@@ -20,6 +20,7 @@
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
 from NotifyBase import NotifyType
+from NotifyBase import NOTIFY_NEWLINE
 
 from NotifyBoxcar import NotifyBoxcar
 from NotifyFaast import NotifyFaast

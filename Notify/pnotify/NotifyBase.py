@@ -23,6 +23,8 @@ from urllib import quote
 from time import sleep
 import re
 
+import markdown
+
 from logging import Logger
 from Logger import init_logger
 
@@ -69,6 +71,9 @@ NOTIFY_APPLICATION_DESC = 'NZBGet Notify Plugin'
 # Image Control
 NOTIFY_IMAGE_URL = 'http://nzbget.lead2gold.org/notify/' +\
         'nzbget-notify-{TYPE}-{XY}.png'
+
+# HTML New Line Delimiter
+NOTIFY_NEWLINE = '\r\n'
 
 class NotifyFormat(object):
     TEXT = 'text'
@@ -202,13 +207,13 @@ class NotifyBase(object):
         Returns the specified title in an html format and factors
         in a titles defined max length
         """
-        html = ''
-        title_len = 0
-        if title:
-            html = '<h1>%s</h1>' % title
-            title_len = len(html)
 
-        html = '<p>%s</p>' % quote(re.sub(r'[\r\n]+', '<br />', body))
+        title_len = 0
+        html = ''
+        if title:
+            html = '# %s #' % title + '\r\n'
+
+        html = markdown.markdown(html + body)
 
         # TODO:
         # This function should return multiple messages if we exceed

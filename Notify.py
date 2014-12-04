@@ -178,6 +178,8 @@ import re
 from os.path import join
 from os.path import dirname
 from urllib import unquote
+from os.path import abspath
+
 sys.path.insert(0, join(dirname(__file__), 'Notify'))
 
 from nzbget import SCRIPT_MODE
@@ -429,6 +431,10 @@ class NotifyScript(PostProcessScript, QueueScript):
         on_success = self.parse_bool(self.get('OnSuccess'))
         notify_type = NotifyType.INFO
 
+        # Contents
+        title = ''
+        body = self.nzbname
+
         if self.health_check():
             if not on_success:
                 self.logger.debug('Success notifications supressed.')
@@ -465,6 +471,7 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Contents
         title = ''
+        body = '## %s ##' % self.nzbname + NOTIFY_NEWLINE
 
         if self.health_check():
             if not on_success:
@@ -479,11 +486,74 @@ class NotifyScript(PostProcessScript, QueueScript):
             notify_type = NotifyType.FAILURE
             title = 'Download Failed'
 
+        # Get Statistics
+        stats = self.get_statistics()
+        if stats:
+            # Build Printable List From Statistics
+            statistics_core = [
+                ' * Download Size: %.2f MB' % stats['download_size_mb'],
+                ' * Download Time: %.2f sec' % stats['download_time_sec'],
+                ' * Transfer Speed: %.2f %s ' % (
+                        stats['download_avg'],
+                        stats['download_avg_unit'],
+                ),
+            ]
+
+            statistics_par = [
+                ' * Analyse Time: %.2f sec' % stats['par_prepare_time_sec'],
+                ' * Repair Time: %.2f sec' % stats['par_repair_time_sec'],
+
+            ]
+
+            statistics_overall = [
+                ' * Total Archive Preparation Time: %.2f' % \
+                    stats['par_total_time_sec'],
+                ' * Unarchiving Time: %.2f sec' % stats['unpack_time_sec'],
+                ' * Total Post-Process Time: %.2f sec' % \
+                    stats['postprocess_time'],
+                ' * Total Time: %.2f sec' % stats['total_time_sec'],
+            ]
+
+            body += NOTIFY_NEWLINE + '### Statistics ###' + \
+                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_core) + \
+                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_par) + \
+                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_overall)
+
+        # Retrieve File listings (if possible)
+        files = self.get_files(
+            followlinks=True, fullstats=True,
+            min_depth=None, max_depth=None,
+        )
+
+        # Build Printable File List from results
+        files_downloaded = []
+        for file, meta in files.items():
+            unit = 'B'
+            val = float(meta['filesize'])
+            if val > 1024.0:
+                val = val/1024.0
+                unit = 'KB'
+            if val > 1024.0:
+                val = val/1024.0
+                unit = 'MB'
+            if val > 1024.0:
+                val = val/1024.0
+                unit = 'GB'
+
+            files_downloaded.append(
+                ' * ' + file[len(self.directory)+1:] + ' (%.2f %s)' % (
+                    val, unit
+            ))
+
+        if files_downloaded:
+            body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### File(s) ###' + \
+                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(sorted(files_downloaded))
+
         # Preform Notifications
         return self.notify(
             servers,
             title=title,
-            body=self.nzbname,
+            body=body,
             notify_type=notify_type,
         )
 

@@ -303,6 +303,9 @@ class PostProcessScript(ScriptBase):
         else:
             self.directory = directory
 
+        if self.directory:
+            self.directory = abspath(self.directory)
+
         # self.nzbname
         # User-friendly name of processed nzb-file as it is displayed by the
         # program.  The file path and extension are removed.  If download was
@@ -614,22 +617,23 @@ class PostProcessScript(ScriptBase):
 
         The result is returned in an easy to interpret dictionary like so
         {
-            'download_size_mb': 10.32,
+            'download_size_mb': 10.00,
             'download_time_sec': 40.0,
             'download_avg': 2.0,
             'download_avg_unit': 'GB/s',
 
-            'par_scan_time_sec': 12.32,
-            'par_repair_time_sec': 12.32,
-            'unpack_time_sec': 12.32,
-            'total_time_sec': 120.32,
-            'verification_time_sec': 12.32,
+            'par_prepare_time_sec': 10.00,
+            'par_repair_time_sec': 20.00,
+            'unpack_time_sec': 30.00,
+            'postprocess_time': 120.00,
+            'par_total_time_sec': 30.00,
+            'total_time_sec': 160.00,
         }
 
         If an error occurs, then 'None' is returned.
         """
 
-        if not self._connect():
+        if not self.api_connect():
             return None
 
         if nzbid is None:
@@ -661,10 +665,10 @@ class PostProcessScript(ScriptBase):
                 dl_avg_speed_unit = 'GB/s'
                 dl_avg_speed /= 1024.0
 
-        unpack_time = int(group['UnpackTimeSec'])
-        par_prepare_time = int(group['ParTimeSec'])
-        par_repair_time = int(group['RepairTimeSec'])
-        postprocess_time = int(group['PostTotalTimeSec'])
+        unpack_time = float(group['UnpackTimeSec'])
+        par_prepare_time = float(group['ParTimeSec'])
+        par_repair_time = float(group['RepairTimeSec'])
+        postprocess_time = float(group['PostTotalTimeSec'])
 
         return {
             # File Download Size (in MB)
@@ -688,7 +692,7 @@ class PostProcessScript(ScriptBase):
             # General time spent verifying and repairing download (in seconds)
             'par_total_time_sec': par_prepare_time + par_repair_time,
             # Total estimated system time spent handling this download
-            'total_time_sec': postprocess_time + int(group['DownloadTimeSec']),
+            'total_time_sec': postprocess_time + float(group['DownloadTimeSec']),
         }
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
