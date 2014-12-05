@@ -1877,7 +1877,7 @@ class ScriptBase(object):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Retrieve System Logs
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def get_logs(self, max_lines=1000):
+    def get_logs(self, max_lines=1000, reverse=False):
         """
         Returns log entries (via the API)
         """
@@ -1897,7 +1897,7 @@ class ScriptBase(object):
             datetime.fromtimestamp(int(entry['Time']))\
                     .strftime('%Y-%m-%d %H:%M:%S'),
             entry['Kind'], entry['Text'].strip(),
-        ) for entry in logs ], reverse=True)[:max_lines]
+        ) for entry in logs ], reverse=reverse)[:max_lines]
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Add NZB File to Queue
