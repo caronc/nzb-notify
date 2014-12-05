@@ -1000,6 +1000,17 @@ class ScriptBase(object):
                 max_depth=1,
             )
 
+            nzb_dir = self.get('NZBDir', None)
+            if nzb_dir and abspath(nzb_dir) != abspath(dirname(nzbfile)):
+                _filenames = dict(
+                    _filenames.items() + self.get_files(
+                        search_dir=abspath(nzb_dir),
+                        regex_filter=file_regex,
+                        fullstats=True,
+                        max_depth=1,
+                    ).items(),
+                )
+
             if len(_filenames):
                 # sort our results by access time
                 _files = sorted (
@@ -1874,7 +1885,6 @@ class ScriptBase(object):
             # Could not connect
             return None
 
-        print self.api.postqueue(10000)
         try:
             logs = self.api.postqueue(10000)[0]['Log']
         except (IndexError, KeyError):
