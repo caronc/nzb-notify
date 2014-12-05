@@ -1886,7 +1886,8 @@ class ScriptBase(object):
             return None
 
         try:
-            logs = self.api.postqueue(10000)[0]['Log']
+            logs = self.api.postqueue(10000)
+            logs = logs[0]['Log']
         except (IndexError, KeyError):
             # No logs
             return []
@@ -2445,7 +2446,7 @@ class ScriptBase(object):
             return self.script_mode
 
         if len(self.script_dict):
-            self.logger.debug('Detecting possible script mode from: %s' % \
+            self.logger.vdebug('Detecting possible script mode from: %s' % \
                          ', '.join(self.script_dict.keys()))
 
         if len(self.script_dict.keys()):
@@ -2455,11 +2456,11 @@ class ScriptBase(object):
                     if getattr(self, '%s_%s' % (k, 'sanity_check'))():
                         self.script_mode = k
                         if self.script_mode != SCRIPT_MODE.NONE:
-                            self.logger.info(
+                            self.logger.vdebug(
                                 'Script Mode: %s' % self.script_mode.upper())
                             return self.script_mode
 
-        self.logger.info('Script Mode: STANDALONE')
+        self.logger.vdebug('Script Mode: STANDALONE')
         self.script_mode = SCRIPT_MODE.NONE
 
         return self.script_mode

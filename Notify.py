@@ -256,9 +256,9 @@ SCHEMA_MAP = {
 }
 
 class IncludeLogOption(object):
-    YES = 'Yes'
-    NO = 'No'
-    ONFAILURE = 'OnFailure'
+    YES = 'YES'
+    NO = 'NO'
+    ONFAILURE = 'ONFAILURE'
 
 INCLUDE_LOG_OPTIONS = (
     IncludeLogOption.YES,
@@ -482,9 +482,9 @@ class NotifyScript(PostProcessScript, QueueScript):
         on_failure = self.parse_bool(self.get('OnFailure'))
         on_success = self.parse_bool(self.get('OnSuccess'))
 
-        include_logs = self.get('IncludeLogs')
         include_stats = self.parse_bool(self.get('IncludeStats'))
         include_files = self.parse_bool(self.get('IncludeFiles'))
+        include_logs = self.get('IncludeLogs', 'NO').upper()
 
         health_okay = self.health_check()
 
@@ -588,8 +588,8 @@ class NotifyScript(PostProcessScript, QueueScript):
                     NOTIFY_NEWLINE + \
                         NOTIFY_NEWLINE.join(sorted(files_downloaded))
 
-        if include_files == IncludeLogOption.YES or \
-           (include_files == IncludeLogOption.ONFAILURE \
+        if include_logs == IncludeLogOption.YES or \
+           (include_logs == IncludeLogOption.ONFAILURE \
             and not self.health_okay):
 
             # Fetch logs
