@@ -1829,7 +1829,7 @@ class ScriptBase(object):
 
         # if we reach here, we have enough data to build an RCP connection
         if host is None:
-            host = self.system['CONTROLIP']
+            host = self.system.get('ControlIP', '127.0.0.1')
 
         if host == "0.0.0.0":
             host = "127.0.0.1"
@@ -1855,7 +1855,9 @@ class ScriptBase(object):
         # Establish a connection to the server
         try:
             self.api = ServerProxy(xmlrpc_url)
+            self.logger.vdebug('API connected @ %s' % xmlrpc_url)
         except:
+            self.logger.vdebug('API connection failed @ %s' % xmlrpc_url)
             return False
 
         return True
@@ -1864,7 +1866,7 @@ class ScriptBase(object):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Retrieve System Logs
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def get_logs(self):
+    def get_logs(self, max_lines=1000):
         """
         Returns log entries (via the API)
         """
@@ -1872,15 +1874,19 @@ class ScriptBase(object):
             # Could not connect
             return None
 
+        print self.api.postqueue(10000)
         try:
-            logs = self.proxy.postqueue(10000)[0]['Log']
-        except KeyError:
+            logs = self.api.postqueue(10000)[0]['Log']
+        except (IndexError, KeyError):
             # No logs
-            return None
+            return []
 
-        # Return log listings
-        return logs
-
+        # Return a simple ordered list of strings
+        return sorted([ '%s [%s] - %s' % (
+            datetime.fromtimestamp(int(entry['Time']))\
+                    .strftime('%Y-%m-%d %H:%M:%S'),
+            entry['Kind'], entry['Text'].strip(),
+        ) for entry in logs ], reverse=True)[:max_lines]
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Add NZB File to Queue

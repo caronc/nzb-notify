@@ -142,21 +142,29 @@
 
 # Send Notification on Failure (yes, no).
 #
-# Instruct the script to send a notification in the event the download
-# failed.
+# Send a notification if the download failed.
 #OnFailure=yes
 
 # Send Notification on Success (yes, no).
 #
-# Instruct the script to send a notification in the event the download
-# was successful.
+# Send a notification if the download was successful.
 #OnSuccess=yes
 
-# Send Notification on Queued Content (yes, no).
+# Include Statistics (yes, no).
 #
-# Instruct the script to send a notification in the event an item is
-# added to the download queue.
-#OnQueue=yes
+# Include statistics (if possible) in notification(s)
+#IncludeStats=yes
+
+# Include Files (yes, no).
+#
+# Include a file listing (if possible) of content retrieved.
+# Note: File listings are excempted if the download failed.
+#IncludeFiles=yes
+
+# Include Logs (yes, no, OnFailure).
+#
+# Include the log entries in the notification
+#IncludeLogs=OnFailure
 
 # Send a notification image when supported (yes, no).
 #
@@ -178,7 +186,6 @@ import re
 from os.path import join
 from os.path import dirname
 from urllib import unquote
-from os.path import abspath
 
 sys.path.insert(0, join(dirname(__file__), 'Notify'))
 
@@ -247,6 +254,17 @@ SCHEMA_MAP = {
     # Secure Simple XML HTTP Notification
     NOTIFY_XMLS_SCHEMA: NotifyXML,
 }
+
+class IncludeLogOption(object):
+    YES = 'Yes'
+    NO = 'No'
+    ONFAILURE = 'OnFailure'
+
+INCLUDE_LOG_OPTIONS = (
+    IncludeLogOption.YES,
+    IncludeLogOption.NO,
+    IncludeLogOption.ONFAILURE,
+)
 
 # Used to break a path list into parts
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
@@ -419,7 +437,6 @@ class NotifyScript(PostProcessScript, QueueScript):
         if not self.validate(keys=(
             'Servers',
             'IncludeImage',
-            'OnQueue',
         )):
             return False
 
@@ -427,8 +444,6 @@ class NotifyScript(PostProcessScript, QueueScript):
             return None
 
         servers = self.parse_list(self.get('Servers', ''))
-        on_failure = self.parse_bool(self.get('OnFailure'))
-        on_success = self.parse_bool(self.get('OnSuccess'))
         notify_type = NotifyType.INFO
 
         # Contents
@@ -436,15 +451,10 @@ class NotifyScript(PostProcessScript, QueueScript):
         body = self.nzbname
 
         if self.health_check():
-            if not on_success:
-                self.logger.debug('Success notifications supressed.')
-                return None
-            title = 'Queued Successfully'
+            title = 'New File Queued for Download.'
         else:
-            if not on_failure:
-                self.logger.debug('Failure notifications supressed.')
-                return None
-            title = 'Queue Failed'
+            # Do nothing; there is nothing queued now
+            return None
 
         return self.notify(
             servers,
@@ -460,6 +470,9 @@ class NotifyScript(PostProcessScript, QueueScript):
         if not self.validate(keys=(
             'Servers',
             'IncludeImage',
+            'IncludeFiles',
+            'IncludeStats',
+            'IncludeLogs',
             'OnFailure',
             'OnSuccess',
         )):
@@ -469,11 +482,21 @@ class NotifyScript(PostProcessScript, QueueScript):
         on_failure = self.parse_bool(self.get('OnFailure'))
         on_success = self.parse_bool(self.get('OnSuccess'))
 
+        include_logs = self.get('IncludeLogs')
+        include_stats = self.parse_bool(self.get('IncludeStats'))
+        include_files = self.parse_bool(self.get('IncludeFiles'))
+
+        health_okay = self.health_check()
+
+        if include_logs not in INCLUDE_LOG_OPTIONS:
+            # Default to being off
+            include_logs = IncludeLogOption.NO
+
         # Contents
         title = ''
-        body = '## %s ##' % self.nzbname + NOTIFY_NEWLINE
+        body = '## %s ##' % self.nzbname
 
-        if self.health_check():
+        if health_okay:
             if not on_success:
                 self.logger.debug('Success notifications supressed.')
                 return None
@@ -486,38 +509,52 @@ class NotifyScript(PostProcessScript, QueueScript):
             notify_type = NotifyType.FAILURE
             title = 'Download Failed'
 
+        def hhmmss(seconds):
+            """
+            takes an integer and returns hh:mm:ss
+            """
+            m, s = divmod(seconds, 60)
+            h, m = divmod(m, 60)
+            return "%02d:%02d:%02d" % (round(h), round(m), round(s))
+
         # Get Statistics
-        stats = self.get_statistics()
-        if stats:
-            # Build Printable List From Statistics
-            statistics_core = [
-                ' * Download Size: %.2f MB' % stats['download_size_mb'],
-                ' * Download Time: %.2f sec' % stats['download_time_sec'],
-                ' * Transfer Speed: %.2f %s ' % (
-                        stats['download_avg'],
-                        stats['download_avg_unit'],
-                ),
-            ]
+        if include_stats:
+            stats = self.get_statistics()
+            if stats:
+                # Build Printable List From Statistics
+                statistics_core = [
+                    ' * Download Size: %.2f MB' % stats['download_size_mb'],
+                    ' * Download Time: %s' % \
+                            hhmmss(stats['download_time_sec']),
+                    ' * Transfer Speed: %.2f %s ' % (
+                            stats['download_avg'],
+                            stats['download_avg_unit'],
+                    ),
+                ]
 
-            statistics_par = [
-                ' * Analyse Time: %.2f sec' % stats['par_prepare_time_sec'],
-                ' * Repair Time: %.2f sec' % stats['par_repair_time_sec'],
+                statistics_par = [
+                    ' * Analyse Time: %s' % \
+                                    hhmmss(stats['par_prepare_time_sec']),
+                    ' * Repair Time: %s' % \
+                                    hhmmss(stats['par_repair_time_sec']),
+                ]
 
-            ]
+                statistics_overall = [
+                    ' * Total Archive Preparation Time: %s' % \
+                            hhmmss(stats['par_total_time_sec']),
+                    ' * Unarchiving Time: %s' % \
+                            hhmmss(stats['unpack_time_sec']),
+                    ' * Total Post-Process Time: %s' % \
+                            hhmmss(stats['postprocess_time']),
+                    ' * Total Time: %s' % \
+                            hhmmss(stats['total_time_sec']),
+                ]
 
-            statistics_overall = [
-                ' * Total Archive Preparation Time: %.2f sec' % \
-                    stats['par_total_time_sec'],
-                ' * Unarchiving Time: %.2f sec' % stats['unpack_time_sec'],
-                ' * Total Post-Process Time: %.2f sec' % \
-                    stats['postprocess_time'],
-                ' * Total Time: %.2f sec' % stats['total_time_sec'],
-            ]
-
-            body += NOTIFY_NEWLINE + '### Statistics ###' + \
-                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_core) + \
-                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_par) + \
-                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_overall)
+                body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + \
+                        '### Statistics ###' + \
+                    NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_core) + \
+                    NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_par) + \
+                    NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(statistics_overall)
 
         # Retrieve File listings (if possible)
         files = self.get_files(
@@ -525,29 +562,41 @@ class NotifyScript(PostProcessScript, QueueScript):
             min_depth=None, max_depth=None,
         )
 
-        # Build Printable File List from results
-        files_downloaded = []
-        for file, meta in files.items():
-            unit = 'B'
-            val = float(meta['filesize'])
-            if val > 1024.0:
-                val = val/1024.0
-                unit = 'KB'
-            if val > 1024.0:
-                val = val/1024.0
-                unit = 'MB'
-            if val > 1024.0:
-                val = val/1024.0
-                unit = 'GB'
+        if include_files and health_okay:
+            # Build printable file list from results
+            files_downloaded = []
+            for file, meta in files.items():
+                unit = 'B'
+                val = float(meta['filesize'])
+                if val > 1024.0:
+                    val = val/1024.0
+                    unit = 'KB'
+                if val > 1024.0:
+                    val = val/1024.0
+                    unit = 'MB'
+                if val > 1024.0:
+                    val = val/1024.0
+                    unit = 'GB'
 
-            files_downloaded.append(
-                ' * ' + file[len(self.directory)+1:] + ' (%.2f %s)' % (
-                    val, unit
-            ))
+                files_downloaded.append(
+                    ' * ' + file[len(self.directory)+1:] + ' (%.2f %s)' % (
+                        val, unit
+                ))
 
-        if files_downloaded:
-            body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### File(s) ###' + \
-                NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(sorted(files_downloaded))
+            if files_downloaded:
+                body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### File(s) ###' + \
+                    NOTIFY_NEWLINE + \
+                        NOTIFY_NEWLINE.join(sorted(files_downloaded))
+
+        if include_files == IncludeLogOption.YES or \
+           (include_files == IncludeLogOption.ONFAILURE \
+            and not self.health_okay):
+
+            # Fetch logs
+            logs = self.get_logs(25)
+            if logs:
+                body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### Logs ###' + \
+                    NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(logs)
 
         # Preform Notifications
         return self.notify(
