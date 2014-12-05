@@ -30,9 +30,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Tue, Dec 3rd, 2014.
+# Date: Tue, Dec 4th, 2014.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.1.3.
+# Script Version: 0.1.4.
 #
 
 ###########################################################################
@@ -448,7 +448,6 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Contents
         title = ''
-        body = self.nzbname
 
         if self.health_check():
             title = 'New File Queued for Download.'
@@ -565,7 +564,7 @@ class NotifyScript(PostProcessScript, QueueScript):
         if include_files and health_okay:
             # Build printable file list from results
             files_downloaded = []
-            for file, meta in files.items():
+            for _file, meta in files.items():
                 unit = 'B'
                 val = float(meta['filesize'])
                 if val > 1024.0:
