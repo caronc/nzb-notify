@@ -578,7 +578,7 @@ class NotifyScript(PostProcessScript, QueueScript):
                     unit = 'GB'
 
                 files_downloaded.append(
-                    ' * ' + file[len(self.directory)+1:] + ' (%.2f %s)' % (
+                    ' * ' + _file[len(self.directory)+1:] + ' (%.2f %s)' % (
                         val, unit
                 ))
 
