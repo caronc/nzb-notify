@@ -1877,7 +1877,7 @@ class ScriptBase(object):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Retrieve System Logs
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def get_logs(self, max_lines=1000, reverse=False):
+    def get_logs(self, max_lines=1000, oldest_first=True):
         """
         Returns log entries (via the API)
         """
@@ -1893,11 +1893,23 @@ class ScriptBase(object):
             return []
 
         # Return a simple ordered list of strings
-        return sorted([ '%s [%s] - %s' % (
+        if oldest_first == True:
+            return reversed([ '%s - %s - %s' % (
+                datetime.fromtimestamp(int(entry['Time']))\
+                        .strftime('%Y-%m-%d %H:%M:%S'),
+                entry['Kind'], entry['Text'].strip(),
+            ) for entry in logs ])[:max_lines]
+
+        # If we reach here, we are to return the contents
+        # where the newest item is the first entry in
+        # the list; under normal circumstances, this is the
+        # order that the server automatically returns content in
+        return [ '%s - %s - %s' % (
             datetime.fromtimestamp(int(entry['Time']))\
                     .strftime('%Y-%m-%d %H:%M:%S'),
             entry['Kind'], entry['Text'].strip(),
-        ) for entry in logs ], reverse=reverse)[:max_lines]
+        ) for entry in logs ][max_lines:]
+
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Add NZB File to Queue
