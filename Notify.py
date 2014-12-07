@@ -32,7 +32,7 @@
 # Author: Chris Caron (lead2gold@gmail.com).
 # Date: Tue, Dec 6th, 2014.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.1.5
+# Script Version: 0.1.6
 #
 
 ###########################################################################
