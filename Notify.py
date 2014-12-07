@@ -589,7 +589,7 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         if include_logs == IncludeLogOption.YES or \
            (include_logs == IncludeLogOption.ONFAILURE \
-            and not self.health_okay):
+            and not health_okay):
 
             # Fetch logs
             logs = self.get_logs(25)
