@@ -450,7 +450,7 @@ class NotifyScript(PostProcessScript, QueueScript):
         title = ''
 
         if self.health_check():
-            title = 'New File Queued for Download.'
+            title = 'New File Queued for Download'
         else:
             # Do nothing; there is nothing queued now
             return None

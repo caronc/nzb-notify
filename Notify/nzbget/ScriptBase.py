@@ -1919,7 +1919,7 @@ class ScriptBase(object):
         """
         if not self.api_connect():
             # Could not connect
-            return False
+            return None
 
         try:
             f = open(filename, "r")
