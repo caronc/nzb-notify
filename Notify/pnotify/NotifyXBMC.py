@@ -24,6 +24,7 @@ import requests
 
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
+from NotifyBase import NotifyType
 from NotifyBase import NotifyImageSize
 from NotifyBase import HTTP_ERROR_MAP
 
@@ -57,9 +58,50 @@ class NotifyXBMC(NotifyBase):
 
         return
 
+    def _payload_60(self, title, body, notify_type, **kwargs):
+        """
+        Builds payload for KODI API v6.0
+
+        Returns (headers, payload)
+        """
+
+        headers = {
+            'User-Agent': self.app_id,
+            'Content-Type': 'application/json'
+        }
+
+        # prepare JSON Object
+        payload = {
+            'jsonrpc': '6.0',
+            'method': 'GUI.ShowNotification',
+            'params': {
+                'title': title,
+                'message': body,
+                # displaytime is defined in microseconds
+                'displaytime': 12000,
+            },
+            'id': 1,
+        }
+
+        if self.include_image:
+            image_url = self.image_url(
+                notify_type,
+            )
+            if image_url:
+                payload['image'] = image_url
+                if notify_type is NotifyType.Error:
+                    payload['type'] = 'error'
+                elif notify_type is NotifyType.Warning:
+                    payload['type'] = 'warning'
+                else:
+                    payload['type'] = 'info'
+
+        return (headers, dumps(payload))
+
+
     def _payload_20(self, title, body, notify_type, **kwargs):
         """
-        Builds payload for XBMC JSON v2.0
+        Builds payload for XBMC API v2.0
 
         Returns (headers, payload)
         """
