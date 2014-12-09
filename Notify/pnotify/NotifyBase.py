@@ -32,6 +32,7 @@ class NotifyType(object):
     INFO = 'info'
     SUCCESS = 'success'
     FAILURE = 'failure'
+    WARNING = 'warning'
 
 # Most Servers do not like more then 1 request per 5 seconds,
 # so 5.5 gives us a safe play range...
@@ -41,6 +42,7 @@ NOTIFY_TYPES = (
     NotifyType.INFO,
     NotifyType.SUCCESS,
     NotifyType.FAILURE,
+    NotifyType.WARNING,
 )
 
 class NotifyImageSize(object):
