@@ -1877,7 +1877,7 @@ class ScriptBase(object):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Retrieve System Logs
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def get_logs(self, max_lines=1000, oldest_first=True):
+    def get_logs(self, max_lines=1000, oldest_first=False):
         """
         Returns log entries (via the API)
         """
@@ -1894,11 +1894,11 @@ class ScriptBase(object):
 
         # Return a simple ordered list of strings
         if oldest_first == True:
-            return reversed([ '%s - %s - %s' % (
+            return list(reversed([ '%s - %s - %s' % (
                 datetime.fromtimestamp(int(entry['Time']))\
                         .strftime('%Y-%m-%d %H:%M:%S'),
                 entry['Kind'], entry['Text'].strip(),
-            ) for entry in logs ])[:max_lines]
+            ) for entry in logs ]))[:max_lines]
 
         # If we reach here, we are to return the contents
         # where the newest item is the first entry in
