@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from urllib import quote
 import requests
 import re
 
@@ -153,8 +152,8 @@ class NotifyPushover(NotifyBase):
                 'token': self.token,
                 'user': self.user,
                 'priority': str(self.priority),
-                'title': quote(title),
-                'message': quote(body),
+                'title': title,
+                'message': body,
             }
 
             if device != PUSHOVER_SEND_TO_ALL:
