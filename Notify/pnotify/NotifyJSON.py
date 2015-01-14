@@ -87,6 +87,7 @@ class NotifyJSON(NotifyBase):
         url += self.fullpath
 
         self.logger.debug('JSON POST URL: %s' % url)
+        self.logger.debug('JSON Payload: %s' % str(payload))
         try:
             r = requests.post(
                 url,

@@ -99,8 +99,9 @@ class NotifyToasty(NotifyBase):
             # URL to transmit content via
             url = '%s%s' % (TOASTY_URL, device)
 
+            self.logger.debug('Toasty POST URL: %s' % url)
+            self.logger.debug('Toasty Payload: %s' % str(payload))
             try:
-                self.logger.debug('Toasty POST URL: %s' % url)
                 r = requests.get(
                     url,
                     data=payload,

@@ -172,6 +172,7 @@ class NotifyXBMC(NotifyBase):
         url += '/jsonrpc'
 
         self.logger.debug('XBMC/KODI POST URL: %s' % url)
+        self.logger.debug('XBMC/KODI Payload: %s' % str(payload))
         try:
             r = requests.post(
                 url,

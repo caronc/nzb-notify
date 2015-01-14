@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 #
-# Notify My Android Notify Wrapper
+# Notify My Android (NMA) Notify Wrapper
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
@@ -58,7 +58,7 @@ NMA_PRIORITIES = (
 
 class NotifyMyAndroid(NotifyBase):
     """
-    A wrapper for Notify My Android Notifications
+    A wrapper for Notify My Android (NMA) Notifications
     """
     def __init__(self, apikey, priority=NotifyMyAndroidPriority.NORMAL,
                  devapikey=None, **kwargs):
@@ -79,10 +79,10 @@ class NotifyMyAndroid(NotifyBase):
         # Validate apikey
         if not VALIDATE_APIKEY.match(apikey):
             self.logger.warning(
-                'Invalid Notify My Android API Key specified.'
+                'Invalid NMA API Key specified.'
             )
             raise TypeError(
-                'Invalid Notify My Android API Key specified.'
+                'Invalid NMA API Key specified.'
             )
         self.apikey = apikey
 
@@ -90,10 +90,10 @@ class NotifyMyAndroid(NotifyBase):
             # Validate apikey
             if not VALIDATE_APIKEY.match(devapikey):
                 self.logger.warning(
-                    'Invalid Notify My Android DEV API Key specified.'
+                    'Invalid NMA DEV API Key specified.'
                 )
                 raise TypeError(
-                    'Invalid Notify My Android DEV API Key specified.'
+                    'Invalid NMA DEV API Key specified.'
                 )
         self.devapikey = devapikey
 
@@ -120,7 +120,8 @@ class NotifyMyAndroid(NotifyBase):
         if self.devapikey:
             payload['developerkey'] = self.devapikey
 
-        self.logger.debug('Notify My Android POST URL: %s' % NMA_URL)
+        self.logger.debug('NMA POST URL: %s' % NMA_URL)
+        self.logger.debug('NMA Payload: %s' % str(payload))
         try:
             r = requests.post(
                 NMA_URL,
@@ -131,14 +132,14 @@ class NotifyMyAndroid(NotifyBase):
                 # We had a problem
                 try:
                     self.logger.warning(
-                        'Failed to send Notify My Android notification: ' +\
+                        'Failed to send NMA notification: ' +\
                         '%s (error=%s).' % (
                             NMA_HTTP_ERROR_MAP[r.status_code],
                             r.status_code,
                     ))
                 except IndexError:
                     self.logger.warning(
-                        'Failed to send Notify My Android notification ' +\
+                        'Failed to send NMA notification ' +\
                         '(error=%s).' % (
                             r.status_code,
                     ))
@@ -146,11 +147,11 @@ class NotifyMyAndroid(NotifyBase):
                 # Return; we're done
                 return False
             else:
-                self.logger.info('Sent Notify My Android notification.')
+                self.logger.info('Sent NMA notification.')
 
         except requests.ConnectionError as e:
             self.logger.warning(
-                'A Connection error occured sending Notify My Android ' + \
+                'A Connection error occured sending NMA ' + \
                 'notification.'
             )
             self.logger.debug('Socket Exception: %s' % str(e))

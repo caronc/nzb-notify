@@ -168,6 +168,7 @@ class NotifyPushover(NotifyBase):
                 payload['device'] = device
 
             self.logger.debug('Pushover POST URL: %s' % PUSHOVER_URL)
+            self.logger.debug('Pushover Payload: %s' % str(payload))
             try:
                 r = requests.post(
                     PUSHOVER_URL,

@@ -73,6 +73,7 @@ class NotifyFaast(NotifyBase):
                 payload['icon_url'] = image_url
 
         self.logger.debug('Faast POST URL: %s' % FAAST_URL)
+        self.logger.debug('Faast Payload: %s' % str(payload))
         try:
             r = requests.post(
                 FAAST_URL,

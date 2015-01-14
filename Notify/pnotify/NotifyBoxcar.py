@@ -130,6 +130,7 @@ class NotifyBoxcar(NotifyBase):
         url += '/api/push'
 
         self.logger.debug('Boxcar POST URL: %s' % url)
+        self.logger.debug('Boxcar Payload: %s' % str(payload))
         try:
             r = requests.post(
                 url,

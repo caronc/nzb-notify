@@ -129,6 +129,7 @@ class NotifyPushBullet(NotifyBase):
                 )
 
             self.logger.debug('PushBullet POST URL: %s' % PUSHBULLET_URL)
+            self.logger.debug('PushBullet Payload: %s' % str(payload))
             try:
                 r = requests.post(
                     PUSHBULLET_URL,

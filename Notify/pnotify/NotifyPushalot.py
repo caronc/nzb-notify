@@ -97,6 +97,7 @@ class NotifyPushalot(NotifyBase):
                 payload['Image'] = image_url
 
         self.logger.debug('Pushalot POST URL: %s' % PUSHALOT_URL)
+        self.logger.debug('Pushalot Payload: %s' % str(payload))
         try:
             r = requests.post(
                 PUSHALOT_URL,

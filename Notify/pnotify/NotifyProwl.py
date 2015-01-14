@@ -128,6 +128,7 @@ class NotifyProwl(NotifyBase):
             payload['providerkey'] = self.providerkey
 
         self.logger.debug('Prowl POST URL: %s' % PROWL_URL)
+        self.logger.debug('Prowl Payload: %s' % str(payload))
         try:
             r = requests.post(
                 PROWL_URL,

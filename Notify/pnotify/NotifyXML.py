@@ -102,12 +102,14 @@ class NotifyXML(NotifyBase):
             url += ':%d' % self.port
 
         url += self.fullpath
+        payload = re_table.sub(lambda x: re_map[x.group()], self.payload)
 
         self.logger.debug('XML POST URL: %s' % url)
+        self.logger.debug('XML Payload: %s' % str(payload))
         try:
             r = requests.post(
                 url,
-                data=re_table.sub(lambda x: re_map[x.group()], self.payload),
+                data=payload,
                 headers=headers,
                 auth=auth,
             )
