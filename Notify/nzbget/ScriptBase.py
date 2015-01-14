@@ -124,6 +124,7 @@ from tempfile import gettempdir
 from os import environ
 from os import makedirs
 from os import chdir
+from os import getcwd
 from os import walk
 from os import access
 from os import W_OK
@@ -734,6 +735,9 @@ class ScriptBase(object):
                 )
         else:
             self.logger_id = None
+
+        # Track the current working directory
+        self.curdir = getcwd()
 
         # enforce temporary directory
         if not self.tempdir:
@@ -2058,6 +2062,9 @@ class ScriptBase(object):
             search_dir,
             len(prefix_filter) + len(suffix_filter) + len(regex_filter),
         ))
+
+        if not dirname(search_dir):
+            search_dir = join(self.curdir, search_dir)
 
         if isfile(search_dir):
             fname = basename(search_dir)

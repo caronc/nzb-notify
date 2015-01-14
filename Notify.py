@@ -333,13 +333,6 @@ class NotifyScript(PostProcessScript, QueueScript):
                 }.items()
 
             # #######################################################################
-            # GROWL Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_GROWL_SCHEMA:
-                notify_args = notify_args + {
-                }.items()
-
-            # #######################################################################
             # Notify My Android Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_NMA_SCHEMA:
@@ -419,6 +412,19 @@ class NotifyScript(PostProcessScript, QueueScript):
                     'devices': '%s/%s' % (server['host'], devices),
                 }.items()
 
+            # #######################################################################
+            # XBMC Notification Support
+            # #######################################################################
+            elif server['schema'] in (
+                NOTIFY_XBMC_SCHEMA, NOTIFY_XBMCS_SCHEMA,
+                NOTIFY_KODI_SCHEMA, NOTIFY_KODIS_SCHEMA,
+                                   ):
+                # Limit results to just the first 2 line otherwise
+                # there is just to much content to display
+                body = re.split('[\r\n]+', body)
+                body[0] = body[0].strip('#').strip()
+                body = '\r\n'.join(body[0:2])
+
             try:
                 nobj = SCHEMA_MAP[server['schema']](**dict(notify_args))
             except TypeError:
@@ -494,6 +500,7 @@ class NotifyScript(PostProcessScript, QueueScript):
         # Contents
         title = ''
         body = '## %s ##' % self.nzbname
+        body += NOTIFY_NEWLINE + 'Status: %s' % str(self.status)
 
         if health_okay:
             if not on_success:

@@ -34,6 +34,14 @@ XBMC_IMAGE_XY = NotifyImageSize.XY_128
 # XBMC uses the http protocol with JSON requests
 XBMC_PORT = 8080
 
+XBMC_PROTOCOL_V2 = 2
+XBMC_PROTOCOL_V6 = 6
+
+SUPPORTED_XBMC_PROTOCOLS = (
+    XBMC_PROTOCOL_V2,
+    XBMC_PROTOCOL_V6,
+)
+
 class NotifyXBMC(NotifyBase):
     """
     A wrapper for XBMC/KODI Notifications
@@ -55,6 +63,10 @@ class NotifyXBMC(NotifyBase):
 
         if not self.port:
             self.port = XBMC_PORT
+
+        self.protocol = kwargs.get('protocol', XBMC_PROTOCOL_V2)
+        if self.protocol not in SUPPORTED_XBMC_PROTOCOLS:
+            raise TypeError("Invalid protocol specified.")
 
         return
 
@@ -139,11 +151,15 @@ class NotifyXBMC(NotifyBase):
         Perform XBMC Notification
         """
 
-        # XBMC v2.0
-        (headers, payload) = self._payload_20(
-            title, body, notify_type, **kwargs)
+        if self.protocol == XBMC_PROTOCOL_V2:
+            # XBMC v2.0
+            (headers, payload) = self._payload_20(
+                title, body, notify_type, **kwargs)
 
-        # TODO: XBMC v6.0 Support
+        else:
+            # XBMC v6.0
+            (headers, payload) = self._payload_60(
+                title, body, notify_type, **kwargs)
 
         auth = None
         if self.user:
