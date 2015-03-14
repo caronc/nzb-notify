@@ -30,9 +30,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Tue, Jan 15th, 2015.
+# Date: Tue, Mar 14th, 2015.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.1.8
+# Script Version: 0.1.9
 #
 
 ###########################################################################
@@ -139,6 +139,12 @@
 #  - toasty://user@device
 #  - toasty://user@device1/device2/deviceN
 #Servers=
+
+# Send Notification when Queued (yes, no).
+#
+# Send a notification when a new entry is queued into NZBGet for
+# download.
+#OnQueue=yes
 
 # Send Notification on Failure (yes, no).
 #
@@ -443,8 +449,13 @@ class NotifyScript(PostProcessScript, QueueScript):
         if not self.validate(keys=(
             'Servers',
             'IncludeImage',
+            'OnQueue',
         )):
             return False
+
+        on_queue = self.parse_bool(self.get('OnQueue'))
+        if not on_queue:
+            return None
 
         if self.event != QueueEvent.NZB_ADDED:
             return None
