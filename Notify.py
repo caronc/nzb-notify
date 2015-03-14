@@ -22,6 +22,7 @@
 
 ###########################################################################
 ### NZBGET QUEUE/POST-PROCESSING SCRIPT
+### QUEUE EVENTS: NZB_ADDED
 
 # NZBGet Notifications.
 #
