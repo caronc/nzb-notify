@@ -737,7 +737,12 @@ class ScriptBase(object):
             self.logger_id = None
 
         # Track the current working directory
-        self.curdir = getcwd()
+        try:
+            self.curdir = getcwd()
+        except OSError:
+            # This happens on some systems that simply don't
+            # allow us access to this information
+            self.curdir = './'
 
         # enforce temporary directory
         if not self.tempdir:
