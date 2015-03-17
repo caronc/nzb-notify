@@ -1048,8 +1048,16 @@ class ScriptBase(object):
                 )
 
         try:
-            for event, element in etree.iterparse(
-                nzbfile, tag="{http://www.newzbin.com/DTD/2003/nzb}head"):
+            if LXML_TYPE == u'xml.etree.cElementTree':
+                # cElementTree does not support tag= option
+                elements = etree.iterparse(nzbfile)
+            else:
+                elements = etree.iterparse(
+                    nzbfile,
+                    tag="{http://www.newzbin.com/DTD/2003/nzb}head",
+                )
+
+            for event, element in elements:
                 for child in element:
                     if child.tag == "{http://www.newzbin.com/DTD/2003/nzb}meta":
                         if child.text.strip():
