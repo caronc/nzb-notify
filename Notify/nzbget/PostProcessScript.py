@@ -426,13 +426,13 @@ class PostProcessScript(ScriptBase):
             self.directory = abspath(self.directory)
 
         if not (self.directory and isdir(self.directory)):
-            self.logger.warning('Process directory is missing: %s' % \
+            self.logger.debug('Process directory is missing: %s' % \
                 self.directory)
         else:
             try:
                 chdir(self.directory)
             except OSError:
-                self.logger.warning('Directory is not accessible: %s' % \
+                self.logger.debug('Process directory is not accessible: %s' % \
                     self.directory)
 
         # Total Status
