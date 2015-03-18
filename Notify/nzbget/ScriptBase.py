@@ -1060,7 +1060,8 @@ class ScriptBase(object):
             for event, element in elements:
                 for child in element:
                     if child.tag == "{http://www.newzbin.com/DTD/2003/nzb}meta":
-                        if child.text.strip():
+                        if isinstance(child.text, basestring) and \
+                                child.text.strip():
                             # Only store entries with content
                             results[child.attrib['type'].upper()] = \
                                 child.text.strip()
