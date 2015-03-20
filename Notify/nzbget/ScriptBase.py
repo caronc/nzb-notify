@@ -1049,24 +1049,36 @@ class ScriptBase(object):
 
         try:
             if LXML_TYPE == u'xml.etree.cElementTree':
-                # cElementTree does not support tag= option
+                # cElementTree does not support tag= option and is not as
+                # powerful as some of it's other partners since you have to
+                # parse much more to get the results.  It's slower; but it
+                # works:
                 elements = etree.iterparse(nzbfile)
+
+                for event, element in elements:
+                    if element.tag == "{http://www.newzbin.com/DTD/2003/nzb}meta":
+                        if isinstance(element.text, basestring) and \
+                                element.text.strip():
+                            # Only store entries with content
+                            results[element.attrib['type'].upper()] = \
+                                element.text.strip()
+                    element.clear()
             else:
                 elements = etree.iterparse(
                     nzbfile,
                     tag="{http://www.newzbin.com/DTD/2003/nzb}head",
                 )
 
-            for event, element in elements:
-                for child in element:
-                    if child.tag == "{http://www.newzbin.com/DTD/2003/nzb}meta":
-                        if isinstance(child.text, basestring) and \
-                                child.text.strip():
-                            # Only store entries with content
-                            results[child.attrib['type'].upper()] = \
-                                child.text.strip()
+                for event, element in elements:
+                    for child in element:
+                        if child.tag == "{http://www.newzbin.com/DTD/2003/nzb}meta":
+                            if isinstance(child.text, basestring) and \
+                                    child.text.strip():
+                                # Only store entries with content
+                                results[child.attrib['type'].upper()] = \
+                                    child.text.strip()
 
-                element.clear()
+                    element.clear()
             self.logger.info(
                 'NZBParse - NZB-File parsed %d meta entries' % len(results),
             )
