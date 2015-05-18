@@ -125,12 +125,13 @@ from os import environ
 from os import makedirs
 from os import chdir
 from os import getcwd
-from os import walk
+from os import listdir
 from os import access
 from os import W_OK
 from os import R_OK
 from os import X_OK
 from os.path import isdir
+from os.path import islink
 from os.path import isfile
 from os.path import join
 from os.path import dirname
@@ -229,7 +230,6 @@ SKIP_DIRECTORIES = (
     '.AppleDouble',
     '__MACOSX',
 )
-
 class EXIT_CODE(object):
     """List of exit codes for post processing
     """
@@ -1984,7 +1984,8 @@ class ScriptBase(object):
     def _get_files(self, search_dir, regex_filter=None, prefix_filter=None,
                     suffix_filter=None, fullstats=False,
                    followlinks=False, min_depth=None, max_depth=None,
-                  case_sensitive=False, skip_directories=SKIP_DIRECTORIES):
+                  case_sensitive=False, skip_directories=SKIP_DIRECTORIES,
+                  *args, **kwargs):
         """Returns a dict object of the files found in the download
            directory. You can additionally pass in filters as a list or
            string) to filter the results returned.
@@ -2015,6 +2016,9 @@ class ScriptBase(object):
 
         """
 
+        # Internal Tracking of Directory Depth
+        current_depth = kwargs.get('__current_depth', 1)
+
         # Build file list
         files = {}
         if isinstance(search_dir, (list, tuple)):
@@ -2031,6 +2035,8 @@ class ScriptBase(object):
                     max_depth=max_depth,
                     case_sensitive=case_sensitive,
                     skip_directories=skip_directories,
+                    # Internal Current Directory Depth tracking
+                    __current_depth=current_depth,
                 ).items())
             return files
 
@@ -2084,10 +2090,13 @@ class ScriptBase(object):
             # apply
             regex_filter = _filters
 
-        self.logger.debug("get_files('%s') with %d filter(s)" % (
-            search_dir,
-            len(prefix_filter) + len(suffix_filter) + len(regex_filter),
-        ))
+        if current_depth == 1:
+            # noise reduction; only display this notice once (but not on
+            # each recursive call)
+            self.logger.debug("get_files('%s') with %d filter(s)" % (
+                search_dir,
+                len(prefix_filter) + len(suffix_filter) + len(regex_filter),
+            ))
 
         if not dirname(search_dir):
             search_dir = join(self.curdir, search_dir)
@@ -2155,13 +2164,35 @@ class ScriptBase(object):
                 }
             }
             if fullstats:
-                stat_obj = stat(search_dir)
-                _file[search_dir]['modified'] = \
-                    datetime.fromtimestamp(stat_obj[ST_MTIME])
-                _file[search_dir]['accessed'] = \
-                    datetime.fromtimestamp(stat_obj[ST_ATIME])
-                _file[search_dir]['created'] = \
-                    datetime.fromtimestamp(stat_obj[ST_CTIME])
+                # Extend file information
+                try:
+                    stat_obj = stat(search_dir)
+                except OSError:
+                    # File was not found or recently removed
+                    del files[search_dir]
+                    self.logger.warning(
+                        'The file %s became inaccessible' % fname,
+                    )
+                    return {}
+                try:
+                    _file[search_dir]['modified'] = \
+                        datetime.fromtimestamp(stat_obj[ST_MTIME])
+                except ValueError:
+                    _file[search_dir]['modified'] = \
+                        datetime(1980, 1, 1, 0, 0, 0, 0)
+                try:
+                    _file[search_dir]['accessed'] = \
+                        datetime.fromtimestamp(stat_obj[ST_ATIME])
+                except ValueError:
+                    _file[search_dir]['accessed'] = \
+                        datetime(1980, 1, 1, 0, 0, 0, 0)
+                try:
+                    _file[search_dir]['created'] = \
+                        datetime.fromtimestamp(stat_obj[ST_CTIME])
+                except ValueError:
+                    _file[search_dir]['created'] = \
+                        datetime(1980, 1, 1, 0, 0, 0, 0)
+
                 _file[search_dir]['filesize'] = stat_obj[ST_SIZE]
             return _file
 
@@ -2170,102 +2201,143 @@ class ScriptBase(object):
 
         # For depth matching
         search_dir = normpath(search_dir)
-        depth_offset = len(re.split('[%s]' % ESCAPED_PATH_SEPARATOR, search_dir)) - 1
-        self.logger.vdebug('File depth offset %d' % depth_offset)
+        current_depth += 1
+        self.logger.vdebug('Directory depth offset %d' % current_depth)
 
-        for dname, dnames, fnames in walk(
-            search_dir, followlinks=followlinks):
+        # Get Directory entries
+        dirents = [ d for d in listdir(search_dir) \
+                  if d not in ('..', '.') ]
 
-            # Depth handling
-            current_depth = \
-                    len(re.split('[%s]' % ESCAPED_PATH_SEPARATOR, dname))\
-                    - depth_offset
+        for dirent in dirents:
+            # Store Path
+            fullpath = join(search_dir, dirent)
 
-            # Min and Max depth handling
-            if max_depth and max_depth < current_depth:
+            ## Iterate over entries and process the files
+            #for dname, dnames, fnames in walk(
+            #search_dir, followlinks=followlinks):
+
+            if isdir(fullpath):
+                # Min and Max depth handling
+                if max_depth and max_depth < current_depth:
+                    continue
+                if min_depth and min_depth > current_depth:
+                    continue
+
+                # Handle skip_directory directive
+                if (isinstance(skip_directories, list) and \
+                        dirent in skip_directories) or \
+                        (skip_directories and dirent in SKIP_DIRECTORIES):
+                    self.logger.vdebug(
+                        'Skipping directory %s' % dirent,
+                    )
+                    continue
+
+                if not followlinks and islink(fullpath):
+                    # honor followlinks
+                    self.logger.vdebug(
+                        'Skipping (link) directory %s' % dirent,
+                    )
+                    continue
+
+                # use recursion to build a master (unique) list
+                files = dict(files.items() + self._get_files(
+                    search_dir=fullpath,
+                    regex_filter=regex_filter,
+                    prefix_filter=prefix_filter,
+                    suffix_filter=suffix_filter,
+                    fullstats=fullstats,
+                    followlinks=followlinks,
+                    min_depth=min_depth,
+                    max_depth=max_depth,
+                    case_sensitive=case_sensitive,
+                    skip_directories=skip_directories,
+                    # Internal Current Directory Depth tracking
+                    __current_depth=current_depth,
+                ).items())
                 continue
-            if min_depth and min_depth > current_depth:
-                continue
 
-            # Ignore Directory Handling
-            if skip_directories and basename(dname) in SKIP_DIRECTORIES:
+            elif not isfile(fullpath):
                 self.logger.vdebug(
-                    'Skipping directory %s' % basename(dname),
+                    'Skipping unknown %s' % dirent,
                 )
                 continue
 
-            self.logger.vdebug('CUR depth %d (MAX=%s, MIN=%s)' % \
-                              (current_depth, str(max_depth), str(min_depth)))
+            filtered = False
 
-            for fname in fnames:
-                filtered = False
+            # Apply filters to match filed
+            if regex_filter:
+                filtered = True
+                for regex in regex_filter:
+                    if regex.search(dirent):
+                        self.logger.debug('Allowed %s (regex)' % dirent)
+                        filtered = False
+                        break
+                if filtered:
+                    self.logger.vdebug('Denied %s (regex)' % dirent)
+                    continue
 
-                # Apply filters
-                if regex_filter:
-                    filtered = True
-                    for regex in regex_filter:
-                        if regex.search(fname):
-                            self.logger.debug('Allowed %s (regex)' % fname)
-                            filtered = False
-                            break
-                    if filtered:
-                        self.logger.vdebug('Denied %s (regex)' % fname)
-                        continue
+            if not filtered and prefix_filter:
+                filtered = True
+                for prefix in prefix_filter:
+                    if dirent[0:len(prefix)] == prefix:
+                        self.logger.debug('Allowed %s (prefix)' % dirent)
+                        filtered = False
+                        break
+                if filtered:
+                    self.logger.vdebug('Denied %s (prefix)' % dirent)
+                    continue
 
-                if not filtered and prefix_filter:
-                    filtered = True
-                    for prefix in prefix_filter:
-                        if fname[0:len(prefix)] == prefix:
-                            self.logger.debug('Allowed %s (prefix)' % fname)
-                            filtered = False
-                            break
-                    if filtered:
-                        self.logger.vdebug('Denied %s (prefix)' % fname)
-                        continue
+            if not filtered and suffix_filter:
+                filtered = True
+                for suffix in suffix_filter:
+                    if dirent[-len(suffix):] == suffix:
+                        self.logger.debug('Allowed %s (suffix)' % dirent)
+                        filtered = False
+                        break
+                if filtered:
+                    self.logger.vdebug('Denied %s (suffix)' % dirent)
+                    continue
 
-                if not filtered and suffix_filter:
-                    filtered = True
-                    for suffix in suffix_filter:
-                        if fname[-len(suffix):] == suffix:
-                            self.logger.debug('Allowed %s (suffix)' % fname)
-                            filtered = False
-                            break
-                    if filtered:
-                        self.logger.vdebug('Denied %s (suffix)' % fname)
-                        continue
+            # If we reach here, we store the file found
+            files[fullpath] = {
+                'basename': dirent,
+                'dirname': search_dir,
+                'extension': splitext(basename(dirent))[1].lower(),
+                'filename': splitext(basename(dirent))[0],
+            }
 
-                # If we reach here, we store the file found
-                _file = join(dname, fname)
-                files[_file] = {
-                    'basename': fname,
-                    'dirname': dname,
-                    'extension': splitext(basename(fname))[1].lower(),
-                    'filename': splitext(basename(fname))[0],
-                }
+            if fullstats:
+                # Extend file information
+                try:
+                    stat_obj = stat(fullpath)
+                except OSError:
+                    # File was not found or recently removed
+                    del files[fullpath]
+                    self.logger.warning(
+                        'The file %s became inaccessible' % dirent,
+                    )
+                    continue
 
-                if fullstats:
-                    # Extend file information
-                    stat_obj = stat(_file)
-                    try:
-                        files[_file]['modified'] = \
-                            datetime.fromtimestamp(stat_obj[ST_MTIME])
-                    except ValueError:
-                        files[_file]['modified'] = \
-                                datetime(1980, 1, 1, 0, 0, 0, 0)
-                    try:
-                        files[_file]['accessed'] = \
-                            datetime.fromtimestamp(stat_obj[ST_ATIME])
-                    except ValueError:
-                        files[_file]['accessed'] = \
-                                datetime(1980, 1, 1, 0, 0, 0, 0)
-                    try:
-                        files[_file]['created'] = \
-                            datetime.fromtimestamp(stat_obj[ST_CTIME])
-                    except ValueError:
-                        files[_file]['created'] = \
-                                datetime(1980, 1, 1, 0, 0, 0, 0)
+                try:
+                    files[fullpath]['modified'] = \
+                        datetime.fromtimestamp(stat_obj[ST_MTIME])
+                except ValueError:
+                    files[fullpath]['modified'] = \
+                            datetime(1980, 1, 1, 0, 0, 0, 0)
+                try:
+                    files[fullpath]['accessed'] = \
+                        datetime.fromtimestamp(stat_obj[ST_ATIME])
+                except ValueError:
+                    files[fullpath]['accessed'] = \
+                            datetime(1980, 1, 1, 0, 0, 0, 0)
+                try:
+                    files[fullpath]['created'] = \
+                        datetime.fromtimestamp(stat_obj[ST_CTIME])
+                except ValueError:
+                    files[fullpath]['created'] = \
+                            datetime(1980, 1, 1, 0, 0, 0, 0)
 
-                    files[_file]['filesize'] = stat_obj[ST_SIZE]
+                files[fullpath]['filesize'] = stat_obj[ST_SIZE]
         # Return all files
         return files
 
