@@ -61,7 +61,7 @@
 #  - growl:// -> A Growl Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A secure, simple json query
-#  - kodi:// -> An KODI Notification
+#  - kodi:// -> A KODI Notification
 #  - nma:// -> Notify My Android Notification
 #  - palot:// -> A Pushalot Notification
 #  - pbul:// -> A PushBullet Notification
