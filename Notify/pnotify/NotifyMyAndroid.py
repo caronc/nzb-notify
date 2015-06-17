@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from json import dumps
 import requests
 import re
 
@@ -28,7 +27,7 @@ from NotifyBase import NotifyFormat
 from NotifyBase import HTTP_ERROR_MAP
 
 # Notify My Android uses the http protocol with JSON requests
-NMA_URL = 'https://www.notifymyandroid.com/publicapi/notify/publicapi/notify'
+NMA_URL = 'https://www.notifymyandroid.com/publicapi/notify'
 
 # Extend HTTP Error Messages
 NMA_HTTP_ERROR_MAP = dict(HTTP_ERROR_MAP.items() + {
@@ -97,7 +96,6 @@ class NotifyMyAndroid(NotifyBase):
                 )
         self.devapikey = devapikey
 
-
     def _notify(self, title, body, notify_type, **kwargs):
         """
         Perform Notify My Android Notification
@@ -105,7 +103,6 @@ class NotifyMyAndroid(NotifyBase):
 
         headers = {
             'User-Agent': self.app_id,
-            'Content-Type': 'application/json'
         }
 
         # prepare JSON Object
@@ -125,7 +122,7 @@ class NotifyMyAndroid(NotifyBase):
         try:
             r = requests.post(
                 NMA_URL,
-                data=dumps(payload),
+                data=payload,
                 headers=headers,
             )
             if r.status_code != requests.codes.ok:
@@ -146,7 +143,9 @@ class NotifyMyAndroid(NotifyBase):
 
                 # Return; we're done
                 return False
+
             else:
+                self.logger.debug('NMA Server Response: %s.' % r.text)
                 self.logger.info('Sent NMA notification.')
 
         except requests.ConnectionError as e:
