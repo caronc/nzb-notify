@@ -119,7 +119,7 @@ class NotifyProwl(NotifyBase):
         payload = {
             'apikey': self.apikey,
             'description': body,
-            'application': self.api_id,
+            'application': self.app_id,
             'event': title,
             'priority': self.priority,
         }
