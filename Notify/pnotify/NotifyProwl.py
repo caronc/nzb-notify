@@ -110,7 +110,6 @@ class NotifyProwl(NotifyBase):
 
         headers = {
             'User-Agent': self.app_id,
-            'Content-Type': 'application/json'
         }
 
         auth = (self.apikey, '')
