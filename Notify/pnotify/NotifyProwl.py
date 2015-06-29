@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from json import dumps
 import requests
 import re
 
@@ -110,16 +109,15 @@ class NotifyProwl(NotifyBase):
 
         headers = {
             'User-Agent': self.app_id,
+            'Content-type': "application/x-www-form-urlencoded",
         }
-
-        auth = (self.apikey, '')
 
         # prepare JSON Object
         payload = {
             'apikey': self.apikey,
-            'description': body,
             'application': self.app_id,
             'event': title,
+            'description': body,
             'priority': self.priority,
         }
 
@@ -131,9 +129,8 @@ class NotifyProwl(NotifyBase):
         try:
             r = requests.post(
                 PROWL_URL,
-                data=dumps(payload),
+                data=payload,
                 headers=headers,
-                auth=auth,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem
@@ -151,7 +148,7 @@ class NotifyProwl(NotifyBase):
                             r.status_code,
                     ))
 
-                #self.logger.debug('Response Details: %s' % r.raw.read())
+                self.logger.debug('Response Details: %s' % r.raw.read())
                 # Return; we're done
                 return False
             else:
