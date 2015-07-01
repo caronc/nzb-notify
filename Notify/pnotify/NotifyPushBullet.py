@@ -26,21 +26,13 @@ import re
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
 from NotifyBase import HTTP_ERROR_MAP
+from NotifyBase import IS_EMAIL_RE
 
 # Flag used as a placeholder to sending to all devices
 PUSHBULLET_SEND_TO_ALL = 'ALL_DEVICES'
 
 # PushBullet uses the http protocol with JSON requests
 PUSHBULLET_URL = 'https://api.pushbullet.com/api/pushes'
-
-# Regular expression retrieved from:
-# http://www.regular-expressions.info/email.html
-IS_EMAIL_RE = re.compile(
-    r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)" +\
-    r"*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*" +\
-    r"[a-z0-9])?",
-    re.IGNORECASE,
-)
 
 # Used to break apart list of potential recipients by their delimiter
 # into a usable list.

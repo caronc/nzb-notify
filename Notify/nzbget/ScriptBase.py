@@ -207,6 +207,7 @@ from stat import ST_SIZE
 from os import stat
 
 from urlparse import urlparse
+from urlparse import parse_qsl
 from urllib import quote
 from urllib import unquote
 
@@ -548,7 +549,7 @@ PATH_DELIMITERS = r'([%s]+[%s;\|,\s]+|[;\|,\s%s]+[%s]+)' % (
 NZBGET_DATABASE_FILENAME = "nzbget/nzbget.db"
 
 # URL Indexing Table for returns via parse_url()
-VALID_URL_RE = re.compile(r'^[\s]*([^:\s]+):[/\\]*(.+)[\s]*$')
+VALID_URL_RE = re.compile(r'^[\s]*([^:\s]+):[/\\]*([^?]+)(\?(.+))?[\s]*$')
 VALID_HOST_RE = re.compile(r'^[\s]*([^:/\s]+)')
 VALID_QUERY_RE = re.compile(r'^(.*[/\\])([^/\\]*)$')
 
@@ -1138,11 +1139,16 @@ class ScriptBase(object):
             <schema>://<host>/<path>
             <schema>://<host>
 
-         The function returns the following tuple:
+         Argument parsing is also supported:
+            <schema>://<user>@<host>:<port>/<path>?key1=val&key2=val2
+            <schema>://<user>:<passwd>@<host>:<port>/<path>?key1=val&key2=val2
+            <schema>://<host>:<port>/<path>?key1=val&key2=val2
+            <schema>://<host>/<path>?key1=val&key2=val2
+            <schema>://<host>?key1=val&key2=val2
 
-           (schema, host, port, user, passwd, dir)
-
-         and returns 'None' if the content could not be extracted
+         The function returns a simple dictionary with all of
+         the parsed content within it and returns 'None' if the
+         content could not be extracted.
         """
 
         if not isinstance(url, basestring):
@@ -1168,14 +1174,24 @@ class ScriptBase(object):
             # The schema
             'schema': None,
             # The schema
-            'url': None
+            'url': None,
+            # The arguments passed in (the parsed query)
+            # This is in a dictionary of {'key': 'val', etc }
+            # qsd = Query String Dictionary
+            'qsd': {}
         }
 
+        qsdata = ''
         match = VALID_URL_RE.search(url)
         if match:
             # Extract basic results
             result['schema'] = match.group(1).lower().strip()
             host = match.group(2).strip()
+            try:
+                qsdata = match.group(4).strip()
+            except AttributeError:
+                # No qsdata
+                pass
         else:
             match = VALID_HOST_RE.search(url)
             if not match:
@@ -1205,6 +1221,16 @@ class ScriptBase(object):
             # No problem, there simply isn't any returned results
             # and therefore, no trailing slash
             pass
+
+        # Parse Query Arugments ?val=key&key=val
+        # while ensureing that all keys are lowercase
+        if qsdata:
+            result['qsd'] = dict([ (k.lower().strip(), v.strip()) \
+                                  for k, v in parse_qsl(
+                qsdata,
+                keep_blank_values=True,
+                strict_parsing=False,
+            )])
 
         if not result['fullpath']:
             # Default

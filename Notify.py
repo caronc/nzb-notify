@@ -3,7 +3,7 @@
 #
 # Notify post-processing script for NZBGet
 #
-# Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2015 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of NZBGet-Notify.
 #
@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Tue, Mar 14th, 2015.
+# Date: Sun, Jun 29th, 2015.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.1.9
+# Script Version: 0.2.0
 #
 
 ###########################################################################
@@ -62,6 +62,8 @@
 #  - json:// -> A simple json query
 #  - jsons:// -> A secure, simple json query
 #  - kodi:// -> A KODI Notification
+#  - mailto:// -> An email Notification
+#  - mailtos:// -> A secure email Notification
 #  - nma:// -> Notify My Android Notification
 #  - palot:// -> A Pushalot Notification
 #  - pbul:// -> A PushBullet Notification
@@ -104,6 +106,25 @@
 # application registration" enabled on Growl's preference pane. Additionally,
 # you should make sure that you set a password.
 #
+#
+# NOTE: Email notifications support a lot of options.
+#
+# The following would try to send an email to user@example.com
+# and would attempt to detect the smtp server.
+#  - mailtos://user@pass:port/example.com
+#
+# Emails are sent using html by default; but if you don't like this, you can turn it
+# off like this:
+#  - mailtos://user:pass@address.com?format=text
+#
+# There are many other options you can over-ride with an email too
+#  - mailtos://user:pass@domain.com?smtp=mail.serverhost.com
+#  - mailtos://user:pass@domain.com?smtp=example.com&from=from@address2.com&name=FooBar
+#
+# Some mail services are pretty mainstream (such as gmail.com, hotmail.com,
+# etc). Specifying one of these hosts for the domain will result in the
+# proper port, security, and SMTP mail server configuration automatically.
+#
 # NOTE: Notify My Android requires an API Key it uses to comuncate with the
 # remote server.  This is specified inline with the service request like so:
 #  - nma://apikey
@@ -132,6 +153,12 @@
 #  - pover://user@token
 #  - pover://user@token/device/
 #  - pover://user@token/device1/device2/devicen
+#
+#
+# NOTE: Prowl notifications require an api key to work correctly.
+# you can optionally specify a provider key if you have one too.
+#  - prowl://apikey
+#  - prowl://apikey/providerkey
 #
 #
 # NOTE: (Super) Toasty notifications requires at the very minimum at least
@@ -203,6 +230,7 @@ from nzbget import QueueEvent
 
 # Inherit Push Notification Scripts
 from pnotify import *
+from pnotify.NotifyBase import IS_EMAIL_RE
 
 NOTIFY_BOXCAR_SCHEMA = 'boxcar'
 NOTIFY_BOXCARS_SCHEMA = 'boxcars'
@@ -217,6 +245,8 @@ NOTIFY_PUSHALOT_SCHEMA = 'palot'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 NOTIFY_PUSHOVER_SCHEMA = 'pover'
 NOTIFY_TOASTY_SCHEMA = 'toasty'
+NOTIFY_EMAIL_SCHEMA = 'mailto'
+NOTIFY_EMAILS_SCHEMA = 'mailtos'
 NOTIFY_NMA_SCHEMA = 'nma'
 NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
@@ -240,6 +270,10 @@ SCHEMA_MAP = {
     NOTIFY_PROWL_SCHEMA: NotifyProwl,
     # Toasty Notification
     NOTIFY_TOASTY_SCHEMA: NotifyToasty,
+    # Email Notification
+    NOTIFY_EMAIL_SCHEMA: NotifyEmail,
+    # Secure Email Notification
+    NOTIFY_EMAILS_SCHEMA: NotifyEmail,
     # Notify My Android Notification
     NOTIFY_NMA_SCHEMA: NotifyMyAndroid,
     # XBMC Notification
@@ -340,9 +374,138 @@ class NotifyScript(PostProcessScript, QueueScript):
                 }.items()
 
             # #######################################################################
+            # Email Notification Support
+            # #######################################################################
+            elif server['schema'] in (NOTIFY_EMAIL_SCHEMA, NOTIFY_EMAILS_SCHEMA):
+
+                # Default Format is HTML
+                notify_format = NotifyFormat.HTML
+
+                to_addr = ''
+                from_addr = ''
+                smtp_host = ''
+                if 'format' in server['qsd'] and len(server['qsd']['format']):
+                    # Extract email format (Text/Html)
+                    try:
+                        format = unquote(server['qsd']['format']).lower()
+                        if len(format) > 0 and format[0] == 't':
+                            notify_format = NotifyFormat.TEXT
+                    except AttributeError:
+                        pass
+
+                # get 'To' email address
+                try:
+                    to_addr = filter(bool, PATHSPLIT_LIST_DELIM.split(
+                          unquote(server['host'].lstrip('/')),
+                    ))[0]
+                except (AttributeError, IndexError):
+                    # No problem, we have other ways of getting
+                    # the To address
+                    pass
+
+                if not IS_EMAIL_RE.match(to_addr):
+                    if server['user']:
+                        # Try to be clever and build a potential
+                        # email address based on what we've been provided
+                        to_addr = '%s@%s' % (
+                            re.split('[\s@]+', server['user'])[0],
+                            re.split('[\s@]+', to_addr)[-1],
+                        )
+                        if not IS_EMAIL_RE.match(to_addr):
+                            self.logger.error(
+                                '%s does not contain a recipient email.' % \
+                                unquote(server['url'].lstrip('/')),
+                            )
+                            continue
+
+                # Attempt to detect 'from' email address
+                from_addr = to_addr
+                try:
+                    if 'from' in server['qsd'] and len(server['qsd']['from']):
+                        from_addr = server['qsd']['from']
+                        if not IS_EMAIL_RE.match(server['qsd']['from']):
+                            # Lets be clever and attempt to make the from
+                            # address email
+                            from_addr = '%s@%s' % (
+                            re.split('[\s@]+', from_addr)[0],
+                            re.split('[\s@]+', to_addr)[-1],
+                        )
+                        if not IS_EMAIL_RE.match(from_addr):
+                            self.logger.error(
+                                '%s does not contain a from address.' % \
+                                unquote(server['url'].lstrip('/')),
+                            )
+                            continue
+
+                except AttributeError:
+                    pass
+
+                try:
+                    if 'name' in server['qsd'] and len(server['qsd']['name']):
+                        # Extract from name to assocaite with from address
+                        notify_args = notify_args + {
+                            'name': unquote(server['qsd']['name']),
+                        }.items()
+                except AttributeError:
+                    pass
+
+                try:
+                    if 'timeout' in server['qsd'] and len(server['qsd']['timeout']):
+                        # Extract the timeout to assocaite with smtp server
+                        notify_args = notify_args + {
+                            'timeout': unquote(server['qsd']['timeout']),
+                        }.items()
+                except AttributeError:
+                    pass
+
+                try:
+                    if 'user' in server['qsd'] and len(server['qsd']['user']):
+                        # Extract from username to assocaite with smtp server
+                        notify_args = notify_args + {
+                            'user': unquote(server['qsd']['user']),
+                        }.items()
+                except AttributeError:
+                    pass
+
+                try:
+                    if 'pass' in server['qsd'] and len(server['qsd']['pass']):
+                        # Extract from password to assocaite with smtp server
+                        notify_args = notify_args + {
+                            'password': unquote(server['qsd']['pass']),
+                        }.items()
+                except AttributeError:
+                    pass
+
+                # Store SMTP Host if specified
+                try:
+                    # Extract from password to assocaite with smtp server
+                    if 'smtp' in server['qsd'] and len(server['qsd']['smtp']):
+                        smtp_host = unquote(server['qsd']['smtp'])
+                except AttributeError:
+                    pass
+
+                notify_args = notify_args + {
+                    'to': to_addr,
+                    'from': from_addr,
+                    'smtp_host': smtp_host,
+                    'notify_format': notify_format,
+                }.items()
+
+            # #######################################################################
             # Notify My Android Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_NMA_SCHEMA:
+
+                notify_format = NotifyFormat.HTML
+
+                if 'format' in server['qsd'] and len(server['qsd']['format']):
+                    # Extract email format (Text/Html)
+                    try:
+                        format = unquote(server['qsd']['format']).lower()
+                        if len(format) > 0 and format[0] == 't':
+                            notify_format = NotifyFormat.TEXT
+                    except AttributeError:
+                        pass
 
                 notify_args = notify_args + {
                     'apikey': server['host'],
@@ -433,9 +596,18 @@ class NotifyScript(PostProcessScript, QueueScript):
                 body = '\r\n'.join(body[0:2])
 
             try:
+                #self.logger.debug('Initializing %s with:\r\n%s' % (
+                #    SCHEMA_MAP[server['schema']].__name__,
+                #    '\r\n'.join([ '%s=\'%s\'' % (k, v) \
+                #               for (k, v) in notify_args ]),
+                #))
                 nobj = SCHEMA_MAP[server['schema']](**dict(notify_args))
-            except TypeError:
+            except TypeError, e:
                 # Validation Failure
+                self.logger.error(
+                    'Could not initialize %s instance.' % server['schema'],
+                )
+                self.logger.debug('Initialization Exception: %s' % str(e))
                 continue
 
             nobj.notify(body=body, title=title, notify_type=notify_type)
@@ -736,6 +908,12 @@ if __name__ == "__main__":
 
     if _include_image:
         script.set('IncludeImage', _include_image)
+
+    if not script.script_mode and not script.get('Servers'):
+        # Provide some CLI help when VideoPaths has been
+        # detected as not being identified
+        parser.print_help()
+        exit(1)
 
     # call run() and exit() using it's returned value
     exit(script.run())

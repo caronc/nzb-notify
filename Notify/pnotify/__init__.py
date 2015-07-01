@@ -21,8 +21,10 @@
 
 from NotifyBase import NotifyType
 from NotifyBase import NOTIFY_NEWLINE
+from NotifyBase import NotifyFormat
 
 from NotifyBoxcar import NotifyBoxcar
+from NotifyEmail import NotifyEmail
 from NotifyFaast import NotifyFaast
 from NotifyGrowl import NotifyGrowl
 from NotifyJSON import NotifyJSON

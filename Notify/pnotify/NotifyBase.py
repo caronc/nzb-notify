@@ -86,6 +86,15 @@ NOTIFY_FORMATS = (
     NotifyFormat.HTML,
 )
 
+# Regular expression retrieved from:
+# http://www.regular-expressions.info/email.html
+IS_EMAIL_RE = re.compile(
+    r"(?P<userid>[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)" +\
+    r"*)@(?P<domain>(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*" +\
+    r"[a-z0-9]))?",
+    re.IGNORECASE,
+)
+
 class NotifyBase(object):
     """
     This is the base class for all notification services
@@ -204,18 +213,12 @@ class NotifyBase(object):
 
         return re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_URL)
 
-    def to_html(self, body, title=None):
+    def to_html(self, body):
         """
         Returns the specified title in an html format and factors
         in a titles defined max length
         """
-
-        title_len = 0
-        html = ''
-        if title:
-            html = '# %s #' % title + '\r\n'
-
-        html = markdown.markdown(html + body)
+        html = markdown.markdown(body)
 
         # TODO:
         # This function should return multiple messages if we exceed
@@ -249,7 +252,7 @@ class NotifyBase(object):
             title = title[0:self.title_maxlen]
 
         if self.notify_format == NotifyFormat.HTML:
-            bodies = self.to_html(body=body, title=title)
+            bodies = self.to_html(body=body)
 
         elif self.notify_format == NotifyFormat.TEXT:
             # TODO: this should split the content into
