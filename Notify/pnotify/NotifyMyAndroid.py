@@ -66,7 +66,7 @@ class NotifyMyAndroid(NotifyBase):
         """
         super(NotifyMyAndroid, self).__init__(
             title_maxlen=1000, body_maxlen=10000,
-            notify_format=NotifyFormat.TEXT,
+            notify_format=NotifyFormat.HTML,
             **kwargs)
 
         # The Priority of the message
@@ -113,6 +113,9 @@ class NotifyMyAndroid(NotifyBase):
             'description': body,
             'priority': self.priority,
         }
+
+        if self.notify_format == NotifyFormat.HTML:
+            payload['content-type'] = 'text/html'
 
         if self.devapikey:
             payload['developerkey'] = self.devapikey
