@@ -43,6 +43,20 @@ location that content is retrieved from.
 | [XBMC](http://kodi.tv/) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | xbmc://hostname<br />xbmc://user@hostname<br />xbmc://user:password@hostname:port
 | XML (Simple)        | xml:// or xmls://   | (TCP) 80 or 443 | xml://hostname<br />xml://user@hostname<br />xml://user:password@hostname:port<br />xml://hostname/a/path/to/post/to
 
+It also just supports straight forward emailing too:
+| Service ID | Default Port | Example Syntax |
+| ---------- | ------------ | -------------- |
+| mailto://  |  (TCP) 25    | mailto://userid:pass@domain.com<br />mailto://domain.com?user=userid&pass=password<br/>mailto://domain.com:64?user=userid&pass=password<br />mailto://user@gmail.com&pass=password<br />mailto://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
+| mailtos:// |  (TCP) 587   | mailtos://userid:pass@domain.com<br />mailtos://domain.com?user=userid&pass=password<br/>mailtos://domain.com?user=userid&pass=password<br />mailtos://user@hotmail.com&pass=password<br />mailtos://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
+
+Common supported services where the smtp port, server, userid structure, and security is already known are as follows:
+* Google - __mailtos://userid:pass@gmail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (mail.google.com) and appropriate secure port (587).  It also automatically constructs your userid as being userid@gmail.com. __Note:__ If you're using 2 way authentication, you'll need to [generate an app password](https://security.google.com/settings/security/apppasswords)
+* Hotmail - __mailtos://userid:pass@hotmail.com__ or __mailtos://userid:pass@live.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (465).  It also automatically constructs your userid as being userid@live.com or userid@hotmail.com depending on what you identified.
+* Yahoo - __mailtos://userid:pass@yahoo.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (587).  It also automatically constructs your userid as being userid@yahoo.com or userid@yahoo.ca depending on what you identified.
+
+To eliminate any confusion, any url parameter (key=value) specified will over-ride what was detected in the url; hence:
+* mailto://usera:pass123@domain.com?user=foobar@domain.com: the userid of _foobar_ would over-ride the userid _usera_ specified.  However since the password was not over-ridden, the password of _pass123_ would be used still.
+
 Dependencies
 ============
 The following dependencies are already provided for you within the
