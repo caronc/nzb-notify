@@ -85,7 +85,7 @@ should be known that Notify.py depends on the following packages:
 - Fix bugs to add stability to the overall functionality.
 - Add the nessesary enhancments that benifit this wrapper tool.
 
-John Gruber's python _markdown_ is officially available [here](https://github.com/waylan/Python-Markdown), but I chose to use [this fork](https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26) (by [EnTeQuAk](https://github.com/EnTeQuAk) instead because it was backported to work with Python v2.6 (_specifically commit f86074196c0fd056ba97dc61daacbd02bd514ff5_). The ticket [here](https://github.com/waylan/Python-Markdown/issues/345) explains the reasoning.
+John Gruber's python _markdown_ is officially available [here](https://github.com/waylan/Python-Markdown), but I chose to use [this fork](https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26) (by [EnTeQuAk](https://github.com/EnTeQuAk) instead because it was backported to work with Python v2.6. The ticket [here](https://github.com/waylan/Python-Markdown/issues/345) explains the reasoning.
 
 To be as transparent as possible, all patches have been provided in the
 [_/patches_](https://github.com/caronc/nzbget-notify/tree/master/patches) directory.
