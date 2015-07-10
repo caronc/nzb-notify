@@ -158,6 +158,8 @@ from os.path import basename
 from os.path import dirname
 from os.path import abspath
 
+from socket import error as SocketError
+
 # Relative Includes
 from ScriptBase import ScriptBase
 from ScriptBase import Health
@@ -645,6 +647,12 @@ class PostProcessScript(ScriptBase):
         try:
             group = [ x for x in self.api.listgroups(0) \
                      if x['NZBID'] == nzbid ][0]
+
+        except SocketError, e:
+            self.logger.warning('RCP Connection Failure (%d): %s' % (
+                e[0], e[1]))
+            return None
+
         except IndexError:
             return None
 
