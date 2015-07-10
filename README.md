@@ -1,7 +1,7 @@
 Notify Processing Script
 ========================
 This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_
-wrapper to different forms of notification services.
+wrapper to different forms of notification services. But the script works fine as standalone tool for anyone else too!
 
 NZBGet users can be notified on supported devices of the status of a download
 they made.  Non-NZBGet users can also use this tool as a standalone app that
@@ -12,6 +12,7 @@ Installation Instructions
 1. Ensure you have at least Python v2.6 or higher installed onto your system.
 2. Simply place the __Notify.py__ and __Notify__ directory together.
    * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
+   * __NZBGet users__: As one additional note; this script makes use of the RPC feature of NZBGet in order to retrive all of the status information it will notify you with.  Its very important that this is configured correctly (in the 'Settings -> Security' area). The out of the box settings should work fine; but worth noting here should experience any issues.
 
 The Non-NZBGet users can also use this script from the command line.
 See the __Command Line__ section below for more instructions on how to do this.
@@ -72,7 +73,7 @@ should be known that Notify.py depends on the following packages:
 | *markdown                    | 2.5.1   | https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26                        |
 | ndg-httpsclient              | 0.3.2   | https://pypi.python.org/pypi/ndg-httpsclient/0.3.2                                   |
 | ordereddict                  | 1.1     | https://pypi.python.org/pypi/ordereddict/1.1                                         |
-| pynzbget                     | 0.2.2   | https://pypi.python.org/pypi/pynzbget/0.2.2                                          |
+| pynzbget                     | 0.2.3   | https://pypi.python.org/pypi/pynzbget/0.2.3                                          |
 | requests **[P]**             | 2.3.0   | https://pypi.python.org/pypi/requests/2.3.0                                          |
 | six                          | 1.6.1   | https://pypi.python.org/pypi/six/1.6.1                                               |
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |
