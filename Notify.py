@@ -897,16 +897,16 @@ if __name__ == "__main__":
     )
 
     # Initialize entries if any were specified
-    if _servers:
+    if not script.get('Servers') and _servers:
         script.set('Servers', _servers)
 
-    if _title:
+    if not script.get('Title') and _title:
         script.set('Title', _title)
 
-    if _body:
+    if not script.get('Body') and _body:
         script.set('Body', _body)
 
-    if _include_image:
+    if not script.get('IncludeImage') and _include_image:
         script.set('IncludeImage', _include_image)
 
     if not script.script_mode and not script.get('Servers'):
