@@ -786,7 +786,8 @@ class NotifyScript(PostProcessScript, QueueScript):
             logs = self.get_logs(25)
             if logs:
                 body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### Logs ###' + \
-                    NOTIFY_NEWLINE + NOTIFY_NEWLINE.join(logs)
+                    NOTIFY_NEWLINE + ' * ' + '%s * ' % \
+                        NOTIFY_NEWLINE.join(logs)
 
         # Preform Notifications
         return self.notify(
