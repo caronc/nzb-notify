@@ -20,64 +20,117 @@
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
 from NotifyBase import NotifyBase
-
-from netgrowl.netgrowl import GrowlNotificationPacket
-from netgrowl.netgrowl import GrowlRegistrationPacket
-from netgrowl.netgrowl import GROWL_UDP_PORT
 from NotifyBase import NotifyFormat
+from NotifyBase import NotifyImageSize
+from gntp.notifier import GrowlNotifier
+from gntp.errors import NetworkError as GrowlNetworkError
+from gntp.errors import AuthError as GrowlAuthenticationError
 
-from socket import AF_INET
-from socket import SOCK_DGRAM
-from socket import socket
-from socket import error as SocketError
+# Default Growl Port
+GROWL_UDP_PORT = 23053
+
+# Image Support (128x128)
+GROWL_IMAGE_XY = NotifyImageSize.XY_128
+
+# Priorities
+class GrowlPriority(object):
+    VERY_LOW = -2
+    MODERATE = -1
+    NORMAL = 0
+    HIGH = 1
+    EMERGENCY = 2
+
+GROWL_PRIORITIES = (
+   GrowlPriority.VERY_LOW,
+   GrowlPriority.MODERATE,
+   GrowlPriority.NORMAL,
+   GrowlPriority.HIGH,
+   GrowlPriority.EMERGENCY,
+)
 
 class NotifyGrowl(NotifyBase):
     """
     A wrapper to Growl Notifications
 
     """
-    def __init__(self, **kwargs):
+    def __init__(self, priority=GrowlPriority.NORMAL, **kwargs):
         """
         Initialize Growl Object
         """
         super(NotifyGrowl, self).__init__(
             title_maxlen=250, body_maxlen=32768,
+            image_size=GROWL_IMAGE_XY,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
+
+        # A Global flag that tracks registration
+        self.is_registered = False
 
         if not self.port:
             self.port = GROWL_UDP_PORT
 
-        # Initialize Growl Registration Packet
-        self.reg_packet = GrowlRegistrationPacket(
-            application=self.app_id,
+        # The Priority of the message
+        if priority not in GROWL_PRIORITIES:
+            self.priority = GrowlPriority.NORMAL
+        else:
+            self.priority = priority
+
+        self.growl = GrowlNotifier(
+            applicationName=self.app_id,
+            notifications=["New Updates","New Messages"],
+            defaultNotifications=["New Messages"],
+            hostname=self.host,
             password=self.password,
+            port=self.port,
         )
+
+        try:
+            self.growl.register()
+            # Toggle our flag
+            self.is_registered = True
+
+        except GrowlNetworkError:
+            self.logger.warning(
+                'A network error occured sending Growl ' + \
+                'notification to %s.' % (
+                    self.host,
+            ))
+            return
+
+        except GrowlAuthenticationError:
+            self.logger.warning(
+                'An authentication error occured sending Growl ' + \
+                'notification to %s.' % (
+                    self.host,
+            ))
+            return
+
         return
 
-    def _notify(self, title, body, **kwargs):
+    def _notify(self, title, body, notify_type, **kwargs):
         """
         Perform Growl Notification
         """
-        # Initialize Growl Notification Packet
-        notify_packet = GrowlNotificationPacket(
-            application=self.app_id,
-            notification=self.app_desc,
-            title=title,
-            description=body,
-        )
 
-        # Socket Control
-        addr = (self.host, self.port)
-        s = socket(AF_INET, SOCK_DGRAM)
+        if not self.is_registered:
+            # We can't do anything
+            return None
+
+        icon = None
+        if self.include_image:
+            icon = self.image_raw(notify_type)
+
         try:
-            s.sendto(self.reg_packet.payload(), addr)
-            s.sendto(notify_packet.payload(), addr)
-            self.logger.info('Sent Growl notification to "%s".' % (
-                self.host,
-            ))
+            self.growl.notify(
+                noteType="New Updates",
+                title=title,
+                description=body,
+                icon=icon,
+                sticky=False,
+                priority=self.priority,
+            )
 
-        except SocketError as e:
+        except GrowlNetworkError as e:
             # Since Growl servers listen for UDP broadcasts,
             # it's possible that you will never get to this part
             # of the code since there is no acknowledgement as to
@@ -90,12 +143,9 @@ class NotifyGrowl(NotifyBase):
                 'notification to %s.' % (
                     self.host,
             ))
-            self.logger.debug('Socket Exception: %s' % str(e))
+            self.logger.debug('Growl Exception: %s' % str(e))
 
             # Return; we're done
             return False
-
-        finally:
-            s.close()
 
         return True

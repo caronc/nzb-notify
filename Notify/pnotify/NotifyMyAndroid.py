@@ -71,7 +71,7 @@ class NotifyMyAndroid(NotifyBase):
 
         # The Priority of the message
         if priority not in NMA_PRIORITIES:
-            self.priority = NotifyMyAndroid.NORMAL
+            self.priority = NotifyMyAndroidPriority.NORMAL
         else:
             self.priority = priority
 

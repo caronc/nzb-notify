@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from urllib import quote
 from time import sleep
 import re
 
@@ -27,6 +26,10 @@ import markdown
 
 from logging import Logger
 from Logger import init_logger
+
+from os.path import join
+from os.path import basename
+from os.path import abspath
 
 class NotifyType(object):
     INFO = 'info'
@@ -73,6 +76,12 @@ NOTIFY_APPLICATION_DESC = 'NZBGet Notify Plugin'
 # Image Control
 NOTIFY_IMAGE_URL = 'http://nzbget.lead2gold.org/notify/' +\
         'nzbget-notify-{TYPE}-{XY}.png'
+
+NOTIFY_IMAGE_FILE = abspath(join(
+    basename(__file__),
+    'var',
+    'nzbget-notify-{TYPE}-{XY}.png',
+))
 
 # HTML New Line Delimiter
 NOTIFY_NEWLINE = '\r\n'
@@ -212,6 +221,35 @@ class NotifyBase(object):
         )
 
         return re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_URL)
+
+
+    def image_raw(self, notify_type):
+        """
+        Returns the raw image if it can
+        """
+        if not self.image_size:
+            return None
+
+        if notify_type not in NOTIFY_TYPES:
+            return None
+
+        re_map = {
+            '{TYPE}': notify_type,
+            '{XY}': self.image_size,
+        }
+
+        # Iterate over above list and store content accordingly
+        re_table = re.compile(
+            r'(' + '|'.join(re_map.keys()) + r')',
+            re.IGNORECASE,
+        )
+
+        # Now we open and return the file
+        file = re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_FILE)
+        try:
+            return open(file, 'rb').read()
+        except:
+            return None
 
     def to_html(self, body):
         """

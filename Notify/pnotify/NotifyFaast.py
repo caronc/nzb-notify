@@ -30,7 +30,7 @@ from NotifyBase import HTTP_ERROR_MAP
 FAAST_URL = 'https://www.appnotifications.com/account/notifications.json'
 
 # Image Support (72x72)
-FAAST_IMAGE_XY = NotifyImageSize.XY_128
+FAAST_IMAGE_XY = NotifyImageSize.XY_72
 
 class NotifyFaast(NotifyBase):
     """

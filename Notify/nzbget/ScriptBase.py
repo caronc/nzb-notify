@@ -2107,7 +2107,7 @@ class ScriptBase(object):
                         self.logger.vdebug('Compiled regex "%s"' % f)
                     except:
                         self.logger.error(
-                            'invalid regular expression: "%s"' % f,
+                            'Invalid regular expression: "%s"' % f,
                         )
                         return {}
                 else:
