@@ -512,6 +512,27 @@ class NotifyScript(PostProcessScript, QueueScript):
                 }.items()
 
             # #######################################################################
+            # GROWL Notification Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_GROWL_SCHEMA:
+
+                # Because of the URL formatting; the password is actually where
+                # the username field is; for this reason, we just preform
+                # this small hack to make it conform correctly; the following
+                # strips out the existing password entry (if exists) so that it
+                # can be swapped with the new one we specify
+                notify_args = dict(notify_args)
+                notify_args['user'] = None
+                notify_args['password'] = server.get('user', None)
+                notify_args = notify_args.items()
+
+                # Limit results to just the first 2 line otherwise
+                # there is just to much content to display
+                body = re.split('[\r\n]+', body)
+                body[0] = body[0].strip('#').strip()
+                body = '\r\n'.join(body[0:2])
+
+            # #######################################################################
             # PROWL Notification Support
             # #######################################################################
             elif server['schema'] == NOTIFY_PROWL_SCHEMA:

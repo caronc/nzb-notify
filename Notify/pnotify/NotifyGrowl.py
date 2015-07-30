@@ -75,19 +75,27 @@ class NotifyGrowl(NotifyBase):
         else:
             self.priority = priority
 
-        self.growl = GrowlNotifier(
-            applicationName=self.app_id,
-            notifications=["New Updates","New Messages"],
-            defaultNotifications=["New Messages"],
-            hostname=self.host,
-            password=self.password,
-            port=self.port,
-        )
+        payload = {
+            'applicationName': self.app_id,
+            'notifications': ["New Updates","New Messages"],
+            'defaultNotifications': ["New Messages"],
+            'hostname': self.host,
+            'port': self.port,
+        }
+
+        if self.password is not None:
+            payload['password'] = self.password
+
+        self.logger.debug('Growl Payload: %s' % str(payload))
+        self.growl = GrowlNotifier(**payload)
 
         try:
             self.growl.register()
             # Toggle our flag
             self.is_registered = True
+            self.logger.debug(
+                'Growl server registration completed successfully.'
+            )
 
         except GrowlNetworkError:
             self.logger.warning(
@@ -128,6 +136,10 @@ class NotifyGrowl(NotifyBase):
                 icon=icon,
                 sticky=False,
                 priority=self.priority,
+            )
+
+            self.logger.debug(
+                'Growl notification sent successfully.'
             )
 
         except GrowlNetworkError as e:
