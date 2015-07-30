@@ -48,6 +48,8 @@ GROWL_PRIORITIES = (
    GrowlPriority.EMERGENCY,
 )
 
+GROWL_NOTIFICATION_TYPE = "New Messages"
+
 class NotifyGrowl(NotifyBase):
     """
     A wrapper to Growl Notifications
@@ -83,8 +85,8 @@ class NotifyGrowl(NotifyBase):
 
         payload = {
             'applicationName': self.app_id,
-            'notifications': ["New Updates","New Messages"],
-            'defaultNotifications': ["New Messages"],
+            'notifications': [ GROWL_NOTIFICATION_TYPE, ],
+            'defaultNotifications': [ GROWL_NOTIFICATION_TYPE, ],
             'hostname': self.host,
             'port': self.port,
         }
@@ -140,7 +142,7 @@ class NotifyGrowl(NotifyBase):
                 icon = self.image_raw(notify_type)
 
         payload = {
-            'noteType': "New Updates",
+            'noteType': GROWL_NOTIFICATION_TYPE,
             'title': title,
             'description': body,
             'icon': icon is not None,

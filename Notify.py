@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Sun, Jun 29th, 2015.
+# Date: Thu, Jul 30th, 2015.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.2.0
+# Script Version: 0.3.0
 #
 
 ###########################################################################
@@ -100,11 +100,17 @@
 #  - faast://authorizationtoken
 #
 #
-# NOTE: Growl requires you to register the notifications your application
-# sends (and set whether or not they're enabled on the GUI) before being able
-# to actually send something to your Mac, so make sure you have "Allow
-# application registration" enabled on Growl's preference pane. Additionally,
-# you should make sure that you set a password.
+# NOTE: Growl requires this script to register the notifications it
+# sends before being able to actually send something.
+# Make sure you are configured to allow application registration. The
+# syntax looks as follows:
+#  - growl://growlserver
+#  - growl://password@growlserver
+#
+# Growl assumes you're using the v2 (or greater) protocol; if
+# you need to use the version 1.4 protocol (for an older system)
+# you can specify that switch as part of your url:
+#  - growl://password@growlserver?version=1
 #
 #
 # NOTE: Email notifications support a lot of options.
