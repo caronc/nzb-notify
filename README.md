@@ -31,7 +31,7 @@ location that content is retrieved from.
 | Notification Service | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
 | [Boxcar](https://boxcar.io/)  | boxcar://   | (TCP) 443   | boxcar://hostname<br />boxcar://hostname/@tag<br/>boxcar://hostname/device_token<br />boxcar://hostname/device_token1/device_token2/device_tokenN<br />boxcar://hostname/alias<br />boxcar://hostname/@tag/@tag2/alias/device_token
-| [Growl](http://growl.info/)  | growl://   | (UDP) 9887   | growl://hostname<br />growl://hostname:portno
+| [Growl](http://growl.info/)  | growl://   | (UDP) 23053   | growl://hostname<br />growl://hostname:portno
 | [Faast](http://faast.io/) | faast://    | (TCP) 443    | faast://authorizationtoken
 | JSON (Simple)        | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
 | [KODI](http://kodi.tv/) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
