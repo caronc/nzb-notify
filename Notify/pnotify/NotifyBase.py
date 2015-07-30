@@ -28,7 +28,7 @@ from logging import Logger
 from Logger import init_logger
 
 from os.path import join
-from os.path import basename
+from os.path import dirname
 from os.path import abspath
 
 class NotifyType(object):
@@ -78,7 +78,7 @@ NOTIFY_IMAGE_URL = 'http://nzbget.lead2gold.org/notify/' +\
         'nzbget-notify-{TYPE}-{XY}.png'
 
 NOTIFY_IMAGE_FILE = abspath(join(
-    basename(__file__),
+    dirname(__file__),
     'var',
     'nzbget-notify-{TYPE}-{XY}.png',
 ))
@@ -244,12 +244,22 @@ class NotifyBase(object):
             re.IGNORECASE,
         )
 
+        print 'file=%s' % NOTIFY_IMAGE_FILE
         # Now we open and return the file
         file = re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_FILE)
         try:
-            return open(file, 'rb').read()
+            fd = open(file, 'rb')
         except:
             return None
+
+        try:
+            return fd.read()
+
+        except:
+            return None
+
+        finally:
+            fd.close()
 
     def to_html(self, body):
         """

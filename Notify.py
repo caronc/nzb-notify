@@ -516,6 +516,19 @@ class NotifyScript(PostProcessScript, QueueScript):
             # #######################################################################
             elif server['schema'] == NOTIFY_GROWL_SCHEMA:
 
+                version = None
+                if 'version' in server['qsd'] and len(server['qsd']['version']):
+                    # Allow the user to specify the version of the protocol to
+                    # use
+                    try:
+                        version = int(unquote(server['qsd']['version']).strip().split('.')[0])
+                    except (AttributeError, IndexError, TypeError, ValueError):
+                        self.logger.warning(
+                            'An invalid Growl version of "%s" ' % server['qsd']['version'] +\
+                            'was specified and will be ignored.'
+                        )
+                        pass
+
                 # Because of the URL formatting; the password is actually where
                 # the username field is; for this reason, we just preform
                 # this small hack to make it conform correctly; the following
@@ -524,6 +537,8 @@ class NotifyScript(PostProcessScript, QueueScript):
                 notify_args = dict(notify_args)
                 notify_args['user'] = None
                 notify_args['password'] = server.get('user', None)
+                if version:
+                    notify_args['version'] = version
                 notify_args = notify_args.items()
 
                 # Limit results to just the first 2 line otherwise

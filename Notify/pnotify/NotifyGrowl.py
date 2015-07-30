@@ -29,8 +29,8 @@ from gntp.errors import AuthError as GrowlAuthenticationError
 # Default Growl Port
 GROWL_UDP_PORT = 23053
 
-# Image Support (128x128)
-GROWL_IMAGE_XY = NotifyImageSize.XY_128
+# Image Support (72x72)
+GROWL_IMAGE_XY = NotifyImageSize.XY_72
 
 # Priorities
 class GrowlPriority(object):
@@ -53,7 +53,7 @@ class NotifyGrowl(NotifyBase):
     A wrapper to Growl Notifications
 
     """
-    def __init__(self, priority=GrowlPriority.NORMAL, **kwargs):
+    def __init__(self, priority=GrowlPriority.NORMAL, version=2, **kwargs):
         """
         Initialize Growl Object
         """
@@ -75,6 +75,12 @@ class NotifyGrowl(NotifyBase):
         else:
             self.priority = priority
 
+        # Always default the sticky flag to False
+        self.sticky = False
+
+        # Store Version
+        self.version = version
+
         payload = {
             'applicationName': self.app_id,
             'notifications': ["New Updates","New Messages"],
@@ -86,7 +92,7 @@ class NotifyGrowl(NotifyBase):
         if self.password is not None:
             payload['password'] = self.password
 
-        self.logger.debug('Growl Payload: %s' % str(payload))
+        self.logger.debug('Growl Registration Payload: %s' % str(payload))
         self.growl = GrowlNotifier(**payload)
 
         try:
@@ -126,17 +132,28 @@ class NotifyGrowl(NotifyBase):
 
         icon = None
         if self.include_image:
-            icon = self.image_raw(notify_type)
+            if self.version >= 2:
+                # URL Based
+                icon = self.image_url(notify_type)
+            else:
+                # Raw
+                icon = self.image_raw(notify_type)
+
+        payload = {
+            'noteType': "New Updates",
+            'title': title,
+            'description': body,
+            'icon': icon is not None,
+            'sticky': False,
+            'priority': self.priority,
+        }
+        self.logger.debug('Growl Payload: %s' % str(payload))
+
+        # Update icon of payload to be raw data
+        payload['icon'] = icon
 
         try:
-            self.growl.notify(
-                noteType="New Updates",
-                title=title,
-                description=body,
-                icon=icon,
-                sticky=False,
-                priority=self.priority,
-            )
+            self.growl.notify(**payload)
 
             self.logger.debug(
                 'Growl notification sent successfully.'
