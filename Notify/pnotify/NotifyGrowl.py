@@ -153,11 +153,17 @@ class NotifyGrowl(NotifyBase):
         payload['icon'] = icon
 
         try:
-            self.growl.notify(**payload)
+            response = self.growl.notify(**payload)
+            if not isinstance(response, bool):
+                self.logger.warning(
+                    'Growl notification failed to send with response: %s' % \
+                    str(response),
+                )
 
-            self.logger.debug(
-                'Growl notification sent successfully.'
-            )
+            else:
+                self.logger.debug(
+                    'Growl notification sent successfully.'
+                )
 
         except GrowlNetworkError as e:
             # Since Growl servers listen for UDP broadcasts,
