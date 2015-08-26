@@ -2,7 +2,7 @@
 #
 # A base scripting class for NZBGet
 #
-# Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2015 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -2444,7 +2444,7 @@ class ScriptBase(object):
         Hence: parse_list('.mkv, .iso, .avi') becomes:
             ['.mkv', '.iso', '.avi']
 
-        Hence: parse_list('.mkv, .iso, .avi', ['.avi', '.mp4') becomes:
+        Hence: parse_list('.mkv, .iso, .avi', ['.avi', '.mp4']) becomes:
             ['.mkv', '.iso', '.avi', '.mp4']
 
         The parsing is very forgiving and accepts spaces, slashes, commas
@@ -2563,7 +2563,8 @@ class ScriptBase(object):
             # f  = short for False - False
             # n  = short for No or Never - False
             # ne  = short for Never - False
-            if arg.lower()[0:2] in ('ne', 'f', 'n', 'no', 'of', '0', 'fa'):
+            # di  = short for Disable(d) - False
+            if arg.lower()[0:2] in ('di', 'ne', 'f', 'n', 'no', 'of', '0', 'fa'):
                 return False
             # ye = yes - True
             # on = short for off - True
@@ -2571,7 +2572,8 @@ class ScriptBase(object):
             # tr = short for True - True
             # t  = short for True - True
             # al = short for Always - True
-            elif arg.lower()[0:2] in ('al', 't', 'y', 'ye', 'on', '1', 'tr'):
+            # en  = short for Enable(d) - True
+            elif arg.lower()[0:2] in ('en', 'al', 't', 'y', 'ye', 'on', '1', 'tr'):
                 return True
             # otherwise
             return default
