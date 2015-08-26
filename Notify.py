@@ -800,15 +800,18 @@ class NotifyScript(PostProcessScript, QueueScript):
             for _file, meta in files.items():
                 unit = 'B'
                 val = float(meta['filesize'])
-                if val > 1024.0:
+                if val >= 1024.0:
                     val = val/1024.0
                     unit = 'KB'
-                if val > 1024.0:
+                if val >= 1024.0:
                     val = val/1024.0
                     unit = 'MB'
-                if val > 1024.0:
+                if val >= 1024.0:
                     val = val/1024.0
                     unit = 'GB'
+                if val >= 1024.0:
+                    val = val/1024.0
+                    unit = 'TB'
 
                 files_downloaded.append(
                     ' * ' + _file[len(self.directory)+1:] + ' (%.2f %s)' % (
@@ -828,8 +831,7 @@ class NotifyScript(PostProcessScript, QueueScript):
             logs = self.get_logs(25)
             if logs:
                 body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### Logs ###' + \
-                    NOTIFY_NEWLINE + ' * ' + '%s * ' % \
-                        NOTIFY_NEWLINE.join(logs)
+                    ('%s * ' % NOTIFY_NEWLINE) + ('%s * ' % NOTIFY_NEWLINE).join(logs)
 
         # Preform Notifications
         return self.notify(
