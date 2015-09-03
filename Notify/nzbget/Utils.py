@@ -15,6 +15,7 @@
 # GNU Lesser General Public License for more details.
 #
 import re
+from os.path import expanduser
 
 # Pre-Escape content since we reference it so much
 ESCAPED_PATH_SEPARATOR = re.escape('\\/')
@@ -94,5 +95,5 @@ def tidy_path(path):
     # Linux Based Trim
     path = TIDY_NUX_TRIM_RE.sub('\\1', path.strip())
     # Windows Based Trim
-    path = TIDY_WIN_TRIM_RE.sub('\\1', path.strip())
+    path = expanduser(TIDY_WIN_TRIM_RE.sub('\\1', path.strip()))
     return path
