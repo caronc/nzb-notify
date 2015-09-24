@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 #
-# A scripting wrapper for NZBGet's Scheduler Scripting
+# A scripting wrapper for NZBGet's Feed Scripting
 #
 # Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
 #
@@ -21,7 +21,7 @@ in a re-usable container. It was initially written to work with NZBGet v13
 but provides most backwards compatibility.
 
 It was designed to be inheritied as a base class requiring you to only write
-the main() function which should preform the task you are intending.
+the main() function which should preform the feed you are intending.
 
 It looks after fetching all of the environment variables and will parse
 the meta information out of the NZB-File.
@@ -46,11 +46,11 @@ Some inline documentation was based on content provided at:
 
 
 ############################################################################
-Schedule Script Usage/Example
+Feed Script Usage/Example
 ############################################################################
 
 ############################################################################
-### NZBGET SCHEDULER SCRIPT                                               ###
+### NZBGET FEED SCRIPT                                               ###
 #
 # Describe your Schedule Script here
 # Author: Chris Caron <lead2gold@gmail.com>
@@ -64,13 +64,13 @@ Schedule Script Usage/Example
 # Debug=no
 #
 
-### NZBGET SCHEDULER SCRIPT                                              ###
+### NZBGET FEED SCRIPT                                              ###
 ############################################################################
 
-from nzbget import SchedulerScript
+from nzbget import FeedScript
 
 # Now define your class while inheriting the rest
-class MySchedulerScript(SchedulerScript):
+class MyFeedScript(FeedScript):
     def main(self, *args, **kwargs):
 
         # Version Checking, Environment Variables Present, etc
@@ -83,8 +83,8 @@ class MySchedulerScript(SchedulerScript):
         # script
 
         # All system environment variables (NZBOP_.*) as well as Post
-        # Process script specific content (NZBSP_.*)
-        # following dictionary (without the NZBOP_ or NZBSP_ prefix):
+        # Process script specific content (NZBFP_.*)
+        # following dictionary (without the NZBOP_ or NZBFP_ prefix):
         print('TEMPDIR (directory is: %s' % self.get('TEMPDIR'))
         print('DESTDIR %s' self.get('DESTDIR'))
 
@@ -111,7 +111,7 @@ class MySchedulerScript(SchedulerScript):
 
         # Your script configuration files (NZBNP_.*) are here in this
         # dictionary (again without the NZBNP_ prefix):
-        # assume you defined `Debug=no` in the first 10K of your SchedulerScript
+        # assume you defined `Debug=no` in the first 10K of your FeedScript
         # NZBGet translates this to `NZBNP_DEBUG` which can be retrieved
         # as follows:
         print('DEBUG %s' self.get('DEBUG'))
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     from sys import exit
 
     # Create an instance of your Script
-    myscript = MySchedulerScript()
+    myscript = MyFeedScript()
 
     # call run() and exit() using it's returned value
     exit(myscript.run())
@@ -150,14 +150,14 @@ from ScriptBase import NZBGET_BOOL_FALSE
 from ScriptBase import SCRIPT_MODE
 
 # Environment variable that prefixes all NZBGET options being passed into
-# scripts with respect to the NZB-File (used in Scan Scripts)
-SCHEDULER_ENVIRO_ID = 'NZBSP_'
-TASK_ENVIRO_ID = 'TASK'
+# scripts with respect to the NZB-File (used in Feed Scripts)
+FEED_ENVIRO_ID = 'NZBFP_'
+FEEDID_ENVIRO_ID = 'FEEDID'
 
 # Precompile Regulare Expression for Speed
-SCHEDULER_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % SCHEDULER_ENVIRO_ID)
+FEED_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % FEED_ENVIRO_ID)
 
-class SchedulerScript(ScriptBase):
+class FeedScript(ScriptBase):
     def __init__(self, *args, **kwargs):
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Multi-Script Support
@@ -165,83 +165,98 @@ class SchedulerScript(ScriptBase):
         if not hasattr(self, 'script_dict'):
             # Only define once
             self.script_dict = {}
-        self.script_dict[SCRIPT_MODE.SCHEDULER] = self
+        self.script_dict[SCRIPT_MODE.FEED] = self
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Initialize Parent
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        super(SchedulerScript, self).__init__(*args, **kwargs)
+        super(FeedScript, self).__init__(*args, **kwargs)
 
-    def scheduler_init(self, *args, **kwargs):
+    def feed_init(self, *args, **kwargs):
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Fetch Script Specific Arguments
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        taskid = kwargs.get('taskid')
+        feedid = kwargs.get('feedid')
+        filename = kwargs.get('filename')
 
-        # Fetch/Load Scan Script Configuration
-        script_config = dict([(SCHEDULER_OPTS_RE.match(k).group(1), v.strip()) \
-               for (k, v) in environ.items() if SCHEDULER_OPTS_RE.match(k)])
+        # Fetch/Load Feed Script Configuration
+        script_config = dict([(FEED_OPTS_RE.match(k).group(1), v.strip()) \
+               for (k, v) in environ.items() if FEED_OPTS_RE.match(k)])
 
         if self.vvdebug:
             # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             # Print Global Script Varables to help debugging process
             # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             for k, v in script_config.items():
-                self.logger.vvdebug('%s%s=%s' % (SCHEDULER_ENVIRO_ID, k, v))
+                self.logger.vvdebug('%s%s=%s' % (FEED_ENVIRO_ID, k, v))
 
         # Merge Script Configuration With System Config
         self.system = dict(script_config.items() + self.system.items())
 
-        # self.taskid
-        # This is the Task Identifier passed in from NZBGet
-        if taskid is None:
-            self.taskid = environ.get(
-                '%sTASKID' % SCHEDULER_ENVIRO_ID,
+        # self.feedid
+        # This is the Feed Identifier passed in from NZBGet
+        if feedid is None:
+            self.feedid = environ.get(
+                '%sFEEDID' % FEED_ENVIRO_ID,
             )
         else:
-            self.taskid = taskid
+            self.feedid = feedid
+
+        # self.filename
+        # This is the Feed Filename passed in from NZBGet
+        if filename is None:
+            self.filename = environ.get(
+                '%sFILENAME' % FEED_ENVIRO_ID,
+            )
+        else:
+            self.filename = filename
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Error Handling
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         try:
-            self.taskid = int(self.taskid)
-            self.logger.info('Task ID assigned: %d' % self.taskid)
+            self.feedid = int(self.feedid)
+            self.logger.info('Feed ID assigned: %d' % self.feedid)
         except (ValueError, TypeError):
             # Default is 0
-            self.taskid = 0
-            self.logger.warning('No Task ID was assigned')
+            self.feedid = 0
+            self.logger.warning('No Feed ID was assigned')
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         # Enforce system/global variables for script processing
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        self.system['TASKID'] = self.taskid
-        if isinstance(self.taskid, int) and self.taskid > 0:
-            environ['%sTASKID' % SCHEDULER_ENVIRO_ID] = str(self.taskid)
+        self.system['FEEDID'] = self.feedid
+        if isinstance(self.feedid, int) and self.feedid > 0:
+            environ['%sFEEDID' % FEED_ENVIRO_ID] = str(self.feedid)
+
+        self.system['FILENAME'] = self.filename
+        if self.filename:
+            environ['%sFILENAME' % FEED_ENVIRO_ID] = self.filename
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Debug Flag Check
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def scheduler_debug(self, *args, **kwargs):
+    def feed_debug(self, *args, **kwargs):
         """Uses the environment variables to detect if debug mode is set
         """
         return self.parse_bool(
-            environ.get('%sDEBUG' % SCHEDULER_ENVIRO_ID, NZBGET_BOOL_FALSE),
+            environ.get('%sDEBUG' % FEED_ENVIRO_ID, NZBGET_BOOL_FALSE),
         )
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Validatation
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def scheduler_validate(self, keys=None, min_version=11, *args, **kargs):
+    def feed_validate(self, keys=None, min_version=11, *args, **kargs):
         """validate against environment variables
         """
-        is_okay = super(SchedulerScript, self)._validate(
+        is_okay = super(FeedScript, self)._validate(
             keys=keys,
             min_version=min_version,
         )
 
         required_opts = set((
-            'TASKID',
+            'FEEDID',
+            'FILENAME',
         ))
 
         found_opts = set(self.system) & required_opts
@@ -258,49 +273,49 @@ class SchedulerScript(ScriptBase):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Sanity
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def scheduler_sanity_check(self, *args, **kargs):
+    def feed_sanity_check(self, *args, **kargs):
         """Sanity checking to ensure this really is a post_process script
         """
         from PostProcessScript import POSTPROC_ENVIRO_ID
         return ('%sDIRECTORY' % POSTPROC_ENVIRO_ID not in environ) and \
-               ('%sTASKID' % SCHEDULER_ENVIRO_ID in environ)
+               ('%sFEEDID' % FEED_ENVIRO_ID in environ)
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    # Tasks
+    # Feeds
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def get_task(self, taskid=None):
-        """Returns a dictionary of task details identified by the id
-        specified.  If no id is specified, then the current task is
+    def get_feed(self, feedid=None):
+        """Returns a dictionary of feed details identified by the id
+        specified.  If no id is specified, then the current feed is
         detected and returned.
         """
-        if taskid is None:
+        if feedid is None:
             # assume default
-            taskid = self.taskid
+            feedid = self.feedid
 
-        if not isinstance(taskid, int):
+        if not isinstance(feedid, int):
             try:
-                taskid = int(taskid)
+                feedid = int(feedid)
             except (ValueError, TypeError):
                 # can't be typecasted to an integer
                 return {}
 
-        if taskid <= 0:
-            # No task defined
+        if feedid <= 0:
+            # No feed id defined
             return {}
 
         # Precompile Regulare Expression for Speed
-        task_re = re.compile('^%s%s%d_([A-Z0-9_]+)$' % (
-            SCHEDULER_ENVIRO_ID,
-            TASK_ENVIRO_ID,
-            taskid,
+        feed_re = re.compile('^%s%s%d_([A-Z0-9_]+)$' % (
+            FEED_ENVIRO_ID,
+            FEEDID_ENVIRO_ID,
+            feedid,
         ))
 
         self.logger.debug('Looking for %s%s%d_([A-Z0-9_]+)$' % (
-            SCHEDULER_ENVIRO_ID,
-            TASK_ENVIRO_ID,
-            taskid,
+            FEED_ENVIRO_ID,
+            FEEDID_ENVIRO_ID,
+            feedid,
         ))
 
-        # Fetch Task related content
-        return dict([(task_re.match(k).group(1), v.strip()) \
-            for (k, v) in environ.items() if task_re.match(k)])
+        # Fetch Feed related content
+        return dict([(feed_re.match(k).group(1), v.strip()) \
+            for (k, v) in environ.items() if feed_re.match(k)])

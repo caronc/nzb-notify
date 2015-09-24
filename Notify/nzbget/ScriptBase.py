@@ -587,6 +587,10 @@ class SCRIPT_MODE(object):
     # `ScriptDir`, then choose them in the option `TaskX.Script`.
     SCHEDULER = u'scheduler'
 
+    # To activate a feed script or multiple scripts put them into
+    # `ScriptDir`, then choose them in the option `FeedX.Script`.
+    FEED = u'feed'
+
     # None is detected if you aren't using one of the above types
     NONE = ''
 
@@ -600,6 +604,7 @@ SCRIPT_MODES = (
     SCRIPT_MODE.SCAN,
     SCRIPT_MODE.QUEUE,
     SCRIPT_MODE.SCHEDULER,
+    SCRIPT_MODE.FEED,
     SCRIPT_MODE.NONE,
 )
 
