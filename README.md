@@ -1,11 +1,11 @@
+__Note:__ This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_
+script notifying you of retrieved content through a variety of different notification services. But the script works fine as standalone tool for anyone else too! See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
+
 Notify Processing Script
 ========================
-This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_
-wrapper to different forms of notification services. But the script works fine as standalone tool for anyone else too!
+Send notifications to all of the popular notification services (PushBullet, NotifyMyAndroid, XBMC, Email etc). NZBGet will automatically notify you of anything it downloads. You can chain as many notification services as you want and support most of the advance features each service offers you too.
 
-NZBGet users can be notified on supported devices of the status of a download
-they made.  Non-NZBGet users can also use this tool as a standalone app that
-can message their devices as they please.
+You can even run the tool from the command line for your own custom use. Notify.py was written in such a way that there wouldn't be a lot of effort to add more notification services either.  Feel free to contact me if one you would like to use is missing.
 
 Installation Instructions
 =========================
