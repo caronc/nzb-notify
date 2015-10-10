@@ -2518,11 +2518,19 @@ class ScriptBase(object):
                     ESCAPED_WIN_PATH_SEPARATOR,
             ))
 
+            self._path_winnw_re = re.compile(
+                r'[\s,\|]+(%s%s)%s*' % (
+                    ESCAPED_WIN_PATH_SEPARATOR,
+                    ESCAPED_WIN_PATH_SEPARATOR,
+                    ESCAPED_WIN_PATH_SEPARATOR,
+            ))
+
         result = []
         for arg in args:
             if isinstance(arg, basestring):
                 cleaned = self._path_delimiter_re.sub('|/', tidy_path(arg))
                 cleaned = self._path_win_re.sub('|\\1', cleaned)
+                cleaned = self._path_winnw_re.sub('|\\1', cleaned)
                 cleaned = self._path_win_drive_re.sub('|\\1:\\2', cleaned)
                 result += cleaned.split('|')
 
@@ -2531,6 +2539,7 @@ class ScriptBase(object):
                     if isinstance(_arg, basestring):
                         cleaned = self._path_delimiter_re.sub('|', tidy_path(_arg))
                         cleaned = self._path_win_re.sub('|\\1', cleaned)
+                        cleaned = self._path_winnw_re.sub('|\\1', cleaned)
                         cleaned = self._path_win_drive_re.sub('|\\1:\\2', cleaned)
                         result += cleaned.split('|')
 
@@ -2569,14 +2578,15 @@ class ScriptBase(object):
             # n  = short for No or Never - False
             # ne  = short for Never - False
             # di  = short for Disable(d) - False
-            if arg.lower()[0:2] in ('di', 'ne', 'f', 'n', 'no', 'of', '0', 'fa'):
+            # de  = short for Deny - False
+            if arg.lower()[0:2] in ('de', 'di', 'ne', 'f', 'n', 'no', 'of', '0', 'fa'):
                 return False
             # ye = yes - True
             # on = short for off - True
             # 1  = int for True
             # tr = short for True - True
             # t  = short for True - True
-            # al = short for Always - True
+            # al = short for Always (and Allow) - True
             # en  = short for Enable(d) - True
             elif arg.lower()[0:2] in ('en', 'al', 't', 'y', 'ye', 'on', '1', 'tr'):
                 return True
