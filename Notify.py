@@ -224,10 +224,11 @@
 import sys
 import re
 from os.path import join
+from os.path import abspath
 from os.path import dirname
 from urllib import unquote
 
-sys.path.insert(0, join(dirname(__file__), 'Notify'))
+sys.path.insert(0, join(dirname(abspath(__file__)), 'Notify'))
 
 from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
