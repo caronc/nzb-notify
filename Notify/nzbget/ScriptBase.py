@@ -1907,7 +1907,11 @@ class ScriptBase(object):
             host = "127.0.0.1"
 
         #Build URL
-        xmlrpc_url = 'http://'
+        secure = self.parse_bool(self.get('SecureControl', False))
+        if secure:
+            xmlrpc_url = 'https://'
+        else:
+            xmlrpc_url = 'http://'
 
         if user is None:
             user = self.get('ControlUsername', '')
