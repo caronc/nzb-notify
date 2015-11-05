@@ -1888,7 +1888,7 @@ class ScriptBase(object):
     # API Factory
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     def api_connect(self, user=None, password=None,
-                    host=None, port=None, reset=False):
+                    host=None, port=None, secure=None, reset=False):
         """Configures an API connection
         """
         if reset:
@@ -1907,21 +1907,30 @@ class ScriptBase(object):
             host = "127.0.0.1"
 
         #Build URL
-        secure = self.parse_bool(self.get('SecureControl', False))
+        if secure is None:
+            secure = self.parse_bool(self.get('SecureControl', False))
+
         if secure:
             xmlrpc_url = 'https://'
+            if port is None:
+                port = self.get('SecurePort', '6791')
         else:
+            if port is None:
+                port = self.get('ControlPort', '6789')
+
             xmlrpc_url = 'http://'
 
         if user is None:
             user = self.get('ControlUsername', '')
+
         if password is None:
             password = self.get('ControlPassword', '')
-        if port is None:
-            port = self.get('ControlPort', '6789')
 
         if user and password:
             xmlrpc_url += '%s:%s@' % (user, password)
+
+        elif user:
+            xmlrpc_url += '%s@' % user
 
         xmlrpc_url += '%s:%s/xmlrpc' % ( \
             host,
@@ -1931,9 +1940,9 @@ class ScriptBase(object):
         # Establish a connection to the server
         try:
             self.api = ServerProxy(xmlrpc_url)
-            self.logger.vdebug('API connected @ %s' % xmlrpc_url)
+            self.logger.debug('API connected @ %s' % xmlrpc_url)
         except:
-            self.logger.vdebug('API connection failed @ %s' % xmlrpc_url)
+            self.logger.debug('API connection failed @ %s' % xmlrpc_url)
             return False
 
         return True
