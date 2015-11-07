@@ -1908,7 +1908,14 @@ class ScriptBase(object):
 
         #Build URL
         if secure is None:
+            # Secure only works if the KeyFiles exist too
+            # Otherwise, setting this to True means nothing
             secure = self.parse_bool(self.get('SecureControl', False))
+            cert = self.parse_bool(self.get('SecureCert', ''))
+            key = self.parse_bool(self.get('SecureKey', ''))
+
+            # Update Flag
+            secure = (secure and isfile(cert) and isfile(key))
 
         if secure:
             xmlrpc_url = 'https://'
@@ -1928,9 +1935,6 @@ class ScriptBase(object):
 
         if user and password:
             xmlrpc_url += '%s:%s@' % (user, password)
-
-        elif user:
-            xmlrpc_url += '%s@' % user
 
         xmlrpc_url += '%s:%s/xmlrpc' % ( \
             host,
