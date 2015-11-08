@@ -1,4 +1,4 @@
-# Contributions to the urllib3 project
+﻿# Contributions to the urllib3 project
 
 ## Creator & Maintainer
 
@@ -117,5 +117,58 @@ In chronological order:
 * Arthur Grunseid <http://grunseid.com>
   * source_address support and tests (with https://github.com/bui)
 
+* Ian Cordasco <graffatcolmingov@gmail.com>
+  * PEP8 Compliance and Linting
+  * Add ability to pass socket options to an HTTP Connection
+
+* Erik Tollerud <erik.tollerud@gmail.com>
+  * Support for standard library io module.
+
+* Krishna Prasad <kprasad.iitd@gmail.com>
+  * Google App Engine documentation
+
+* Aaron Meurer <asmeurer@gmail.com>
+  * Added Url.url, which unparses a Url
+
+* Evgeny Kapun <abacabadabacaba@gmail.com>
+  * Bugfixes
+
+* Benjamen Meyer <bm_witness@yahoo.com>
+  * Security Warning Documentation update for proper capture
+
+* Shivan Sornarajah <github@sornars.com>
+  * Support for using ConnectionPool and PoolManager as context managers.
+
+* Alex Gaynor <alex.gaynor@gmail.com>
+  * Updates to the default SSL configuration
+
+* Tomas Tomecek <ttomecek@redhat.com>
+  * Implemented generator for getting chunks from chunked responses.
+
+* tlynn <https://github.com/tlynn>
+  * Respect the warning preferences at import.
+
+* David D. Riddle <ddriddle@illinois.edu>
+  * IPv6 bugfixes in testsuite
+
+* Jon Wayne Parrott <jonwayne@google.com>
+  * App Engine environment tests.
+  
+* John Krauss <https://github.com/talos>
+  * Clues to debugging problems with `cryptography` dependency in docs
+
+* Disassem <https://github.com/Disassem>
+  * Fix pool-default headers not applying for url-encoded requests like GET.
+
+* James Atherfold <jlatherfold@hotmail.com>
+  * Bugfixes relating to cleanup of connections during errors.
+
+* Christian Pedersen <https://github.com/chripede>
+  * IPv6 HTTPS proxy bugfix
+
+* Jordan Moldow <https://github.com/jmoldow>
+  * Fix low-level exceptions leaking from ``HTTPResponse.stream()``.
+
 * [Your name or handle] <[email or website]>
   * [Brief summary of your changes]
+

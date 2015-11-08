@@ -29,7 +29,7 @@ Now you can use :mod:`urllib3` as you normally would, and it will support SNI
 when the required modules are installed.
 
 Activating this module also has the positive side effect of disabling SSL/TLS
-encryption in Python 2 (see `CRIME attack`_).
+compression in Python 2 (see `CRIME attack`_).
 
 If you want to configure the default list of supported cipher suites, you can
 set the ``urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST`` variable.
@@ -38,16 +38,18 @@ Module Variables
 ----------------
 
 :var DEFAULT_SSL_CIPHER_LIST: The list of supported SSL/TLS cipher suites.
-    Default: ``ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:
-    ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS``
 
 .. _sni: https://en.wikipedia.org/wiki/Server_Name_Indication
 .. _crime attack: https://en.wikipedia.org/wiki/CRIME_(security_exploit)
 
 '''
 
-from ndg.httpsclient.ssl_peer_verification import SUBJ_ALT_NAME_SUPPORT
-from ndg.httpsclient.subj_alt_name import SubjectAltName as BaseSubjectAltName
+try:
+    from ndg.httpsclient.ssl_peer_verification import SUBJ_ALT_NAME_SUPPORT
+    from ndg.httpsclient.subj_alt_name import SubjectAltName as BaseSubjectAltName
+except SyntaxError as e:
+    raise ImportError(e)
+
 import OpenSSL.SSL
 from pyasn1.codec.der import decoder as der_decoder
 from pyasn1.type import univ, constraint
@@ -66,9 +68,14 @@ HAS_SNI = SUBJ_ALT_NAME_SUPPORT
 # Map from urllib3 to PyOpenSSL compatible parameter-values.
 _openssl_versions = {
     ssl.PROTOCOL_SSLv23: OpenSSL.SSL.SSLv23_METHOD,
-    ssl.PROTOCOL_SSLv3: OpenSSL.SSL.SSLv3_METHOD,
     ssl.PROTOCOL_TLSv1: OpenSSL.SSL.TLSv1_METHOD,
 }
+
+try:
+    _openssl_versions.update({ssl.PROTOCOL_SSLv3: OpenSSL.SSL.SSLv3_METHOD})
+except AttributeError:
+    pass
+
 _openssl_verify = {
     ssl.CERT_NONE: OpenSSL.SSL.VERIFY_NONE,
     ssl.CERT_OPTIONAL: OpenSSL.SSL.VERIFY_PEER,
@@ -76,23 +83,16 @@ _openssl_verify = {
                        + OpenSSL.SSL.VERIFY_FAIL_IF_NO_PEER_CERT,
 }
 
-# A secure default.
-# Sources for more information on TLS ciphers:
-#
-# - https://wiki.mozilla.org/Security/Server_Side_TLS
-# - https://www.ssllabs.com/projects/best-practices/index.html
-# - https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
-#
-# The general intent is:
-# - Prefer cipher suites that offer perfect forward secrecy (DHE/ECDHE),
-# - prefer ECDHE over DHE for better performance,
-# - prefer any AES-GCM over any AES-CBC for better performance and security,
-# - use 3DES as fallback which is secure but slow,
-# - disable NULL authentication, MD5 MACs and DSS for security reasons.
-DEFAULT_SSL_CIPHER_LIST = "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:" + \
-    "ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:" + \
-    "!aNULL:!MD5:!DSS"
+DEFAULT_SSL_CIPHER_LIST = util.ssl_.DEFAULT_CIPHERS
 
+# OpenSSL will only write 16K at a time
+SSL_WRITE_BLOCKSIZE = 16384
+
+try:
+    _ = memoryview
+    has_memoryview = True
+except NameError:
+    has_memoryview = False
 
 orig_util_HAS_SNI = util.HAS_SNI
 orig_connection_ssl_wrap_socket = connection.ssl_wrap_socket
@@ -155,18 +155,24 @@ def get_subj_alt_name(peer_cert):
 
 
 class WrappedSocket(object):
-    '''API-compatibility wrapper for Python OpenSSL's Connection-class.'''
+    '''API-compatibility wrapper for Python OpenSSL's Connection-class.
+
+    Note: _makefile_refs, _drop() and _reuse() are needed for the garbage
+    collector of pypy.
+    '''
 
     def __init__(self, connection, socket, suppress_ragged_eofs=True):
         self.connection = connection
         self.socket = socket
         self.suppress_ragged_eofs = suppress_ragged_eofs
+        self._makefile_refs = 0
 
     def fileno(self):
         return self.socket.fileno()
 
     def makefile(self, mode, bufsize=-1):
-        return _fileobject(self, mode, bufsize)
+        self._makefile_refs += 1
+        return _fileobject(self, mode, bufsize, close=True)
 
     def recv(self, *args, **kwargs):
         try:
@@ -176,11 +182,16 @@ class WrappedSocket(object):
                 return b''
             else:
                 raise
+        except OpenSSL.SSL.ZeroReturnError as e:
+            if self.connection.get_shutdown() == OpenSSL.SSL.RECEIVED_SHUTDOWN:
+                return b''
+            else:
+                raise
         except OpenSSL.SSL.WantReadError:
             rd, wd, ed = select.select(
                 [self.socket], [], [], self.socket.gettimeout())
             if not rd:
-                raise timeout()
+                raise timeout('The read operation timed out')
             else:
                 return self.recv(*args, **kwargs)
         else:
@@ -189,11 +200,35 @@ class WrappedSocket(object):
     def settimeout(self, timeout):
         return self.socket.settimeout(timeout)
 
+    def _send_until_done(self, data):
+        while True:
+            try:
+                return self.connection.send(data)
+            except OpenSSL.SSL.WantWriteError:
+                _, wlist, _ = select.select([], [self.socket], [],
+                                            self.socket.gettimeout())
+                if not wlist:
+                    raise timeout()
+                continue
+
     def sendall(self, data):
-        return self.connection.sendall(data)
+        if has_memoryview and not isinstance(data, memoryview):
+            data = memoryview(data)
+
+        total_sent = 0
+        while total_sent < len(data):
+            sent = self._send_until_done(data[total_sent:total_sent+SSL_WRITE_BLOCKSIZE])
+            total_sent += sent
+
+    def shutdown(self):
+        # FIXME rethrow compatible exceptions should we ever use this
+        self.connection.shutdown()
 
     def close(self):
-        return self.connection.shutdown()
+        if self._makefile_refs < 1:
+            return self.connection.close()
+        else:
+            self._makefile_refs -= 1
 
     def getpeercert(self, binary_form=False):
         x509 = self.connection.get_peer_certificate()
@@ -216,6 +251,15 @@ class WrappedSocket(object):
             ]
         }
 
+    def _reuse(self):
+        self._makefile_refs += 1
+
+    def _drop(self):
+        if self._makefile_refs < 1:
+            self.close()
+        else:
+            self._makefile_refs -= 1
+
 
 def _verify_callback(cnx, x509, err_no, err_depth, return_code):
     return err_no == 0
@@ -223,17 +267,18 @@ def _verify_callback(cnx, x509, err_no, err_depth, return_code):
 
 def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None,
                     ca_certs=None, server_hostname=None,
-                    ssl_version=None):
+                    ssl_version=None, ca_cert_dir=None):
     ctx = OpenSSL.SSL.Context(_openssl_versions[ssl_version])
     if certfile:
+        keyfile = keyfile or certfile  # Match behaviour of the normal python ssl library
         ctx.use_certificate_file(certfile)
     if keyfile:
         ctx.use_privatekey_file(keyfile)
     if cert_reqs != ssl.CERT_NONE:
         ctx.set_verify(_openssl_verify[cert_reqs], _verify_callback)
-    if ca_certs:
+    if ca_certs or ca_cert_dir:
         try:
-            ctx.load_verify_locations(ca_certs, None)
+            ctx.load_verify_locations(ca_certs, ca_cert_dir)
         except OpenSSL.SSL.Error as e:
             raise ssl.SSLError('bad ca_certs: %r' % ca_certs, e)
     else:
@@ -253,10 +298,12 @@ def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None,
         try:
             cnx.do_handshake()
         except OpenSSL.SSL.WantReadError:
-            select.select([sock], [], [])
+            rd, _, _ = select.select([sock], [], [], sock.gettimeout())
+            if not rd:
+                raise timeout('select timed out')
             continue
         except OpenSSL.SSL.Error as e:
-            raise ssl.SSLError('bad handshake', e)
+            raise ssl.SSLError('bad handshake: %r' % e)
         break
 
     return WrappedSocket(cnx, sock)

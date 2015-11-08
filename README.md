@@ -79,7 +79,7 @@ should be known that Notify.py depends on the following packages:
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |
 | pyOpenSSL **[P]**            | 0.14    | https://pypi.python.org/pypi/pyOpenSSL/0.14                                          |
 | gntp                         | 1.0.2   | https://pypi.python.org/pypi/gntp/1.0.2                                              |
-| urllib3 **[P]**              | 1.9     | https://pypi.python.org/pypi/urllib3/1.9                                             |
+| urllib3 **[P]**              | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
 
 **Note:** The items above denoted with a **[P]** were patched in efforts to:
 - Make their libaries compatible with Python v2.6.

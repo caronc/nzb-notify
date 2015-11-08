@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: urllib3
-Version: 1.9
+Version: 1.12
 Summary: HTTP library with thread-safe connection pooling, file post, and more.
 Home-page: http://urllib3.readthedocs.org/
 Author: Andrey Petrov
@@ -12,6 +12,9 @@ Description: =======
         
         .. image:: https://travis-ci.org/shazow/urllib3.png?branch=master
                 :target: https://travis-ci.org/shazow/urllib3
+        
+        .. image:: https://www.bountysource.com/badge/tracker?tracker_id=192525
+                :target: https://www.bountysource.com/trackers/192525-urllib3?utm_source=192525&utm_medium=shield&utm_campaign=TRACKER_BADGE
         
         
         Highlights
@@ -152,6 +155,180 @@ Description: =======
         
         Changes
         =======
+        
+        1.12 (2015-09-03)
+        +++++++++++++++++
+        
+        * Rely on ``six`` for importing ``httplib`` to work around
+          conflicts with other Python 3 shims. (Issue #688)
+        
+        * Add support for directories of certificate authorities, as supported by
+          OpenSSL. (Issue #701)
+        
+        * New exception: ``NewConnectionError``, raised when we fail to establish
+          a new connection, usually ``ECONNREFUSED`` socket error.
+        
+        
+        1.11 (2015-07-21)
+        +++++++++++++++++
+        
+        * When ``ca_certs`` is given, ``cert_reqs`` defaults to
+          ``'CERT_REQUIRED'``. (Issue #650)
+        
+        * ``pip install urllib3[secure]`` will install Certifi and
+          PyOpenSSL as dependencies. (Issue #678)
+        
+        * Made ``HTTPHeaderDict`` usable as a ``headers`` input value
+          (Issues #632, #679)
+        
+        * Added `urllib3.contrib.appengine <https://urllib3.readthedocs.org/en/latest/contrib.html#google-app-engine>`_
+          which has an ``AppEngineManager`` for using ``URLFetch`` in a
+          Google AppEngine environment. (Issue #664)
+        
+        * Dev: Added test suite for AppEngine. (Issue #631)
+        
+        * Fix performance regression when using PyOpenSSL. (Issue #626)
+        
+        * Passing incorrect scheme (e.g. ``foo://``) will raise
+          ``ValueError`` instead of ``AssertionError`` (backwards
+          compatible for now, but please migrate). (Issue #640)
+        
+        * Fix pools not getting replenished when an error occurs during a
+          request using ``release_conn=False``. (Issue #644)
+        
+        * Fix pool-default headers not applying for url-encoded requests
+          like GET. (Issue #657)
+        
+        * log.warning in Python 3 when headers are skipped due to parsing
+          errors. (Issue #642)
+        
+        * Close and discard connections if an error occurs during read.
+          (Issue #660)
+        
+        * Fix host parsing for IPv6 proxies. (Issue #668)
+        
+        * Separate warning type SubjectAltNameWarning, now issued once
+          per host. (Issue #671)
+        
+        * Fix ``httplib.IncompleteRead`` not getting converted to
+          ``ProtocolError`` when using ``HTTPResponse.stream()``
+          (Issue #674)
+        
+        1.10.4 (2015-05-03)
+        +++++++++++++++++++
+        
+        * Migrate tests to Tornado 4. (Issue #594)
+        
+        * Append default warning configuration rather than overwrite.
+          (Issue #603)
+        
+        * Fix streaming decoding regression. (Issue #595)
+        
+        * Fix chunked requests losing state across keep-alive connections.
+          (Issue #599)
+        
+        * Fix hanging when chunked HEAD response has no body. (Issue #605)
+        
+        
+        1.10.3 (2015-04-21)
+        +++++++++++++++++++
+        
+        * Emit ``InsecurePlatformWarning`` when SSLContext object is missing.
+          (Issue #558)
+        
+        * Fix regression of duplicate header keys being discarded.
+          (Issue #563)
+        
+        * ``Response.stream()`` returns a generator for chunked responses.
+          (Issue #560)
+        
+        * Set upper-bound timeout when waiting for a socket in PyOpenSSL.
+          (Issue #585)
+        
+        * Work on platforms without `ssl` module for plain HTTP requests.
+          (Issue #587)
+        
+        * Stop relying on the stdlib's default cipher list. (Issue #588)
+        
+        
+        1.10.2 (2015-02-25)
+        +++++++++++++++++++
+        
+        * Fix file descriptor leakage on retries. (Issue #548)
+        
+        * Removed RC4 from default cipher list. (Issue #551)
+        
+        * Header performance improvements. (Issue #544)
+        
+        * Fix PoolManager not obeying redirect retry settings. (Issue #553)
+        
+        
+        1.10.1 (2015-02-10)
+        +++++++++++++++++++
+        
+        * Pools can be used as context managers. (Issue #545)
+        
+        * Don't re-use connections which experienced an SSLError. (Issue #529)
+        
+        * Don't fail when gzip decoding an empty stream. (Issue #535)
+        
+        * Add sha256 support for fingerprint verification. (Issue #540)
+        
+        * Fixed handling of header values containing commas. (Issue #533)
+        
+        
+        1.10 (2014-12-14)
+        +++++++++++++++++
+        
+        * Disabled SSLv3. (Issue #473)
+        
+        * Add ``Url.url`` property to return the composed url string. (Issue #394)
+        
+        * Fixed PyOpenSSL + gevent ``WantWriteError``. (Issue #412)
+        
+        * ``MaxRetryError.reason`` will always be an exception, not string.
+          (Issue #481)
+        
+        * Fixed SSL-related timeouts not being detected as timeouts. (Issue #492)
+        
+        * Py3: Use ``ssl.create_default_context()`` when available. (Issue #473)
+        
+        * Emit ``InsecureRequestWarning`` for *every* insecure HTTPS request.
+          (Issue #496)
+        
+        * Emit ``SecurityWarning`` when certificate has no ``subjectAltName``.
+          (Issue #499)
+        
+        * Close and discard sockets which experienced SSL-related errors.
+          (Issue #501)
+        
+        * Handle ``body`` param in ``.request(...)``. (Issue #513)
+        
+        * Respect timeout with HTTPS proxy. (Issue #505)
+        
+        * PyOpenSSL: Handle ZeroReturnError exception. (Issue #520)
+        
+        
+        1.9.1 (2014-09-13)
+        ++++++++++++++++++
+        
+        * Apply socket arguments before binding. (Issue #427)
+        
+        * More careful checks if fp-like object is closed. (Issue #435)
+        
+        * Fixed packaging issues of some development-related files not
+          getting included. (Issue #440)
+        
+        * Allow performing *only* fingerprint verification. (Issue #444)
+        
+        * Emit ``SecurityWarning`` if system clock is waaay off. (Issue #445)
+        
+        * Fixed PyOpenSSL compatibility with PyPy. (Issue #450)
+        
+        * Fixed ``BrokenPipeError`` and ``ConnectionError`` handling in Py3.
+          (Issue #443)
+        
+        
         
         1.9 (2014-07-04)
         ++++++++++++++++

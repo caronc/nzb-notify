@@ -1,119 +1,74 @@
-diff -Naur urllib3-1.9/dummyserver/handlers.py urllib3-1.9.patched/dummyserver/handlers.py
---- urllib3-1.9/dummyserver/handlers.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/dummyserver/handlers.py	2014-07-09 09:36:49.000000000 -0400
-@@ -211,7 +211,7 @@
-     """
-     import tornado.httputil
-     import email.utils
--    from urllib3.packages import six
-+    import six
-     if not six.PY3:
-         line = line.encode('utf-8')
-     parts = tornado.httputil._parseparam(';' + line)
-diff -Naur urllib3-1.9/test/test_collections.py urllib3-1.9.patched/test/test_collections.py
---- urllib3-1.9/test/test_collections.py	2014-03-14 20:05:07.000000000 -0400
-+++ urllib3-1.9.patched/test/test_collections.py	2014-07-09 09:37:00.000000000 -0400
-@@ -4,7 +4,7 @@
-     HTTPHeaderDict,
-     RecentlyUsedContainer as Container
- )
--from urllib3.packages import six
-+import six
- xrange = six.moves.xrange
- 
- 
-diff -Naur urllib3-1.9/test/test_connectionpool.py urllib3-1.9.patched/test/test_connectionpool.py
---- urllib3-1.9/test/test_connectionpool.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/test/test_connectionpool.py	2014-07-09 10:13:14.000000000 -0400
-@@ -6,7 +6,7 @@
-     HTTPConnectionPool,
- )
- from urllib3.util.timeout import Timeout
--from urllib3.packages.ssl_match_hostname import CertificateError
-+from backports.ssl_match_hostname import CertificateError
- from urllib3.exceptions import (
-     ClosedPoolError,
-     EmptyPoolError,
-diff -Naur urllib3-1.9/test/test_fields.py urllib3-1.9.patched/test/test_fields.py
---- urllib3-1.9/test/test_fields.py	2014-03-04 14:08:03.000000000 -0500
-+++ urllib3-1.9.patched/test/test_fields.py	2014-07-09 09:39:53.000000000 -0400
-@@ -1,7 +1,7 @@
- import unittest
- 
- from urllib3.fields import guess_content_type, RequestField
--from urllib3.packages.six import u
-+from six import u
- 
- 
- class TestRequestField(unittest.TestCase):
-diff -Naur urllib3-1.9/test/test_filepost.py urllib3-1.9.patched/test/test_filepost.py
---- urllib3-1.9/test/test_filepost.py	2014-03-14 20:05:07.000000000 -0400
-+++ urllib3-1.9.patched/test/test_filepost.py	2014-07-09 09:39:43.000000000 -0400
-@@ -2,7 +2,7 @@
- 
- from urllib3.filepost import encode_multipart_formdata, iter_fields
- from urllib3.fields import RequestField
--from urllib3.packages.six import b, u
-+from six import b, u
- 
- 
- BOUNDARY = '!! test boundary !!'
-diff -Naur urllib3-1.9/test/test_retry.py urllib3-1.9.patched/test/test_retry.py
---- urllib3-1.9/test/test_retry.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/test/test_retry.py	2014-07-09 09:40:03.000000000 -0400
-@@ -1,6 +1,6 @@
- import unittest
- 
--from urllib3.packages.six.moves import xrange
-+from six.moves import xrange
- from urllib3.util.retry import Retry
- from urllib3.exceptions import (
-     ConnectTimeoutError,
-diff -Naur urllib3-1.9/urllib3/_collections.py urllib3-1.9.patched/urllib3/_collections.py
---- urllib3-1.9/urllib3/_collections.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/_collections.py	2014-07-09 10:05:25.000000000 -0400
+diff -Naur urllib3-1.12/urllib3/_collections.py urllib3-1.12.patched/urllib3/_collections.py
+--- urllib3-1.12/urllib3/_collections.py	2015-09-03 20:16:43.000000000 -0400
++++ urllib3-1.12.patched/urllib3/_collections.py	2015-11-07 11:50:29.000000000 -0500
 @@ -13,8 +13,8 @@
- try: # Python 2.7+
+ try:  # Python 2.7+
      from collections import OrderedDict
  except ImportError:
 -    from .packages.ordered_dict import OrderedDict
--from .packages.six import itervalues
-+    from ordereddict import OrderedDict
-+from six import itervalues
+-from .packages.six import iterkeys, itervalues, PY3
++    from ordered_dict import OrderedDict
++from six import iterkeys, itervalues, PY3
  
  
  __all__ = ['RecentlyUsedContainer', 'HTTPHeaderDict']
-diff -Naur urllib3-1.9/urllib3/connectionpool.py urllib3-1.9.patched/urllib3/connectionpool.py
---- urllib3-1.9/urllib3/connectionpool.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/connectionpool.py	2014-07-09 10:13:22.000000000 -0400
-@@ -26,8 +26,8 @@
-     TimeoutError,
+diff -Naur urllib3-1.12/urllib3/connectionpool.py urllib3-1.12.patched/urllib3/connectionpool.py
+--- urllib3-1.12/urllib3/connectionpool.py	2015-09-06 14:40:19.000000000 -0400
++++ urllib3-1.12.patched/urllib3/connectionpool.py	2015-11-07 11:58:32.000000000 -0500
+@@ -29,8 +29,12 @@
      InsecureRequestWarning,
+     NewConnectionError,
  )
 -from .packages.ssl_match_hostname import CertificateError
 -from .packages import six
-+from backports.ssl_match_hostname import CertificateError
++try:
++    from ssl_match_hostname import CertificateError
++except ImportError:
++    from backports.ssl_match_hostname import CertificateError
++
 +import six
  from .connection import (
      port_by_scheme,
      DummyConnection,
-diff -Naur urllib3-1.9/urllib3/connection.py urllib3-1.9.patched/urllib3/connection.py
---- urllib3-1.9/urllib3/connection.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/connection.py	2014-07-09 10:13:27.000000000 -0400
-@@ -27,8 +27,8 @@
- from .exceptions import (
-     ConnectTimeoutError,
+diff -Naur urllib3-1.12/urllib3/connection.py urllib3-1.12.patched/urllib3/connection.py
+--- urllib3-1.12/urllib3/connection.py	2015-09-06 14:40:19.000000000 -0400
++++ urllib3-1.12.patched/urllib3/connection.py	2015-11-07 11:58:17.000000000 -0500
+@@ -3,7 +3,7 @@
+ import socket
+ from socket import error as SocketError, timeout as SocketTimeout
+ import warnings
+-from .packages import six
++import six
+ 
+ try:  # Python 3
+     from http.client import HTTPConnection as _HTTPConnection, HTTPException
+@@ -41,7 +41,10 @@
+     SubjectAltNameWarning,
+     SystemTimeWarning,
  )
 -from .packages.ssl_match_hostname import match_hostname
--from .packages import six
-+from backports.ssl_match_hostname import match_hostname
-+import six
++try:
++    from ssl_match_hostname import match_hostname
++except:
++    from backports.ssl_match_hostname import match_hostname
  
  from .util.ssl_ import (
      resolve_cert_reqs,
-diff -Naur urllib3-1.9/urllib3/fields.py urllib3-1.9.patched/urllib3/fields.py
---- urllib3-1.9/urllib3/fields.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/fields.py	2014-07-09 09:37:58.000000000 -0400
+diff -Naur urllib3-1.12/urllib3/contrib/appengine.py urllib3-1.12.patched/urllib3/contrib/appengine.py
+--- urllib3-1.12/urllib3/contrib/appengine.py	2015-09-03 20:16:43.000000000 -0400
++++ urllib3-1.12.patched/urllib3/contrib/appengine.py	2015-11-07 11:50:42.000000000 -0500
+@@ -11,7 +11,7 @@
+     SSLError
+ )
+ 
+-from ..packages.six import BytesIO
++from six import BytesIO
+ from ..request import RequestMethods
+ from ..response import HTTPResponse
+ from ..util.timeout import Timeout
+diff -Naur urllib3-1.12/urllib3/fields.py urllib3-1.12.patched/urllib3/fields.py
+--- urllib3-1.12/urllib3/fields.py	2015-04-01 18:24:02.000000000 -0400
++++ urllib3-1.12.patched/urllib3/fields.py	2015-11-07 11:49:39.000000000 -0500
 @@ -1,7 +1,7 @@
  import email.utils
  import mimetypes
@@ -123,9 +78,9 @@ diff -Naur urllib3-1.9/urllib3/fields.py urllib3-1.9.patched/urllib3/fields.py
  
  
  def guess_content_type(filename, default='application/octet-stream'):
-diff -Naur urllib3-1.9/urllib3/filepost.py urllib3-1.9.patched/urllib3/filepost.py
---- urllib3-1.9/urllib3/filepost.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/filepost.py	2014-07-09 09:37:44.000000000 -0400
+diff -Naur urllib3-1.12/urllib3/filepost.py urllib3-1.12.patched/urllib3/filepost.py
+--- urllib3-1.12/urllib3/filepost.py	2015-04-01 18:24:02.000000000 -0400
++++ urllib3-1.12.patched/urllib3/filepost.py	2015-11-07 11:49:50.000000000 -0500
 @@ -3,8 +3,8 @@
  from uuid import uuid4
  from io import BytesIO
@@ -137,21 +92,23 @@ diff -Naur urllib3-1.9/urllib3/filepost.py urllib3-1.9.patched/urllib3/filepost.
  from .fields import RequestField
  
  writer = codecs.lookup('utf-8')[3]
-diff -Naur urllib3-1.9/urllib3/response.py urllib3-1.9.patched/urllib3/response.py
---- urllib3-1.9/urllib3/response.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/response.py	2014-07-09 09:41:46.000000000 -0400
-@@ -4,7 +4,7 @@
- 
- from ._collections import HTTPHeaderDict
- from .exceptions import ProtocolError, DecodeError, ReadTimeoutError
--from .packages.six import string_types as basestring, binary_type
-+from six import string_types as basestring, binary_type
+diff -Naur urllib3-1.12/urllib3/response.py urllib3-1.12.patched/urllib3/response.py
+--- urllib3-1.12/urllib3/response.py	2015-09-06 14:40:19.000000000 -0400
++++ urllib3-1.12.patched/urllib3/response.py	2015-11-07 11:50:55.000000000 -0500
+@@ -7,8 +7,8 @@
+ from .exceptions import (
+     ProtocolError, DecodeError, ReadTimeoutError, ResponseNotChunked
+ )
+-from .packages.six import string_types as basestring, binary_type, PY3
+-from .packages.six.moves import http_client as httplib
++from six import string_types as basestring, binary_type, PY3
++from six.moves import http_client as httplib
  from .connection import HTTPException, BaseSSLError
- from .util.response import is_fp_closed
+ from .util.response import is_fp_closed, is_response_to_head
  
-diff -Naur urllib3-1.9/urllib3/util/request.py urllib3-1.9.patched/urllib3/util/request.py
---- urllib3-1.9/urllib3/util/request.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/util/request.py	2014-07-09 09:40:10.000000000 -0400
+diff -Naur urllib3-1.12/urllib3/util/request.py urllib3-1.12.patched/urllib3/util/request.py
+--- urllib3-1.12/urllib3/util/request.py	2015-04-01 18:24:02.000000000 -0400
++++ urllib3-1.12.patched/urllib3/util/request.py	2015-11-07 11:51:08.000000000 -0500
 @@ -1,6 +1,6 @@
  from base64 import b64encode
  
@@ -160,24 +117,24 @@ diff -Naur urllib3-1.9/urllib3/util/request.py urllib3-1.9.patched/urllib3/util/
  
  ACCEPT_ENCODING = 'gzip,deflate'
  
-diff -Naur urllib3-1.9/urllib3/util/retry.py urllib3-1.9.patched/urllib3/util/retry.py
---- urllib3-1.9/urllib3/util/retry.py	2014-07-07 16:56:01.000000000 -0400
-+++ urllib3-1.9.patched/urllib3/util/retry.py	2014-07-09 09:37:12.000000000 -0400
-@@ -7,7 +7,7 @@
+diff -Naur urllib3-1.12/urllib3/util/response.py urllib3-1.12.patched/urllib3/util/response.py
+--- urllib3-1.12/urllib3/util/response.py	2015-09-06 14:40:19.000000000 -0400
++++ urllib3-1.12.patched/urllib3/util/response.py	2015-11-07 11:51:17.000000000 -0500
+@@ -1,4 +1,4 @@
+-from ..packages.six.moves import http_client as httplib
++from six.moves import http_client as httplib
+ 
+ from ..exceptions import HeaderParsingError
+ 
+diff -Naur urllib3-1.12/urllib3/util/retry.py urllib3-1.12.patched/urllib3/util/retry.py
+--- urllib3-1.12/urllib3/util/retry.py	2015-09-03 20:16:43.000000000 -0400
++++ urllib3-1.12.patched/urllib3/util/retry.py	2015-11-07 11:50:06.000000000 -0500
+@@ -8,7 +8,7 @@
      ReadTimeoutError,
-     MaxRetryError,
+     ResponseError,
  )
 -from ..packages import six
 +import six
  
  
  log = logging.getLogger(__name__)
-@@ -83,7 +83,7 @@
-         same state). See :attr:`Retry.DEFAULT_METHOD_WHITELIST`.
- 
-     :param iterable status_forcelist:
--        A set of HTTP status codes that we should force a retry on. 
-+        A set of HTTP status codes that we should force a retry on.
- 
-         By default, this is disabled with ``None``.
- 

@@ -1,6 +1,9 @@
+import datetime
 import sys
 import socket
-from socket import timeout as SocketTimeout
+from socket import error as SocketError, timeout as SocketTimeout
+import warnings
+import six
 
 try:  # Python 3
     from http.client import HTTPConnection as _HTTPConnection, HTTPException
@@ -24,11 +27,24 @@ except (ImportError, AttributeError):  # Platform-specific: No SSL.
         pass
 
 
+try:  # Python 3:
+    # Not a no-op, we're adding this to the namespace so it can be imported.
+    ConnectionError = ConnectionError
+except NameError:  # Python 2:
+    class ConnectionError(Exception):
+        pass
+
+
 from .exceptions import (
+    NewConnectionError,
     ConnectTimeoutError,
+    SubjectAltNameWarning,
+    SystemTimeWarning,
 )
-from backports.ssl_match_hostname import match_hostname
-import six
+try:
+    from ssl_match_hostname import match_hostname
+except:
+    from backports.ssl_match_hostname import match_hostname
 
 from .util.ssl_ import (
     resolve_cert_reqs,
@@ -37,13 +53,15 @@ from .util.ssl_ import (
     assert_fingerprint,
 )
 
-from .util import connection
 
+from .util import connection
 
 port_by_scheme = {
     'http': 80,
     'https': 443,
 }
+
+RECENT_DATE = datetime.date(2014, 1, 1)
 
 
 class HTTPConnection(_HTTPConnection, object):
@@ -119,10 +137,14 @@ class HTTPConnection(_HTTPConnection, object):
             conn = connection.create_connection(
                 (self.host, self.port), self.timeout, **extra_kw)
 
-        except SocketTimeout:
+        except SocketTimeout as e:
             raise ConnectTimeoutError(
                 self, "Connection to %s timed out. (connect timeout=%s)" %
                 (self.host, self.timeout))
+
+        except SocketError as e:
+            raise NewConnectionError(
+                self, "Failed to establish a new connection: %s" % e)
 
         return conn
 
@@ -171,16 +193,23 @@ class VerifiedHTTPSConnection(HTTPSConnection):
     """
     cert_reqs = None
     ca_certs = None
+    ca_cert_dir = None
     ssl_version = None
+    assert_fingerprint = None
 
     def set_cert(self, key_file=None, cert_file=None,
                  cert_reqs=None, ca_certs=None,
-                 assert_hostname=None, assert_fingerprint=None):
+                 assert_hostname=None, assert_fingerprint=None,
+                 ca_cert_dir=None):
+
+        if (ca_certs or ca_cert_dir) and cert_reqs is None:
+            cert_reqs = 'CERT_REQUIRED'
 
         self.key_file = key_file
         self.cert_file = cert_file
         self.cert_reqs = cert_reqs
         self.ca_certs = ca_certs
+        self.ca_cert_dir = ca_cert_dir
         self.assert_hostname = assert_hostname
         self.assert_fingerprint = assert_fingerprint
 
@@ -206,26 +235,46 @@ class VerifiedHTTPSConnection(HTTPSConnection):
             # Override the host with the one we're requesting data from.
             hostname = self._tunnel_host
 
+        is_time_off = datetime.date.today() < RECENT_DATE
+        if is_time_off:
+            warnings.warn((
+                'System time is way off (before {0}). This will probably '
+                'lead to SSL verification errors').format(RECENT_DATE),
+                SystemTimeWarning
+            )
+
         # Wrap socket using verification with the root certs in
         # trusted_root_certs
         self.sock = ssl_wrap_socket(conn, self.key_file, self.cert_file,
                                     cert_reqs=resolved_cert_reqs,
                                     ca_certs=self.ca_certs,
+                                    ca_cert_dir=self.ca_cert_dir,
                                     server_hostname=hostname,
                                     ssl_version=resolved_ssl_version)
 
-        if resolved_cert_reqs != ssl.CERT_NONE:
-            if self.assert_fingerprint:
-                assert_fingerprint(self.sock.getpeercert(binary_form=True),
-                                   self.assert_fingerprint)
-            elif self.assert_hostname is not False:
-                match_hostname(self.sock.getpeercert(),
-                               self.assert_hostname or hostname)
+        if self.assert_fingerprint:
+            assert_fingerprint(self.sock.getpeercert(binary_form=True),
+                               self.assert_fingerprint)
+        elif resolved_cert_reqs != ssl.CERT_NONE \
+                and self.assert_hostname is not False:
+            cert = self.sock.getpeercert()
+            if not cert.get('subjectAltName', ()):
+                warnings.warn((
+                    'Certificate for {0} has no `subjectAltName`, falling back to check for a '
+                    '`commonName` for now. This feature is being removed by major browsers and '
+                    'deprecated by RFC 2818. (See https://github.com/shazow/urllib3/issues/497 '
+                    'for details.)'.format(hostname)),
+                    SubjectAltNameWarning
+                )
+            match_hostname(cert, self.assert_hostname or hostname)
 
-        self.is_verified = resolved_cert_reqs == ssl.CERT_REQUIRED
+        self.is_verified = (resolved_cert_reqs == ssl.CERT_REQUIRED
+                            or self.assert_fingerprint is not None)
 
 
 if ssl:
     # Make a copy for testing.
     UnverifiedHTTPSConnection = HTTPSConnection
     HTTPSConnection = VerifiedHTTPSConnection
+else:
+    HTTPSConnection = DummyConnection
