@@ -1911,8 +1911,8 @@ class ScriptBase(object):
             # Secure only works if the KeyFiles exist too
             # Otherwise, setting this to True means nothing
             secure = self.parse_bool(self.get('SecureControl', False))
-            cert = self.parse_bool(self.get('SecureCert', ''))
-            key = self.parse_bool(self.get('SecureKey', ''))
+            cert = self.self.get('SecureCert', '')
+            key = self.self.get('SecureKey', '')
 
             # Update Flag
             secure = (secure and isfile(cert) and isfile(key))
