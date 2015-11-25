@@ -1911,8 +1911,8 @@ class ScriptBase(object):
             # Secure only works if the KeyFiles exist too
             # Otherwise, setting this to True means nothing
             secure = self.parse_bool(self.get('SecureControl', False))
-            cert = self.self.get('SecureCert', '')
-            key = self.self.get('SecureKey', '')
+            cert = self.get('SecureCert', '')
+            key = self.get('SecureKey', '')
 
             # Update Flag
             secure = (secure and isfile(cert) and isfile(key))
@@ -2200,6 +2200,9 @@ class ScriptBase(object):
             if filtered:
                 # File does not meet implied filters
                 return {}
+
+            # Update our search_dir
+            search_dir = join(dname, fname)
 
             # If we reach here, we can prepare a file using the data
             # we fetch
