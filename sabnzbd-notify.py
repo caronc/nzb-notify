@@ -37,17 +37,17 @@ from datetime import timedelta
 import logging
 import logging.handlers
 
+# Logging Support
 logger = logging.getLogger("sabnzbd-notify - %s" % getpid())
 logging.raiseExceptions = 0
 logger.setLevel(logging.INFO)
 h1 = logging.StreamHandler(sys.stdout)
 h1.setFormatter(logging. \
     Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
-#add h1 to logger
 logger.addHandler(h1)
 
 # Path to notify script
-NOTIFY_SCRIPT = join(abspath(dirname(__name__)), 'Notify.py')
+NOTIFY_SCRIPT = join(abspath(dirname(__file__)), 'Notify.py')
 
 # Just some timeout value
 NOTIFY_MAX_WAIT_TIME_SEC = 300
@@ -79,7 +79,6 @@ SABNZBD_NOTIFICATION_MAP = {
     'other': ('Other Messages', '/path/to/image.png'),
 }
 
-
 def syntax():
     """
     A simple script to print the syntax to the end user
@@ -96,6 +95,60 @@ def syntax():
         "delimit multiple" + os.linesep + "\tURLs in a single " +\
         "string/argument with the use of a comma (,)."
     
+
+def notify(ntype, title, body, urls):
+    """
+    A callable function so SABnzbd can import this file and just
+    call the notifications through here if they wish.
+    """
+    # Store body (empty or not)
+    notify_body = sys.argv[3].strip()
+
+    # The URLs are complex and very depending on what we're notifying
+    # so we'll let Notify.py take care of them at this point.
+    notify_urls =  ','.join([ v.strip() for v in sys.argv[4:]])
+
+    cmd = [
+        NOTIFY_SCRIPT,
+        '-t', title,
+        '-b', body,
+        '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
+        '-s', urls,
+    ]
+
+    # Execute our Process
+    p1 = subprocess.Popen(cmd)
+
+    ## Calculate Wait Time
+    max_wait_time = datetime.utcnow() + \
+                    timedelta(seconds=NOTIFY_MAX_WAIT_TIME_SEC)
+    while p1.poll() == None:
+        if datetime.utcnow() >= max_wait_time:
+            logger.error("Process aborted (took too long)")
+            try:
+                kill(p1.pid, SIGKILL)
+            except:
+                pass
+        ## CPU Throttle
+        sleep(0.8)
+
+    if p1.poll() == None:
+        ## Safety
+        try:
+            kill(p1.pid, SIGKILL)
+        except:
+            pass
+
+    ## Ensure execution leaves memory
+    p1.wait()
+
+    if p1.returncode not in (0, 93):
+        # 93 is a return value recognized by NZBGet as 'good'
+        # all systems okay; we want to translate this back to
+        # standard shell scripting responses if we get anything
+        # outside of what is identified above
+        return False
+    return True
 
 if __name__ == "__main__":
     # Simple parsing of the command line
@@ -129,43 +182,10 @@ if __name__ == "__main__":
     # so we'll let Notify.py take care of them at this point.
     notify_urls =  ','.join([ v.strip() for v in sys.argv[4:]])
 
-    cmd = [
-        NOTIFY_SCRIPT,
-        '-t', notify_title,
-        '-b', notify_body,
-        '-i', SABNZBD_NOTIFICATION_MAP[notify_type][1],
-        '-s', notify_urls,
-    ]
-
-    # Execute our Process
-    p1 = subprocess.Popen(cmd)
-
-    ## Calculate Wait Time
-    max_wait_time = datetime.utcnow() + \
-                    timedelta(seconds=NOTIFY_MAX_WAIT_TIME_SEC)
-    while p1.poll() == None:
-        if datetime.utcnow() >= max_wait_time:
-            logger.error("Process aborted (took too long)")
-            try:
-                kill(p1.pid, SIGKILL)
-            except:
-                pass
-        ## CPU Throttle
-        sleep(0.8)
-
-    if p1.poll() == None:
-        ## Safety
-        try:
-            kill(p1.pid, SIGKILL)
-        except:
-            pass
-    ## Ensure execution leaves memory
-    p1.wait()
-
-    if p1.returncode not in (0, 93):
-        # 93 is a return value recognized by NZBGet as 'good'
-        # all systems okay; we want to translate this back to
-        # standard shell scripting responses if we get anything
-        # outside of what is identified above
-        exit(1)
-    exit(0)
+    # Perform Notification
+    exit(int(notify(
+        ntype=notify_type,
+        title=notify_title,
+        body=notify_body,
+        urls=notify_urls,
+    )))
