@@ -1,9 +1,10 @@
-__Note:__ This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_
-script notifying you of retrieved content through a variety of different notification services. But the script works fine as standalone tool for anyone else too! See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
+__Note:__ This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_ script notifying you of retrieved content through a variety of different notification services. But the script works fine as standalone tool for anyone else too! See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
+
+SABnzbd users can reference sabnzbd-notify.py to gain support of the tool as well.
 
 Notify Processing Script
 ========================
-Send notifications to all of the popular notification services (PushBullet, NotifyMyAndroid, XBMC, Email etc). NZBGet will automatically notify you of anything it downloads. You can chain as many notification services as you want and support most of the advance features each service offers you too.
+Send notifications to all of the popular notification services (PushBullet, NotifyMyAndroid, XBMC, Email etc). NZBGet (and/or SABnzbd) will automatically notify you of anything it downloads. You can chain as many notification services as you want and support most of the advance features each service offers you too.
 
 You can even run the tool from the command line for your own custom use. Notify.py was written in such a way that there wouldn't be a lot of effort to add more notification services either.  Feel free to contact me if one you would like to use is missing.
 
@@ -13,6 +14,8 @@ Installation Instructions
 2. Simply place the __Notify.py__ and __Notify__ directory together.
    * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
    * __NZBGet users__: As one additional note; this script makes use of the RPC feature of NZBGet in order to retrive all of the status information it will notify you with.  Its very important that this is configured correctly (in the 'Settings -> Security' area). The out of the box settings should work fine; but worth noting here should experience any issues.
+
+   * __SABnzbd users__: You'll point your SABnzbd configuration to reference sabnzbd-notify.py and _not_ Notify.py.
 
 The Non-NZBGet users can also use this script from the command line.
 See the __Command Line__ section below for more instructions on how to do this.
@@ -136,3 +139,19 @@ python Notify.py \
     -s growl://192.168.0.10,xbmc://user:pass@192.168.0.2 \
     -t "Hello" -b "World!"
 ```
+
+SABnzbd users can test that their script is working okay manually as well:
+```bash
+# Send a notification to XBMC (assuming its listening on
+# port 8080 at the ip 192.168.0.2 with respect to the example
+# below:
+python sabnzbd-notify.py complete 'Hello' 'World' xbmc://192.168.0.2
+```
+The syntax is very similar except SABnzbd expects 4 distinct arguments.
+| Arg # | Description |
+| ----- |:----------- |
+|   1   | The type of notification we are sending.  This has an impact on the icon (for those that support it) that you will pass along with the message.
+|   2   | The title of the notification message.  If this is an empty string, then there is enough information based on the notification type you passed in (argument 1) to generate a title. |
+|   3   | The message body. |
+|   4   | Comma delmited URL strings just like the ones already discussed above.
+This enhancment is new and a work in progress, but I'm open to any suggestions anyone has.
