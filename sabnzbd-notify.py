@@ -101,13 +101,6 @@ def notify(ntype, title, body, urls):
     A callable function so SABnzbd can import this file and just
     call the notifications through here if they wish.
     """
-    # Store body (empty or not)
-    notify_body = sys.argv[3].strip()
-
-    # The URLs are complex and very depending on what we're notifying
-    # so we'll let Notify.py take care of them at this point.
-    notify_urls =  ','.join([ v.strip() for v in sys.argv[4:]])
-
     cmd = [
         NOTIFY_SCRIPT,
         '-t', title,
