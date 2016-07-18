@@ -148,6 +148,7 @@ SABnzbd users can test that their script is working okay manually as well:
 python sabnzbd-notify.py complete 'Hello' 'World' xbmc://192.168.0.2
 ```
 The syntax is very similar except SABnzbd expects 4 distinct arguments.
+
 | Arg # | Description |
 | ----- |:----------- |
 |   1   | The type of notification we are sending.  This has an impact on the icon (for those that support it) that you will pass along with the message.
