@@ -101,13 +101,27 @@ def notify(ntype, title, body, urls):
     A callable function so SABnzbd can import this file and just
     call the notifications through here if they wish.
     """
-    cmd = [
-        NOTIFY_SCRIPT,
-        '-t', title,
-        '-b', body,
-        '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
-        '-s', urls,
-    ]
+    if sys.platform[0:3] == 'win':
+        # Windows systems require the executable 'python'
+        # up front
+        cmd = [
+            'python',
+            NOTIFY_SCRIPT,
+            '-t', title,
+            '-b', body,
+            '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
+            '-s', urls,
+        ]
+    else:
+        # Other systems determine the environment from
+        # the executable's first line #!
+        cmd = [
+            NOTIFY_SCRIPT,
+            '-t', title,
+            '-b', body,
+            '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
+            '-s', urls,
+        ]
 
     # Execute our Process
     p1 = subprocess.Popen(cmd)
