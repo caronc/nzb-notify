@@ -190,7 +190,7 @@ if __name__ == "__main__":
     notify_urls =  ','.join([ v.strip() for v in sys.argv[4:]])
 
     # Perform Notification
-    exit(int(notify(
+    exit(int(not notify(
         ntype=notify_type,
         title=notify_title,
         body=notify_body,
