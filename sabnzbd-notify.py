@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 #
-# Notify post-processing script for SABnzbd
+# Notifification wrapper for SABnzbd
 #
 # Copyright (C) 2014-2016 Chris Caron <lead2gold@gmail.com>
 #
 # This file adds support for SABnzbd v1.1.0 or higher
 #
-# NZBGet-Notify is free software: you can redistribute it and/or modify
+# NZB-Notify is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# NZBGet-Notify is distributed in the hope that it will be useful,
+# NZB-Notify is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
+# along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
 import subprocess
 import sys
 import os
@@ -94,7 +94,7 @@ def syntax():
         "* All remaining arguments are treated as URLs. You can also " +\
         "delimit multiple" + os.linesep + "\tURLs in a single " +\
         "string/argument with the use of a comma (,)."
-    
+
 
 def notify(ntype, title, body, urls):
     """

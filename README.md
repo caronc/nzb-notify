@@ -1,4 +1,4 @@
-__Note:__ This script was intended to be an [NZBGet](http://nzbget.net) _post-processing_ script notifying you of retrieved content through a variety of different notification services. But the script works fine as standalone tool for anyone else too! See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
+__Note:__ This script was originally written to be an [NZBGet](http://nzbget.net) _post-processing_ script notifying you of retrieved content through a variety of different notification services. But will work for SABnzbd users (starting at v1.1.0+) as well. The script additionally works fine as standalone tool for anyone else too! See the _Command Line_ section below for details how you can easily use this on it's own (without NZBGet).
 
 SABnzbd users can reference sabnzbd-notify.py to gain support of the tool as well.
 
@@ -17,7 +17,7 @@ Installation Instructions
 
    * __SABnzbd users__: You'll point your SABnzbd configuration to reference sabnzbd-notify.py and _not_ Notify.py.
 
-The Non-NZBGet users can also use this script from the command line.
+The Non-NZBGet/SABnzbd users can also use this script from the command line.
 See the __Command Line__ section below for more instructions on how to do this.
 
 **Note:** The _Notify_ directory provides all of the nessisary dependencies
@@ -140,7 +140,9 @@ python Notify.py \
     -t "Hello" -b "World!"
 ```
 
-SABnzbd users can test that their script is working okay manually as well:
+SABnzbd Users
+=============
+SABnzbd users can test that their script is working okay manually as well if they're having issues with it through their application.  This is also a great way to test out that you've created the correct URL string.
 ```bash
 # Send a notification to XBMC (assuming its listening on
 # port 8080 at the ip 192.168.0.2 with respect to the example
@@ -155,4 +157,3 @@ The syntax is very similar except SABnzbd expects 4 distinct arguments.
 |   2   | The title of the notification message.  If this is an empty string, then there is enough information based on the notification type you passed in (argument 1) to generate a title. |
 |   3   | The message body. |
 |   4   | Comma delmited URL strings just like the ones already discussed above.
-This enhancment is new and a work in progress, but I'm open to any suggestions anyone has.

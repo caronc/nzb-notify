@@ -2,22 +2,22 @@
 #
 # Email Notify Wrapper
 #
-# Copyright (C) 2014 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2016 Chris Caron <lead2gold@gmail.com>
 #
-# This file is part of NZBGet-Notify.
+# This file is part of NZB-Notify.
 #
-# NZBGet-Notify is free software: you can redistribute it and/or modify
+# NZB-Notify is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# NZBGet-Notify is distributed in the hope that it will be useful,
+# NZB-Notify is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NZBGet-Notify. If not, see <http://www.gnu.org/licenses/>.
+# along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
 
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
@@ -144,7 +144,7 @@ class NotifyEmail(NotifyBase):
 
         # Now we want to construct the To and From email
         # addresses from the URL provided
-        self.from_name = kwargs.get('name', 'NZBGet Notification')
+        self.from_name = kwargs.get('name', 'NZB Notification')
         self.from_addr = kwargs.get('from', None)
         if not self.from_addr:
             # Keep trying to be clever and make it equal to the to address
