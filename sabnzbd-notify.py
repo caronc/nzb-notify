@@ -52,31 +52,69 @@ NOTIFY_SCRIPT = join(abspath(dirname(__file__)), 'Notify.py')
 # Just some timeout value
 NOTIFY_MAX_WAIT_TIME_SEC = 300
 
+# This will be what I'll need you users to toggle if you thing you've
+# found a bug you need me to solve.  Send your logs to lead2gold@gmail.com
+# or i'll really have no idea what's going on.
+DEBUG_MODE = False
+
 # A mapping of possible notifications to their respected image.  This
 # is only referenced by notifications that support this feature.
 SABNZBD_NOTIFICATION_MAP = {
     # Startup/Shutdown
-    'startup': ('Startup/Shutdown', '/path/to/image.png'),
+    'startup': (
+        'Startup/Shutdown',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Added NZB
-    'download': ('Added NZB', '/path/to/image.png'),
+    'download': (
+        'Added NZB',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Post-processing started
-    'pp': ('Post-Processing Started', '/path/to/image.png'),
+    'pp': (
+        'Post-Processing Started',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Job finished
-    'complete': ('Job Finished', '/path/to/image.png'),
+    'complete': (
+        'Job Finished',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Job failed
-    'failed': ('Job Failed', '/path/to/image.png'),
+    'failed': (
+        'Job Failed',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Warning
-    'warning': ('Warning', '/path/to/image.png'),
+    'warning': (
+        'Warning',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Error
-    'error': ('Error', '/path/to/image.png'),
+    'error': (
+        'Error',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Disk full
-    'disk_full': ('Disk Full', '/path/to/image.png'),
+    'disk_full': (
+        'Disk Full',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Queue finished
-    'queue_done': ('Queue Finished', '/path/to/image.png'),
+    'queue_done': (
+        'Queue Finished',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # User logged in
-    'new_login': ('User Logged In', '/path/to/image.png'),
+    'new_login': (
+        'User Logged In',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
     # Other Messages
-    'other': ('Other Messages', '/path/to/image.png'),
+    'other': (
+        'Other Messages',
+        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+    ),
 }
 
 def syntax():
@@ -96,11 +134,14 @@ def syntax():
         "string/argument with the use of a comma (,)."
 
 
-def notify(ntype, title, body, urls):
+def notify(ntype, title, body, urls, debug=None):
     """
     A callable function so SABnzbd can import this file and just
     call the notifications through here if they wish.
     """
+    if debug is None:
+        debug = DEBUG_MODE
+
     if sys.platform[0:3] == 'win':
         # Windows systems require the executable 'python'
         # up front
@@ -122,6 +163,10 @@ def notify(ntype, title, body, urls):
             '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
             '-s', urls,
         ]
+
+    if debug:
+        # Debug Mode Enabled
+        cmd.append('-D')
 
     # Execute our Process
     p1 = subprocess.Popen(cmd)
