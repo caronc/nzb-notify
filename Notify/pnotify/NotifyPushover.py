@@ -85,10 +85,10 @@ class NotifyPushover(NotifyBase):
 
         if not VALIDATE_TOKEN.match(token.strip()):
             self.logger.warning(
-                'They API Token specified (%s) is invalid.' % token,
+                'The API Token specified (%s) is invalid.' % token,
             )
             raise TypeError(
-                'They API Token specified (%s) is invalid.' % token,
+                'The API Token specified (%s) is invalid.' % token,
             )
 
         # The token associated with the account
