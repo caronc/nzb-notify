@@ -37,3 +37,4 @@ from NotifyToasty import NotifyToasty
 from NotifyXBMC import NotifyXBMC
 from NotifyXML import NotifyXML
 from NotifySlack import NotifySlack
+from NotifyJoin import NotifyJoin

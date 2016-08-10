@@ -281,6 +281,7 @@ NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 NOTIFY_XML_SCHEMA = 'xml'
 NOTIFY_XMLS_SCHEMA = 'xmls'
 NOTIFY_SLACK_SCHEMA = 'slack'
+NOTIFY_JOIN_SCHEMA = 'join'
 
 SCHEMA_MAP = {
     # BOXCAR Notification
@@ -325,6 +326,8 @@ SCHEMA_MAP = {
     NOTIFY_XMLS_SCHEMA: NotifyXML,
     # Slack Notification
     NOTIFY_SLACK_SCHEMA: NotifySlack,
+    # Join Notification
+    NOTIFY_JOIN_SCHEMA: NotifyJoin,
 }
 
 class IncludeLogOption(object):
@@ -540,6 +543,27 @@ class NotifyScript(PostProcessScript, QueueScript):
 
                 notify_args = notify_args + {
                     'apikey': server['host'],
+                }.items()
+
+            # #######################################################################
+            # Join Notification Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_JOIN_SCHEMA:
+
+                try:
+                    devices = ' '.join(
+                        filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    )))
+
+                except (AttributeError, IndexError):
+                    # Force some bad values that will get caught
+                    # in parsing later
+                    devices = None
+
+                notify_args = notify_args + {
+                    'apikey': server['host'],
+                    'devices': devices,
                 }.items()
 
             # #######################################################################
