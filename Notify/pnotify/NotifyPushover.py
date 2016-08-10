@@ -60,9 +60,6 @@ PUSHOVER_PRIORITIES = (
 # Used to break path apart into list of devices
 DEVICE_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
-# Used to detect a device
-IS_DEVICE_RE = re.compile(r'[A-Za-z0-9_]{1,25}')
-
 # Extend HTTP Error Messages
 PUSHOVER_HTTP_ERROR_MAP = dict(HTTP_ERROR_MAP.items() + {
     401: 'Unauthorized - Invalid Token.',
