@@ -137,6 +137,23 @@ class NotifySlack(NotifyBase):
             self.logger.warning('No channel(s) were specified.')
             raise TypeError('No channel(s) were specified.')
 
+        # Formatting requirements are defined here:
+        # https://api.slack.com/docs/message-formatting
+        self._re_formatting_map = {
+            # New lines must become the string version
+            '\r*\n': '\\n',
+            # Escape other special characters
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+        }
+
+        # Iterate over above list and store content accordingly
+        self._re_formatting_rules = re.compile(
+            r'(' + '|'.join(self._re_formatting_map.keys()) + r')',
+            re.IGNORECASE,
+        )
+
     def _notify(self, title, body, notify_type, **kwargs):
         """
         Perform Slack Notification
@@ -150,21 +167,13 @@ class NotifySlack(NotifyBase):
         # error tracking (used for function return)
         has_error = False
 
-        # Formatting requirements are defined here:
-        # https://api.slack.com/docs/message-formatting
-
-        # Meet Slack Requirements; new lines must become \n
-        title = re.sub('\r*\n', '\\n', title)
-        body = re.sub('\r*\n', '\\n', body)
-
-        # Escape other special characters
-        title = re.sub('&', '&amp;', title)
-        title = re.sub('<', '&lt;', title)
-        title = re.sub('>', '&gt;', title)
-        body = re.sub('&', '&amp;', body)
-        body = re.sub('<', '&lt;', body)
-        body = re.sub('>', '&gt;', body)
-
+        # Perform Formatting
+        title = self._re_formatting_rules.sub(
+            lambda x: self._re_formatting_map[x.group()], title,
+        )
+        body = self._re_formatting_rules.sub(
+            lambda x: self._re_formatting_map[x.group()], body,
+        )
         url = '%s/%s/%s/%s' % (
             SLACK_URL,
             self.token_a,
@@ -197,7 +206,7 @@ class NotifySlack(NotifyBase):
                 }],
             }
 
-            self.logger.debug('Slack POST URL: %s' % SLACK_URL)
+            self.logger.debug('Slack POST URL: %s' % url)
             self.logger.debug('Slack Payload: %s' % str(payload))
             try:
                 r = requests.post(
