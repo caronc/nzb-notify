@@ -71,6 +71,7 @@
 #  - pover:// -> A Pushover Notification
 #  - toasty:// -> A (Super) Toasty Notification
 #  - xbmc:// -> An XBMC Notification (protocol v2)
+#  - slack:// -> An Slack Notification
 #  - xml:// -> A simple xml (SOAP) Notification
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
 #
@@ -150,6 +151,26 @@
 #  - pbul://accesstoken/device
 #  - pbul://accesstoken/email@domain.net
 #  - pbul://accesstoken/#channel/#channel2/device/email@email.com
+#
+#
+# NOTE: Slack notifications require an incoming-webhook it can connect to.
+# To use this plugin, you'll need to first access https://api.slack.com.
+# Specifically https://my.slack.com/services/new/incoming-webhook/
+# to create a new incoming-webhook for your account. You'll need to
+# follow the wizard to pre-determine the channel(s) you want your
+# message to broadcast to, and when you're complete, you will
+# recieve a URL that looks something like this:
+#  * https://hooks.slack.com/services/T1JJ3T3L2/A1BRTD4JD/TIiajkdnlazkcOXrIdevi7F
+#
+# You need to focus on the 3 Tokens at the end of the URL
+#  * https://hooks.slack.com/services/TokenA/TokenB/TokenC
+#
+# Once you have a webhook (and you're tokens), here is how to use this part
+# of the notification:
+#  - slack://TokenA/TokenB/TokenC/#Channel
+#  - slack://TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
+#  - slack://botname@TokenA/TokenB/TokenC/#Channel
+#  - slack://botname@TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
 #
 #
 # NOTE: Pushover notifications require a user and a token to work
@@ -259,6 +280,7 @@ NOTIFY_XBMC_SCHEMA = 'xbmc'
 NOTIFY_XBMCS_SCHEMA = 'xbmcs'
 NOTIFY_XML_SCHEMA = 'xml'
 NOTIFY_XMLS_SCHEMA = 'xmls'
+NOTIFY_SLACK_SCHEMA = 'slack'
 
 SCHEMA_MAP = {
     # BOXCAR Notification
@@ -301,6 +323,8 @@ SCHEMA_MAP = {
     NOTIFY_XML_SCHEMA: NotifyXML,
     # Secure Simple XML HTTP Notification
     NOTIFY_XMLS_SCHEMA: NotifyXML,
+    # Slack Notification
+    NOTIFY_SLACK_SCHEMA: NotifySlack,
 }
 
 class IncludeLogOption(object):
@@ -553,6 +577,44 @@ class NotifyScript(PostProcessScript, QueueScript):
                 body = re.split('[\r\n]+', body)
                 body[0] = body[0].strip('#').strip()
                 body = '\r\n'.join(body[0:2])
+
+            # #######################################################################
+            # Slack Notification Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_SLACK_SCHEMA:
+
+                # The first token is stored in the hostnamee
+                token_a = server['host']
+
+                # Now fetch the remaining tokens
+                try:
+                    token_b, token_c = filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    ))[0:2]
+
+                except (AttributeError, IndexError):
+                    # Force some bad values that will get caught
+                    # in parsing later
+                    token_b = None
+                    token_c = None
+
+                try:
+                    channels = '#'.join(
+                        filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    ))[2:])
+
+                except (AttributeError, IndexError):
+                    # Force some bad values that will get caught
+                    # in parsing later
+                    channels = None
+
+                notify_args = notify_args + {
+                    'token_a': token_a,
+                    'token_b': token_b,
+                    'token_c': token_c,
+                    'channels': channels,
+                }.items()
 
             # #######################################################################
             # PROWL Notification Support

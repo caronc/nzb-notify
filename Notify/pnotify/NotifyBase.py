@@ -48,6 +48,15 @@ NOTIFY_TYPES = (
     NotifyType.WARNING,
 )
 
+# A Simple Mapping of Colors; For every NOTIFY_TYPE identified,
+# there should be a mapping to it's color here:
+HTML_NOTIFY_MAP = {
+    NotifyType.INFO: '#3AA3E3',
+    NotifyType.SUCCESS: '#3AA337',
+    NotifyType.FAILURE: '#A32037',
+    NotifyType.WARNING: '#CACF29',
+}
+
 class NotifyImageSize(object):
     XY_72 = '72x72'
     XY_128 = '128x128'
