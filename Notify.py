@@ -173,6 +173,21 @@
 #  - slack://botname@TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
 #
 #
+# NOTE: Join notifications pretty much work out of the box. Just visit
+#       https://play.google.com/store/apps/details?id=com.joaomgcd.join and
+#       download the app. Then visit https://joinjoaomgcd.appspot.com/ to
+#       sign in (make sure you aren't blocking pop-ups) and acquire your
+#       APIKey and DeviceID.  You'll need this to make up the Notify URL
+#
+# The URL looks something like this:
+#  - join://APIKey/DeviceID
+#  - join://APIKey/DeviceID1/DeviceID2/DeviceIDN
+#  - join://APIKey/group.all
+#  - join://APIKey/group.chrome/group.tablet/group.android
+#  - join://APIKey/chrome/tablet/android
+#  - join://APIKey/chrome/DeviceID1/tablet/DeviceID2/android
+#
+#
 # NOTE: Pushover notifications require a user and a token to work
 # correctly. You can optionally specify devices associated with the
 # account if you wish to target them specifically. Otherwise it is assumed

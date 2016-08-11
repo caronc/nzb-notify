@@ -28,8 +28,7 @@
 #
 # You can download the app for your phone here:
 #   https://play.google.com/store/apps/details?id=com.joaomgcd.join
-#
-#
+
 import requests
 import re
 
@@ -39,15 +38,13 @@ from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
 from NotifyBase import HTTP_ERROR_MAP
 from NotifyBase import HTML_NOTIFY_MAP
+from NotifyBase import NotifyImageSize
 
 # Flag used as a placeholder to sending to all devices
 JOIN_SEND_TO_ALL = 'ALL_DEVICES'
 
 # Join uses the http protocol with JSON requests
 JOIN_URL = 'https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush'
-#JOIN_URL = 'https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?apikey=&title=hi&text=hello&deviceId=group.all'
-
-#https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?deviceId='
 
 # Token required as part of the API request
 VALIDATE_APIKEY = re.compile(r'[A-Za-z0-9]{32}')
@@ -72,6 +69,9 @@ IS_GROUP_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Image Support (72x72)
+JOIN_IMAGE_XY = NotifyImageSize.XY_72
+
 
 class NotifyJoin(NotifyBase):
     """
@@ -83,6 +83,7 @@ class NotifyJoin(NotifyBase):
         """
         super(NotifyJoin, self).__init__(
             title_maxlen=250, body_maxlen=1000,
+            image_size=JOIN_IMAGE_XY,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
@@ -145,7 +146,6 @@ class NotifyJoin(NotifyBase):
                 'deviceId': device,
                 'title': title,
                 'text': body,
-                #'icon': self.image_url(notify_type),
             }
 
             if self.include_image:
@@ -153,7 +153,7 @@ class NotifyJoin(NotifyBase):
                     notify_type,
                 )
                 if image_url:
-                    url_args['icon_url'] = image_url
+                    url_args['icon'] = image_url
 
             # prepare payload
             payload = {
