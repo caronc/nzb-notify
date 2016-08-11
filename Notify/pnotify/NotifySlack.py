@@ -35,11 +35,13 @@ import requests
 import re
 
 from json import dumps
+from time import time
 
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
 from NotifyBase import HTTP_ERROR_MAP
 from NotifyBase import HTML_NOTIFY_MAP
+from NotifyBase import NotifyImageSize
 
 # Flag used as a placeholder to sending to all devices
 SLACK_SEND_TO_ALL = 'ALL_DEVICES'
@@ -73,6 +75,9 @@ CHANNEL_LIST_DELIM = re.compile(r'[ \t\r\n,#\\/]+')
 # Used to detect a device
 IS_CHANNEL_RE = re.compile(r'#?([A-Za-z0-9_]{1,32})')
 
+# Image Support (72x72)
+SLACK_IMAGE_XY = NotifyImageSize.XY_72
+
 class NotifySlack(NotifyBase):
     """
     A wrapper for Slack Notifications
@@ -83,6 +88,7 @@ class NotifySlack(NotifyBase):
         """
         super(NotifySlack, self).__init__(
             title_maxlen=250, body_maxlen=1000,
+            image_size=SLACK_IMAGE_XY,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
@@ -181,6 +187,12 @@ class NotifySlack(NotifyBase):
             self.token_c,
         )
 
+        image_url = None
+        if self.include_image:
+            image_url = self.image_url(
+                notify_type,
+            )
+
         # Create a copy of the devices list
         channels = list(self.channels)
         while len(channels):
@@ -203,8 +215,14 @@ class NotifySlack(NotifyBase):
                     'title': title,
                     'text': body,
                     'color': HTML_NOTIFY_MAP[notify_type],
+                    # Time
+                    'ts': time(),
+                    'footer': self.app_id,
                 }],
             }
+
+            if image_url:
+                payload['attachments'][0]['footer_icon'] = image_url
 
             self.logger.debug('Slack POST URL: %s' % url)
             self.logger.debug('Slack Payload: %s' % str(payload))
