@@ -565,6 +565,12 @@ class NotifyScript(PostProcessScript, QueueScript):
             # #######################################################################
             elif server['schema'] == NOTIFY_JOIN_SCHEMA:
 
+                # Limit results to just the first 2 line otherwise
+                # there is just to much content to display
+                body = re.split('[\r\n]+', body)
+                body[0] = body[0].strip('#').strip()
+                body = '\r\n'.join(body[0:2])
+
                 try:
                     devices = ' '.join(
                         filter(bool, PATHSPLIT_LIST_DELIM.split(
