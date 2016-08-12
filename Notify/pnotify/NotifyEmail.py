@@ -69,6 +69,18 @@ WEBBASE_LOOKUP_TABLE = (
         },
     ),
 
+    # Pronto Mail
+    (
+        'Pronto Mail',
+        re.compile('^(?P<id>[^@]+)@(?P<domain>prontomail\.com)$', re.IGNORECASE),
+        {
+            'port': 465,
+            'smtp_host': 'secure.emailsrvr.com',
+            'secure': True,
+            'login_type': (WebBaseLogin.EMAIL, )
+        },
+    ),
+
     # Microsoft Hotmail
     (
         'Microsoft Hotmail',
