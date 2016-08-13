@@ -262,6 +262,7 @@ import re
 from os.path import join
 from os.path import abspath
 from os.path import dirname
+from os.path import isfile
 from urllib import unquote
 
 sys.path.insert(0, join(dirname(abspath(__file__)), 'Notify'))
@@ -369,7 +370,41 @@ class NotifyScript(PostProcessScript, QueueScript):
         """
 
         # Include Image Flag
-        include_image = self.parse_bool(self.get('IncludeImage'), False)
+        _url = self.parse_url(self.get('IncludeImage'))
+
+        # Define some globals to use in this function
+        image_path = None
+        image_url = None
+
+        if _url:
+            # Toggle our include image flag right away to True
+            include_image = True
+
+            # Get some more details
+            if not re.match('^(https?|file)$', _url['schema'] ,re.IGNORECASE):
+                self.logger.error(
+                    'An invalid image url protocol (%s://) was specified.' % \
+                     _url['schema'],
+                )
+                return False
+
+            if _url['schema'] == 'file':
+                if not isile(_url['fullpath']):
+                    self.logger.error(
+                        'The specified file %s was not found.' % \
+                        _url['fullpath'],
+                    )
+                    return False
+                image_path = _url['fullpath']
+
+            else:
+                # We're dealing with a web request
+                image_url = _url['url']
+
+        else:
+            # Dealing with the old way of doing things; just toggling a true/false
+            # flag
+            include_image = self.parse_bool(self.get('IncludeImage'), False)
 
         if isinstance(servers, basestring):
             # servers can be a list of URLs, or it can be
@@ -399,6 +434,9 @@ class NotifyScript(PostProcessScript, QueueScript):
                 # Base
                 'include_image': include_image,
                 'secure': (server['schema'][-1] == 's'),
+                # Overrides
+                'override_image_url': image_url,
+                'override_image_path': image_path,
             }.items()
 
             # #######################################################################
@@ -1007,6 +1045,15 @@ if __name__ == "__main__":
         help="Include image in message if the protocol supports it.",
     )
     parser.add_option(
+        "-u",
+        "--image_url",
+        dest="image_url",
+        help="Provide url to image; should be either http://, " + \
+            "https://, or file://. This option assumes that " + \
+            "--include_image (-i) is set (whether you include it" + \
+            " or not.",
+    )
+    parser.add_option(
         "-L",
         "--logfile",
         dest="logfile",
@@ -1033,6 +1080,7 @@ if __name__ == "__main__":
     _body = options.body
     _title = options.title
     _include_image = options.include_image
+    _image_url = options.image_url
 
     if _servers:
         # By specifying a scandir, we know for sure the user is
@@ -1061,6 +1109,19 @@ if __name__ == "__main__":
 
     if not script.get('IncludeImage') and _include_image:
         script.set('IncludeImage', _include_image)
+
+    if _image_url:
+        # if the _image_url is set, then we want to use it.
+        # but before we do; check that it is valid first
+        _url = script.parse_url(_image_url)
+        if _url is None:
+            # An invalid URL was specified
+            script.logger.error('An invalid image url was specified.')
+            exit(1)
+
+        # Store IncludeImage path
+        script.set('IncludeImage', _image_url)
+
 
     if not script.script_mode and not script.get('Servers'):
         # Provide some CLI help when VideoPaths has been

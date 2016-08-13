@@ -121,6 +121,7 @@ class NotifyBase(object):
     def __init__(self, title_maxlen=100, body_maxlen=512,
                  notify_format=NotifyFormat.TEXT, image_size=None,
                  include_image=False,
+                 override_image_path=None,
                  logger=True, secure=False, debug=False, **kwargs):
         """
         Initialize some general logging and common server arguments
@@ -200,6 +201,10 @@ class NotifyBase(object):
         self.user = kwargs.get('user')
         self.password = kwargs.get('password')
 
+        # Over-rides
+        self.override_image_url = kwargs.get('override_image_url')
+        self.override_image_path = kwargs.get('override_image_path')
+
     def throttle(self, throttle_time=NOTIFY_THROTTLE_SEC):
         """
         A common throttle control
@@ -212,6 +217,11 @@ class NotifyBase(object):
         """
         Returns Image URL if possible
         """
+
+        if self.override_image_url:
+            # Over-ride
+            return self.override_image_url
+
         if not self.image_size:
             return None
 
@@ -236,28 +246,33 @@ class NotifyBase(object):
         """
         Returns the raw image if it can
         """
-        if not self.image_size:
-            return None
+        if not self.override_image_path:
+            if not self.image_size:
+                return None
 
-        if notify_type not in NOTIFY_TYPES:
-            return None
+            if notify_type not in NOTIFY_TYPES:
+                return None
 
-        re_map = {
-            '{TYPE}': notify_type,
-            '{XY}': self.image_size,
-        }
+            re_map = {
+                '{TYPE}': notify_type,
+                '{XY}': self.image_size,
+            }
 
-        # Iterate over above list and store content accordingly
-        re_table = re.compile(
-            r'(' + '|'.join(re_map.keys()) + r')',
-            re.IGNORECASE,
-        )
+            # Iterate over above list and store content accordingly
+            re_table = re.compile(
+                r'(' + '|'.join(re_map.keys()) + r')',
+                re.IGNORECASE,
+            )
 
-        print 'file=%s' % NOTIFY_IMAGE_FILE
-        # Now we open and return the file
-        file = re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_FILE)
+            # Now we open and return the file
+            _file = re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_FILE)
+
+        else:
+            # Override Path Specified
+            _file = self.override_image_path
+
         try:
-            fd = open(file, 'rb')
+            fd = open(_file, 'rb')
         except:
             return None
 

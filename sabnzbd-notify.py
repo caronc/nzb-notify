@@ -28,7 +28,6 @@ from os import kill
 from os.path import abspath
 from os.path import dirname
 from os.path import join
-from os.path import isfile
 
 from time import sleep
 from datetime import datetime
@@ -150,7 +149,7 @@ def notify(ntype, title, body, urls, debug=None):
             NOTIFY_SCRIPT,
             '-t', title,
             '-b', body,
-            '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
+            '-u', SABNZBD_NOTIFICATION_MAP[ntype][1],
             '-s', urls,
         ]
     else:
@@ -160,7 +159,7 @@ def notify(ntype, title, body, urls, debug=None):
             NOTIFY_SCRIPT,
             '-t', title,
             '-b', body,
-            '-i', SABNZBD_NOTIFICATION_MAP[ntype][1],
+            '-u', SABNZBD_NOTIFICATION_MAP[ntype][1],
             '-s', urls,
         ]
 
@@ -174,6 +173,7 @@ def notify(ntype, title, body, urls, debug=None):
     ## Calculate Wait Time
     max_wait_time = datetime.utcnow() + \
                     timedelta(seconds=NOTIFY_MAX_WAIT_TIME_SEC)
+
     while p1.poll() == None:
         if datetime.utcnow() >= max_wait_time:
             logger.error("Process aborted (took too long)")
