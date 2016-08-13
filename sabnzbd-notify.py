@@ -22,6 +22,7 @@
 import subprocess
 import sys
 import os
+from signal import SIGKILL
 
 from os import getpid
 from os import kill
