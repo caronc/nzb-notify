@@ -72,6 +72,7 @@
 #  - toasty:// -> A (Super) Toasty Notification
 #  - xbmc:// -> An XBMC Notification (protocol v2)
 #  - slack:// -> An Slack Notification
+#  - tgram:// -> An Telegram Notification
 #  - xml:// -> A simple xml (SOAP) Notification
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
 #
@@ -171,6 +172,19 @@
 #  - slack://TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
 #  - slack://botname@TokenA/TokenB/TokenC/#Channel
 #  - slack://botname@TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
+#
+#
+# NOTE: Telgram notifications work through a bot.
+# You'll need to set one up an get the bot_token and at least
+# one chat_id of where the bot you created is assigned to.
+#
+# Once you've got this information; here is the structure of the message:
+#  - tgram://BotToken/ChatID
+#  - tgram://BotToken/ChatID1/ChatID2/ChatIDN
+#
+# This works too if you want to place your ChatID in the user spot:
+#  - tgram://ChatID@BotToken
+#  - tgram://ChatID1@BotToken/ChatID2/ChatIDN
 #
 #
 # NOTE: Join notifications pretty much work out of the box. Just visit
@@ -298,6 +312,7 @@ NOTIFY_XML_SCHEMA = 'xml'
 NOTIFY_XMLS_SCHEMA = 'xmls'
 NOTIFY_SLACK_SCHEMA = 'slack'
 NOTIFY_JOIN_SCHEMA = 'join'
+NOTIFY_TELEGRAM_SCHEMA = 'tgram'
 
 SCHEMA_MAP = {
     # BOXCAR Notification
@@ -344,6 +359,8 @@ SCHEMA_MAP = {
     NOTIFY_SLACK_SCHEMA: NotifySlack,
     # Join Notification
     NOTIFY_JOIN_SCHEMA: NotifyJoin,
+    # Telegram Notification
+    NOTIFY_TELEGRAM_SCHEMA: NotifyTelegram,
 }
 
 class IncludeLogOption(object):
@@ -413,7 +430,42 @@ class NotifyScript(PostProcessScript, QueueScript):
             servers = self.parse_list(self.get('Servers', ''))
 
         for _server in servers:
+
             server = self.parse_url(_server, default_schema='unknown')
+            if not server:
+                # This is a dirty hack; but it's the only work around to
+                # tgram:// messages since the bot_token has a colon in it.
+                # It invalidates an normal URL.
+
+                # This hack searches for this bogus URL and corrects it
+                # so we can properly load it further down. The other
+                # alternative is to ask users to actually change the colon
+                # into a slash (which will work too), but it's more likely
+                # to cause confusion... So this is the next best thing
+                tgram = re.match(
+                    '(?P<protocol>%s://)(?P<prefix>([A-Za-z0-9_-]+)(:[A-Za-z0-9_-]+)?@)?(?P<btoken_a>[0-9]{6}):+(?P<remaining>.*)$' % \
+                    NOTIFY_TELEGRAM_SCHEMA,
+                    _server,
+                )
+
+                if tgram:
+                    if tgram.group('prefix'):
+                        server = self.parse_url('%s%s%s/%s' % (
+                                tgram.group('protocol'),
+                                tgram.group('prefix'),
+                                tgram.group('btoken_a'),
+                                tgram.group('remaining'),
+                            ),
+                            default_schema='unknown',
+                        )
+                    else:
+                        server = self.parse_url('%s%s/%s' % (
+                                tgram.group('protocol'),
+                                tgram.group('btoken_a'),
+                                tgram.group('remaining'),
+                            ),
+                            default_schema='unknown',
+                        )
             if not server:
                 # Failed to parse te server
                 self.logger.error('Could not parse URL: %s' % server)
@@ -660,6 +712,47 @@ class NotifyScript(PostProcessScript, QueueScript):
                 body = re.split('[\r\n]+', body)
                 body[0] = body[0].strip('#').strip()
                 body = '\r\n'.join(body[0:2])
+
+            # #######################################################################
+            # Telegram Notification Support
+            # Note: since the bot_token has a colon in it; it messes a bit with our
+            #       url parsing.  Instead of being the hostname in this url, it
+            #       becomes the host/port combination.
+            # tgram://bot:token/chat_id1/chat_id2/chat_id3/?format=text
+            # tgram://bot:token/chat_id1/chat_id2/chat_id3/
+            # #######################################################################
+            elif server['schema'] == NOTIFY_TELEGRAM_SCHEMA:
+
+                # The first token is stored in the hostnamee
+                bot_token_a = server['host']
+
+                # Now fetch the remaining tokens
+                try:
+                    bot_token_b = filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    ))[0]
+
+                    bot_token = '%s:%s' % (bot_token_a, bot_token_b)
+
+                except (AttributeError, IndexError):
+                    # Force a bad value that will get caught in parsing later
+                    bot_token = None
+
+                try:
+                    chat_ids = ','.join(
+                        filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    ))[1:])
+
+                except (AttributeError, IndexError):
+                    # Force some bad values that will get caught
+                    # in parsing later
+                    chat_ids = None
+
+                notify_args = notify_args + {
+                    'bot_token': bot_token,
+                    'chat_ids': chat_ids,
+                }.items()
 
             # #######################################################################
             # Slack Notification Support
@@ -1049,9 +1142,8 @@ if __name__ == "__main__":
         "--image_url",
         dest="image_url",
         help="Provide url to image; should be either http://, " + \
-            "https://, or file://. This option assumes that " + \
-            "--include_image (-i) is set (whether you include it" + \
-            " or not.",
+            "https://, or file://. This option implies that " + \
+            "--include_image (-i) is set automatically.",
     )
     parser.add_option(
         "-L",

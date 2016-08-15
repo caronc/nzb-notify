@@ -38,3 +38,4 @@ from NotifyXBMC import NotifyXBMC
 from NotifyXML import NotifyXML
 from NotifySlack import NotifySlack
 from NotifyJoin import NotifyJoin
+from NotifyTelegram import NotifyTelegram

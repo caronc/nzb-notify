@@ -47,6 +47,7 @@ location that content is retrieved from.
 | [Toasty](http://api.supertoasty.com/)  | toasty://   | (TCP) 80   | toasty://user@DEVICE<br />toasty://user@DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and at least 1 device!_
 | [XBMC](http://kodi.tv/) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | xbmc://hostname<br />xbmc://user@hostname<br />xbmc://user:password@hostname:port
 | [Slack](http://slack.com/) | slack://  | (TCP) 443   | slack://TokenA/TokenB/TokenC/Channel<br />slack://botname@TokenA/TokenB/TokenC/Channel<br />slack://user@TokenA/TokenB/TokenC/Channel1/Channel2/ChannelN
+| [Telegram](https://telegram.org/) | tgram://  | (TCP) 443   | tgram://bottoken/ChatID<br />tgram://bottoken/ChatID1/ChatID2/ChatIDN
 | XML (Simple)        | xml:// or xmls://   | (TCP) 80 or 443 | xml://hostname<br />xml://user@hostname<br />xml://user:password@hostname:port<br />xml://hostname/a/path/to/post/to
 
 It also just supports straight forward emailing too:
@@ -57,10 +58,10 @@ It also just supports straight forward emailing too:
 | mailtos:// |  (TCP) 587   | mailtos://userid:pass@domain.com<br />mailtos://domain.com?user=userid&pass=password<br/>mailtos://domain.com:465?user=userid&pass=password<br />mailtos://user@hotmail.com&pass=password<br />mailtos://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
 
 Common supported services where the smtp port, server, userid structure, and security is already known are as follows:
-* Google - __mailtos://userid:pass@gmail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (mail.google.com) and appropriate secure port (587).  It also automatically constructs your userid as being userid@gmail.com. __Note:__ If you're using 2 way authentication, you'll need to [generate an app password](https://security.google.com/settings/security/apppasswords)
-* Hotmail - __mailtos://userid:pass@hotmail.com__ or __mailtos://userid:pass@live.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (465).  It also automatically constructs your userid as being userid@live.com or userid@hotmail.com depending on what you identified.
-* Prontomail - __mailtos://userid:pass@prontomail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (secure.emailsrvr.com) and appropriate secure port (465).  It also automatically constructs your userid as being userid@prontomail.com. 
-* Yahoo - __mailtos://userid:pass@yahoo.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (587).  It also automatically constructs your userid as being userid@yahoo.com or userid@yahoo.ca depending on what you identified.
+* [Google](https://mail.google.com) - __mailtos://userid:pass@gmail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (mail.google.com) and appropriate secure port (587).  It also automatically constructs your userid as being userid@gmail.com. __Note:__ If you're using 2 way authentication, you'll need to [generate an app password](https://security.google.com/settings/security/apppasswords)
+* [Hotmail](https://hotmail.com) - __mailtos://userid:pass@hotmail.com__ or __mailtos://userid:pass@live.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (465).  It also automatically constructs your userid as being userid@live.com or userid@hotmail.com depending on what you identified.
+* [Prontomail](http://www.prontomail.com) - __mailtos://userid:pass@prontomail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (secure.emailsrvr.com) and appropriate secure port (465).  It also automatically constructs your userid as being userid@prontomail.com. 
+* [Yahoo](https://mail.yahoo.com) - __mailtos://userid:pass@yahoo.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (587).  It also automatically constructs your userid as being userid@yahoo.com or userid@yahoo.ca depending on what you identified.
 
 To eliminate any confusion, any url parameter (key=value) specified will over-ride what was detected in the url; hence:
 * mailto://usera:pass123@domain.com?user=foobar@domain.com: the userid of _foobar_ would over-ride the userid _usera_ specified.  However since the password was not over-ridden, the password of _pass123_ would be used still.
@@ -116,6 +117,10 @@ Options:
                         Specify the title of the notification message.
   -b BODY, --body=BODY  Specify the body of the notification message.
   -i, --include_image   Include image in message if the protocol supports it.
+  -u IMAGE_URL, --image_url=IMAGE_URL
+                        Provide url to image; should be either http://,
+                        https://, or file://. This option implies that
+                        --include_image (-i) is set automatically
   -L FILE, --logfile=FILE
                         Send output to the specified logfile instead of
                         stdout.

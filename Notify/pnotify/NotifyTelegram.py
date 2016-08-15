@@ -1,0 +1,178 @@
+# -*- encoding: utf-8 -*-
+#
+# Telegram Notify Wrapper
+#
+# Copyright (C) 2016 Chris Caron <lead2gold@gmail.com>
+#
+# This file is part of NZB-Notify.
+#
+# NZB-Notify is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# NZB-Notify is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
+
+# To use this plugin, you need to first access https://api.telegram.org
+# You need to create a bot and acquire it's Token Identifier (bot_token)
+#
+# For each chat_id a bot joins will have a chat_id associated with it.
+# You will need this value as well to send the notification.
+#
+import requests
+import re
+
+from urllib import urlencode
+
+from NotifyBase import NotifyBase
+from NotifyBase import NotifyFormat
+from NotifyBase import HTTP_ERROR_MAP
+from NotifyBase import HTML_NOTIFY_MAP
+from NotifyBase import NotifyImageSize
+
+# Telegram uses the http protocol with JSON requests
+TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'
+
+# Token required as part of the API request
+VALIDATE_BOT_TOKEN = re.compile(r'[0-9]{6}:[A-Za-z0-9-]{32,34}')
+
+# Chat ID is required 
+IS_CHAT_ID_RE = re.compile(r'[0-9]{1,10}')
+
+# Used to break path apart into list of chat identifiers
+CHAT_ID_LIST_DELIM = re.compile(r'[ \t\r\n,#\\/]+')
+
+class NotifyTelegram(NotifyBase):
+    """
+    A wrapper for Telegram Notifications
+    """
+    def __init__(self, bot_token, chat_ids, **kwargs):
+        """
+        Initialize Telegram Object
+        """
+        super(NotifyTelegram, self).__init__(
+            title_maxlen=250, body_maxlen=4096,
+            notify_format=NotifyFormat.HTML,
+            **kwargs)
+
+        if not VALIDATE_BOT_TOKEN.match(bot_token.strip()):
+            self.logger.warning(
+                'The Bot Token specified (%s) is invalid.' % bot_token,
+            )
+            raise TypeError(
+                'The Bot Token specified (%s) is invalid.' % bot_token,
+            )
+
+        # Store our Token
+        self.bot_token = bot_token.strip()
+
+        if isinstance(chat_ids, basestring):
+            self.chat_ids = filter(bool, CHAT_ID_LIST_DELIM.split(
+                chat_ids,
+            ))
+        elif isinstance(chat_ids, (tuple, list)):
+            self.chat_ids = list(chat_ids)
+
+        else:
+            self.chat_ids = list()
+
+        if self.user:
+            # Treat this as a channel too
+            self.chat_ids.append(self.user)
+
+        if len(self.chat_ids) == 0:
+            self.logger.warning('No chat_id(s) were specified.')
+            raise TypeError('No chat_id(s) were specified.')
+
+    def _notify(self, title, body, notify_type, **kwargs):
+        """
+        Perform Telegram Notification
+        """
+
+        headers = {
+            'User-Agent': self.app_id,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+
+        # error tracking (used for function return)
+        has_error = False
+
+        url = '%s%s/%s' % (
+            TELEGRAM_BOT_URL,
+            self.bot_token,
+            'sendMessage'
+        )
+
+        payload = {}
+
+        if self.notify_format == NotifyFormat.HTML:
+            payload['parse_mode'] = 'HTML'
+            payload['text'] = '<h1>%s</h1>%s' % (title, body)
+
+        else: # Text
+            payload['text'] = '%s\r\n%s' % (title, body)
+
+
+        # Create a copy of the chat_ids list
+        chat_ids = list(self.chat_ids)
+        while len(chat_ids):
+            chat_id = chat_ids.pop(0)
+            if not IS_CHAT_ID_RE.match(chat_id):
+                self.logger.warning(
+                    "The specified chat_id '%s' is invalid; skipping." % (
+                        chat_id,
+                    )
+                )
+                continue
+
+            payload['chat_id'] = chat_id
+
+            self.logger.debug('Telegram POST URL: %s' % url)
+            self.logger.debug('Telegram Payload: %s' % str(payload))
+
+            try:
+                r = requests.post(
+                    url,
+                    data=urlencode(payload),
+                    headers=headers,
+                )
+                if r.status_code != requests.codes.ok:
+                    # We had a problem
+                    try:
+                        self.logger.warning(
+                            'Failed to send Telegram:%s ' % chat_id +\
+                            'notification: %s (error=%s).' % (
+                                HTTP_ERROR_MAP[r.status_code],
+                                r.status_code,
+                        ))
+
+                    except IndexError:
+                        self.logger.warning(
+                            'Failed to send Telegram:%s ' % chat_id +\
+                            'notification (error=%s).' % (
+                                r.status_code,
+                        ))
+
+                    #self.logger.debug('Response Details: %s' % r.raw.read())
+                    # Return; we're done
+                    has_error = True
+
+            except requests.ConnectionError as e:
+                self.logger.warning(
+                    'A Connection error occured sending Telegram:%s ' % (
+                        chat_id) + 'notification.'
+                )
+                self.logger.debug('Socket Exception: %s' % str(e))
+                has_error = True
+
+            if len(chat_ids):
+                # Prevent thrashing requests
+                self.throttle()
+
+        return has_error
