@@ -43,9 +43,6 @@ from NotifyBase import HTTP_ERROR_MAP
 from NotifyBase import HTML_NOTIFY_MAP
 from NotifyBase import NotifyImageSize
 
-# Flag used as a placeholder to sending to all devices
-SLACK_SEND_TO_ALL = 'ALL_DEVICES'
-
 # Slack uses the http protocol with JSON requests
 SLACK_URL = 'https://hooks.slack.com/services'
 
@@ -77,6 +74,7 @@ IS_CHANNEL_RE = re.compile(r'#?([A-Za-z0-9_]{1,32})')
 
 # Image Support (72x72)
 SLACK_IMAGE_XY = NotifyImageSize.XY_72
+
 
 class NotifySlack(NotifyBase):
     """
@@ -193,7 +191,7 @@ class NotifySlack(NotifyBase):
                 notify_type,
             )
 
-        # Create a copy of the devices list
+        # Create a copy of the channel list
         channels = list(self.channels)
         while len(channels):
             channel = channels.pop(0)
@@ -236,7 +234,7 @@ class NotifySlack(NotifyBase):
                     # We had a problem
                     try:
                         self.logger.warning(
-                            'Failed to send Slack:%s ' % device +\
+                            'Failed to send Slack:%s ' % channel +\
                             'notification: %s (error=%s).' % (
                                 SLACK_HTTP_ERROR_MAP[r.status_code],
                                 r.status_code,
@@ -244,7 +242,7 @@ class NotifySlack(NotifyBase):
 
                     except IndexError:
                         self.logger.warning(
-                            'Failed to send Slack:%s ' % device +\
+                            'Failed to send Slack:%s ' % channel +\
                             'notification (error=%s).' % (
                                 r.status_code,
                         ))
@@ -256,7 +254,7 @@ class NotifySlack(NotifyBase):
             except requests.ConnectionError as e:
                 self.logger.warning(
                     'A Connection error occured sending Slack:%s ' % (
-                        device) + 'notification.'
+                        channel) + 'notification.'
                 )
                 self.logger.debug('Socket Exception: %s' % str(e))
                 has_error = True

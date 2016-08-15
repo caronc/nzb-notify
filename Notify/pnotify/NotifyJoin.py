@@ -37,11 +37,7 @@ from urllib import urlencode
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
 from NotifyBase import HTTP_ERROR_MAP
-from NotifyBase import HTML_NOTIFY_MAP
 from NotifyBase import NotifyImageSize
-
-# Flag used as a placeholder to sending to all devices
-JOIN_SEND_TO_ALL = 'ALL_DEVICES'
 
 # Join uses the http protocol with JSON requests
 JOIN_URL = 'https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush'
@@ -123,7 +119,6 @@ class NotifyJoin(NotifyBase):
 
         # error tracking (used for function return)
         has_error = False
-
 
         # Create a copy of the devices list
         devices = list(self.devices)
