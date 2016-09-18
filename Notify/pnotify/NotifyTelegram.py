@@ -34,6 +34,7 @@
 import requests
 import re
 
+from json import loads
 from urllib import urlencode
 
 from NotifyBase import NotifyBase
@@ -122,12 +123,11 @@ class NotifyTelegram(NotifyBase):
 
         if self.notify_format == NotifyFormat.HTML:
             payload['parse_mode'] = 'HTML'
-            payload['text'] = '<h1>%s</h1>%s' % (title, body)
+            payload['text'] = '<b>%s</b>\r\n%s'
 
         else: # Text
             payload['parse_mode'] = 'Markdown'
             payload['text'] = '%s\r\n%s' % (title, body)
-
 
         # Create a copy of the chat_ids list
         chat_ids = list(self.chat_ids)
@@ -161,13 +161,28 @@ class NotifyTelegram(NotifyBase):
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem
+
                     try:
-                        self.logger.warning(
-                            'Failed to send Telegram:%s ' % payload['chat_id'] +\
-                            'notification: %s (error=%s).' % (
-                                HTTP_ERROR_MAP[r.status_code],
-                                r.status_code,
-                        ))
+                        # Try to get the error message if we can:
+                        error_msg = loads(r.text)['description']
+                    except:
+                        error_msg = None
+
+                    try:
+                        if error_msg:
+                            self.logger.warning(
+                                'Failed to send Telegram:%s ' % payload['chat_id'] +\
+                                'notification: (%s) %s.' % (
+                                    r.status_code, error_msg,
+                            ))
+
+                        else:
+                            self.logger.warning(
+                                'Failed to send Telegram:%s ' % payload['chat_id'] +\
+                                'notification: %s (error=%s).' % (
+                                    HTTP_ERROR_MAP[r.status_code],
+                                    r.status_code,
+                            ))
 
                     except IndexError:
                         self.logger.warning(
