@@ -68,7 +68,7 @@ class NotifyTelegram(NotifyBase):
         """
         super(NotifyTelegram, self).__init__(
             title_maxlen=250, body_maxlen=4096,
-            notify_format=NotifyFormat.HTML,
+            notify_format=NotifyFormat.TEXT,
             **kwargs)
 
         if not VALIDATE_BOT_TOKEN.match(bot_token.strip()):
@@ -127,7 +127,7 @@ class NotifyTelegram(NotifyBase):
 
         else: # Text
             payload['parse_mode'] = 'Markdown'
-            payload['text'] = '%s\r\n%s' % (title, body)
+            payload['text'] = '*%s*\r\n%s' % (title, body)
 
         # Create a copy of the chat_ids list
         chat_ids = list(self.chat_ids)
