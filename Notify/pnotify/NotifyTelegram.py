@@ -125,6 +125,7 @@ class NotifyTelegram(NotifyBase):
             payload['text'] = '<h1>%s</h1>%s' % (title, body)
 
         else: # Text
+            payload['parse_mode'] = 'Markdown'
             payload['text'] = '%s\r\n%s' % (title, body)
 
 
@@ -162,7 +163,7 @@ class NotifyTelegram(NotifyBase):
                     # We had a problem
                     try:
                         self.logger.warning(
-                            'Failed to send Telegram:%s ' % chat_id +\
+                            'Failed to send Telegram:%s ' % payload['chat_id'] +\
                             'notification: %s (error=%s).' % (
                                 HTTP_ERROR_MAP[r.status_code],
                                 r.status_code,
@@ -170,7 +171,7 @@ class NotifyTelegram(NotifyBase):
 
                     except IndexError:
                         self.logger.warning(
-                            'Failed to send Telegram:%s ' % chat_id +\
+                            'Failed to send Telegram:%s ' % payload['chat_id'] +\
                             'notification (error=%s).' % (
                                 r.status_code,
                         ))
@@ -182,7 +183,7 @@ class NotifyTelegram(NotifyBase):
             except requests.ConnectionError as e:
                 self.logger.warning(
                     'A Connection error occured sending Telegram:%s ' % (
-                        chat_id) + 'notification.'
+                        payload['chat_id']) + 'notification.'
                 )
                 self.logger.debug('Socket Exception: %s' % str(e))
                 has_error = True
