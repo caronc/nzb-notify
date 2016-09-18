@@ -22,7 +22,14 @@
 import subprocess
 import sys
 import os
-from signal import SIGKILL
+
+try:
+    from signal import SIGKILL
+
+except ImportError:
+    # Windows 10 with 2.7.10 gave this error to a user for some reason
+    # hopefully this will handle this situation
+    SIGKILL = 9
 
 from os import getpid
 from os import kill
