@@ -123,7 +123,7 @@ class NotifyTelegram(NotifyBase):
 
         if self.notify_format == NotifyFormat.HTML:
             payload['parse_mode'] = 'HTML'
-            payload['text'] = '<b>%s</b>\r\n%s'
+            payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
 
         else: # Text
             payload['parse_mode'] = 'Markdown'
