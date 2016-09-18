@@ -443,7 +443,7 @@ class NotifyScript(PostProcessScript, QueueScript):
                 # into a slash (which will work too), but it's more likely
                 # to cause confusion... So this is the next best thing
                 tgram = re.match(
-                    '(?P<protocol>%s://)(?P<prefix>([A-Za-z0-9_-]+)(:[A-Za-z0-9_-]+)?@)?(?P<btoken_a>[0-9]{6}):+(?P<remaining>.*)$' % \
+                    '(?P<protocol>%s://)(?P<prefix>([A-Za-z0-9_-]+)(:[A-Za-z0-9_-]+)?@)?(?P<btoken_a>[0-9]+):+(?P<remaining>.*)$' % \
                     NOTIFY_TELEGRAM_SCHEMA,
                     _server,
                 )

@@ -22,6 +22,12 @@
 # To use this plugin, you need to first access https://api.telegram.org
 # You need to create a bot and acquire it's Token Identifier (bot_token)
 #
+# Basically you need to create a chat with a user called the 'BotFather'
+# and type: /newbot
+#
+# Then follow through the wizard, it will provide you an api key
+# that looks like this:123456789:alphanumeri_characters
+#
 # For each chat_id a bot joins will have a chat_id associated with it.
 # You will need this value as well to send the notification.
 #
@@ -40,10 +46,13 @@ from NotifyBase import NotifyImageSize
 TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'
 
 # Token required as part of the API request
-VALIDATE_BOT_TOKEN = re.compile(r'[0-9]{6}:[A-Za-z0-9-]{32,34}')
+VALIDATE_BOT_TOKEN = re.compile(r'[0-9]+:[A-Za-z0-9_-]{32,34}')
 
 # Chat ID is required 
-IS_CHAT_ID_RE = re.compile(r'[0-9]{1,10}')
+IS_CHAT_ID_RE = re.compile(
+    r'(@*(?P<idno>[0-9]{1,10})|(?P<name>[a-z_-][a-z0-9_-]*))',
+    re.IGNORECASE,
+)
 
 # Used to break path apart into list of chat identifiers
 CHAT_ID_LIST_DELIM = re.compile(r'[ \t\r\n,#\\/]+')
@@ -123,7 +132,8 @@ class NotifyTelegram(NotifyBase):
         chat_ids = list(self.chat_ids)
         while len(chat_ids):
             chat_id = chat_ids.pop(0)
-            if not IS_CHAT_ID_RE.match(chat_id):
+            chat_id = IS_CHAT_ID_RE.match(chat_id)
+            if not chat_id:
                 self.logger.warning(
                     "The specified chat_id '%s' is invalid; skipping." % (
                         chat_id,
@@ -131,7 +141,13 @@ class NotifyTelegram(NotifyBase):
                 )
                 continue
 
-            payload['chat_id'] = chat_id
+            if chat_id.group('name') is not None:
+                # Name
+                payload['chat_id'] = '@%s' % chat_id.group('name')
+
+            else:
+                # ID
+                payload['chat_id'] = chat_id.group('idno')
 
             self.logger.debug('Telegram POST URL: %s' % url)
             self.logger.debug('Telegram Payload: %s' % str(payload))
