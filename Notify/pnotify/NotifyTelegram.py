@@ -31,11 +31,20 @@
 # For each chat_id a bot joins will have a chat_id associated with it.
 # You will need this value as well to send the notification.
 #
+# You can't check out to see if your entry is working using:
+#    https://api.telegram.org/botAPI_KEY/getMe
+#
+#    Pay attention to the word 'bot' that must be present infront of your
+#    api key that the BotFather gave you.
+#
+#  For example, a url might look like this:
+#    https://api.telegram.org/bot123456789:alphanumeri_characters/getMe
+#
 import requests
 import re
 
 from json import loads
-from urllib import urlencode
+from json import dumps
 
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
@@ -47,7 +56,11 @@ from NotifyBase import NotifyImageSize
 TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'
 
 # Token required as part of the API request
-VALIDATE_BOT_TOKEN = re.compile(r'[0-9]+:[A-Za-z0-9_-]{32,34}')
+# allow the word 'bot' infront
+VALIDATE_BOT_TOKEN = re.compile(
+    r'(bot)?(?P<key>[0-9]+:[A-Za-z0-9_-]{32,34})',
+    re.IGNORECASE,
+)
 
 # Chat ID is required 
 IS_CHAT_ID_RE = re.compile(
@@ -71,7 +84,8 @@ class NotifyTelegram(NotifyBase):
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
-        if not VALIDATE_BOT_TOKEN.match(bot_token.strip()):
+        result = VALIDATE_BOT_TOKEN.match(bot_token.strip())
+        if not result:
             self.logger.warning(
                 'The Bot Token specified (%s) is invalid.' % bot_token,
             )
@@ -79,8 +93,8 @@ class NotifyTelegram(NotifyBase):
                 'The Bot Token specified (%s) is invalid.' % bot_token,
             )
 
-        # Store our Token
-        self.bot_token = bot_token.strip()
+        # Store our API Key
+        self.bot_token = result.group('key')
 
         if isinstance(chat_ids, basestring):
             self.chat_ids = filter(bool, CHAT_ID_LIST_DELIM.split(
@@ -107,7 +121,7 @@ class NotifyTelegram(NotifyBase):
 
         headers = {
             'User-Agent': self.app_id,
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         }
 
         # error tracking (used for function return)
@@ -156,7 +170,7 @@ class NotifyTelegram(NotifyBase):
             try:
                 r = requests.post(
                     url,
-                    data=urlencode(payload),
+                    data=dumps(payload),
                     headers=headers,
                 )
                 if r.status_code != requests.codes.ok:
