@@ -31,6 +31,9 @@
 # For each chat_id a bot joins will have a chat_id associated with it.
 # You will need this value as well to send the notification.
 #
+# Log into the webpage version of the site if you like by accessing:
+#    https://web.telegram.org
+#
 # You can't check out to see if your entry is working using:
 #    https://api.telegram.org/botAPI_KEY/getMe
 #
