@@ -61,7 +61,7 @@ TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'
 # Token required as part of the API request
 # allow the word 'bot' infront
 VALIDATE_BOT_TOKEN = re.compile(
-    r'(bot)?(?P<key>[0-9]+:[A-Za-z0-9_-]{32,34})',
+    r'(bot)?(?P<key>[0-9]+:[A-Za-z0-9_-]{32,40})/*$',
     re.IGNORECASE,
 )
 
