@@ -61,7 +61,7 @@ TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'
 # Token required as part of the API request
 # allow the word 'bot' infront
 VALIDATE_BOT_TOKEN = re.compile(
-    r'(bot)?(?P<key>[0-9]+:[A-Za-z0-9_-]{32,40})/*$',
+    r'(bot)?(?P<key>[0-9]+:[A-Za-z0-9_-]+)/*$',
     re.IGNORECASE,
 )
 
@@ -71,8 +71,18 @@ IS_CHAT_ID_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Image Support (256x256)
+#TELEGRAM_IMAGE_XY = NotifyImageSize.XY_256
+
+# Disable image support for now
+# The stickers/images are kind of big and consume a lot of space
+# It's not as appealing as just having the post not contain
+# an image at all.
+TELEGRAM_IMAGE_XY = None
+
 # Used to break path apart into list of chat identifiers
 CHAT_ID_LIST_DELIM = re.compile(r'[ \t\r\n,#\\/]+')
+
 
 class NotifyTelegram(NotifyBase):
     """
@@ -84,14 +94,17 @@ class NotifyTelegram(NotifyBase):
         """
         super(NotifyTelegram, self).__init__(
             title_maxlen=250, body_maxlen=4096,
+            image_size=TELEGRAM_IMAGE_XY,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
+        if bot_token is None:
+            raise TypeError(
+                'The Bot Token specified is invalid.'
+            )
+
         result = VALIDATE_BOT_TOKEN.match(bot_token.strip())
         if not result:
-            self.logger.warning(
-                'The Bot Token specified (%s) is invalid.' % bot_token,
-            )
             raise TypeError(
                 'The Bot Token specified (%s) is invalid.' % bot_token,
             )
@@ -130,6 +143,25 @@ class NotifyTelegram(NotifyBase):
         # error tracking (used for function return)
         has_error = False
 
+        image_url = None
+        if self.include_image:
+            image_content = self.image_raw(
+                notify_type,
+            )
+            if image_content is not None:
+                # We have an image to work with; set up our boolean
+                has_image = True
+
+                # prepare our eimage URL
+                image_url = '%s%s/%s' % (
+                    TELEGRAM_BOT_URL,
+                    self.bot_token,
+                    'sendPhoto'
+                )
+
+                # Set up our upload
+                files = { 'photo': ('%s.png' % notify_type, image_content)}
+
         url = '%s%s/%s' % (
             TELEGRAM_BOT_URL,
             self.bot_token,
@@ -166,6 +198,70 @@ class NotifyTelegram(NotifyBase):
             else:
                 # ID
                 payload['chat_id'] = chat_id.group('idno')
+
+            if image_url is not None:
+                image_payload = {
+                    'chat_id': payload['chat_id'],
+                    'disable_notification': True,
+                }
+                self.logger.debug('Telegram (image) POST URL: %s' % image_url)
+                self.logger.debug('Telegram (image) Payload: %s' % str(image_payload))
+
+                try:
+                    r = requests.post(
+                        image_url,
+                        data=image_payload,
+                        headers = {
+                            'User-Agent': self.app_id,
+                        },
+                        files=files,
+                    )
+                    if r.status_code != requests.codes.ok:
+                        # We had a problem
+
+                        try:
+                            # Try to get the error message if we can:
+                            error_msg = loads(r.text)['description']
+                        except:
+                            error_msg = None
+
+                        try:
+                            if error_msg:
+                                self.logger.warning(
+                                    'Failed to send Telegram Image:%s ' % \
+                                    payload['chat_id'] +\
+                                    'notification: (%s) %s.' % (
+                                        r.status_code, error_msg,
+                                ))
+
+                            else:
+                                self.logger.warning(
+                                    'Failed to send Telegram Image:%s ' % \
+                                    payload['chat_id'] +\
+                                    'notification: %s (error=%s).' % (
+                                        HTTP_ERROR_MAP[r.status_code],
+                                        r.status_code,
+                                ))
+
+                        except IndexError:
+                            self.logger.warning(
+                                'Failed to send Telegram Image:%s ' % \
+                                payload['chat_id'] +\
+                                'notification (error=%s).' % (
+                                    r.status_code,
+                            ))
+
+                        has_error = True
+                        continue
+
+                except requests.ConnectionError as e:
+                    self.logger.warning(
+                        'A Connection error occured sending Telegram:%s ' % (
+                            payload['chat_id']) + 'notification.'
+                    )
+                    self.logger.debug('Socket Exception: %s' % str(e))
+                    has_error = True
+                    continue
 
             self.logger.debug('Telegram POST URL: %s' % url)
             self.logger.debug('Telegram Payload: %s' % str(payload))
