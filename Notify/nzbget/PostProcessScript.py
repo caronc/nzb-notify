@@ -656,9 +656,17 @@ class PostProcessScript(ScriptBase):
         except IndexError:
             return None
 
+        try:
+            dl_size = float(group['DownloadedSizeMB'])
+            dl_time = float(group['DownloadTimeSec'])
+
+        except KeyError:
+            # We simply didn't fetch any valid content
+            self.logger.warning('RCP Response was invalid.')
+            self.logger.debug('RCP Response: %s', str(group))
+            return None
+
         # Calculate statistics based on retrieved results
-        dl_size = float(group['DownloadedSizeMB'])
-        dl_time = float(group['DownloadTimeSec'])
         dl_avg_speed = 0
         dl_avg_speed_unit = 'MB/s'
 
