@@ -175,8 +175,9 @@ class NotifyTelegram(NotifyBase):
             payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
 
         else: # Text
-            payload['parse_mode'] = 'Markdown'
-            payload['text'] = '*%s*\r\n%s' % (title, body)
+            #payload['parse_mode'] = 'Markdown'
+            payload['parse_mode'] = 'HTML'
+            payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
 
         # Create a copy of the chat_ids list
         chat_ids = list(self.chat_ids)
