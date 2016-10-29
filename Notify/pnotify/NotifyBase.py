@@ -31,6 +31,28 @@ from os.path import join
 from os.path import dirname
 from os.path import abspath
 
+# Define a general HTML Escaping
+try:
+    # use sax first because it's faster
+    from xml.sax.saxutils import escape as sax_escape
+
+    def _escape(text):
+        """
+        saxutil escape tool
+        """
+        return sax_escape(text, {"'": "&apos;", "\"": "&quot;"})
+
+except ImportError:
+    # if we can't, then fall back to cgi escape
+    from cgi import escape as cgi_escape
+
+    def _escape(text):
+        """
+        cgi escape tool
+        """
+        return cgi_escape(text, quote=True)
+
+
 class NotifyType(object):
     INFO = 'info'
     SUCCESS = 'success'
@@ -56,6 +78,7 @@ HTML_NOTIFY_MAP = {
     NotifyType.FAILURE: '#A32037',
     NotifyType.WARNING: '#CACF29',
 }
+
 
 class NotifyImageSize(object):
     XY_72 = '72x72'
@@ -95,6 +118,7 @@ NOTIFY_IMAGE_FILE = abspath(join(
 # HTML New Line Delimiter
 NOTIFY_NEWLINE = '\r\n'
 
+
 class NotifyFormat(object):
     TEXT = 'text'
     HTML = 'html'
@@ -112,6 +136,7 @@ IS_EMAIL_RE = re.compile(
     r"[a-z0-9]))?",
     re.IGNORECASE,
 )
+
 
 class NotifyBase(object):
     """
@@ -241,7 +266,6 @@ class NotifyBase(object):
 
         return re_table.sub(lambda x: re_map[x.group()], NOTIFY_IMAGE_URL)
 
-
     def image_raw(self, notify_type):
         """
         Returns the raw image if it can
@@ -285,6 +309,20 @@ class NotifyBase(object):
         finally:
             fd.close()
 
+    def escape_html(self, html, convert_new_lines=False):
+        """
+        Takes html text as input and escapes it so that it won't
+        conflict with any xml/html wrapping characters.
+        """
+        escaped = _escape(html).\
+                   replace(u'\t', u'&emsp;').\
+                   replace(u'  ', u' &nbsp;')
+
+        if convert_new_lines:
+            return escaped.replace(u'\n', u'<br />')
+
+        return escaped
+
     def to_html(self, body):
         """
         Returns the specified title in an html format and factors
@@ -301,7 +339,7 @@ class NotifyBase(object):
         # put in place by the html characters. So there is a little bit
         # of math and manipulation that needs to go on here.
         # we always return a list
-        return [ html, ]
+        return [html, ]
 
     def notify(self, title, body, notify_type=NotifyType.SUCCESS,
                **kwargs):

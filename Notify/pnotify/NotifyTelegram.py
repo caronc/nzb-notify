@@ -52,8 +52,8 @@ from json import dumps
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
 from NotifyBase import HTTP_ERROR_MAP
-from NotifyBase import HTML_NOTIFY_MAP
-from NotifyBase import NotifyImageSize
+#from NotifyBase import HTML_NOTIFY_MAP
+#from NotifyBase import NotifyImageSize
 
 # Telegram uses the http protocol with JSON requests
 TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'
@@ -65,7 +65,7 @@ VALIDATE_BOT_TOKEN = re.compile(
     re.IGNORECASE,
 )
 
-# Chat ID is required 
+# Chat ID is required
 IS_CHAT_ID_RE = re.compile(
     r'(@*(?P<idno>[0-9]{1,10})|(?P<name>[a-z_-][a-z0-9_-]*))',
     re.IGNORECASE,
@@ -126,9 +126,91 @@ class NotifyTelegram(NotifyBase):
             # Treat this as a channel too
             self.chat_ids.append(self.user)
 
+        # Bot's can't send messages to themselves which is fair enough
+        # but if or when they can, this code will allow a default fallback
+        # solution if no chat_id and/or channel is specified
+        #if len(self.chat_ids) == 0:
+        #
+        #    chat_id = self._get_chat_id()
+        #    if chat_id is not None:
+        #        self.logger.warning(
+        #            'No chat_id or @channel was specified; ' +\
+        #            'using detected bot_chat_id (%d).' % chat_id,
+        #        )
+        #        self.chat_ids.append(str(chat_id))
+
         if len(self.chat_ids) == 0:
             self.logger.warning('No chat_id(s) were specified.')
             raise TypeError('No chat_id(s) were specified.')
+
+    def _get_chat_id(self):
+        """
+        This function retrieves the chat id belonging to the key specified
+        """
+        headers = {
+            'User-Agent': self.app_id,
+            'Content-Type': 'application/json',
+        }
+
+        url = '%s%s/%s' % (
+            TELEGRAM_BOT_URL,
+            self.bot_token,
+            'getMe'
+        )
+
+        self.logger.debug('Telegram (Detection) GET URL: %s' % url)
+
+        chat_id = None
+        try:
+            r = requests.post(url, headers=headers)
+            if r.status_code == requests.codes.ok:
+                # Extract our chat ID
+                result = loads(r.text)
+                if result.get('ok', False) is True:
+                    chat_id = result['result'].get('id')
+                    if chat_id <= 0:
+                        chat_id = None
+            else:
+                # We had a problem
+                try:
+                    # Try to get the error message if we can:
+                    error_msg = loads(r.text)['description']
+
+                except:
+                    error_msg = None
+
+                try:
+                    if error_msg:
+                        self.logger.warning(
+                            'Failed to lookup Telegram chat_id from ' +\
+                            'apikey: (%s) %s.' % (
+                                r.status_code, error_msg,
+                        ))
+
+                    else:
+                        self.logger.warning(
+                            'Failed to lookup Telegram chat_id from ' +\
+                            'apikey: %s (error=%s).' % (
+                                HTTP_ERROR_MAP[r.status_code],
+                                r.status_code,
+                        ))
+
+                except IndexError:
+                    self.logger.warning(
+                        'Failed to lookup Telegram chat_id from ' +\
+                        'apikey: (error=%s).' % (
+                            r.status_code,
+                    ))
+
+        except requests.ConnectionError as e:
+            self.logger.warning(
+                'A Connection error occured looking up Telegram chat_id ' + \
+                'from apikey.'
+            )
+            self.logger.debug('Socket Exception: %s' % str(e))
+
+        return chat_id
+
 
     def _notify(self, title, body, notify_type, **kwargs):
         """
@@ -160,7 +242,7 @@ class NotifyTelegram(NotifyBase):
                 )
 
                 # Set up our upload
-                files = { 'photo': ('%s.png' % notify_type, image_content)}
+                files = {'photo': ('%s.png' % notify_type, image_content)}
 
         url = '%s%s/%s' % (
             TELEGRAM_BOT_URL,
@@ -177,7 +259,10 @@ class NotifyTelegram(NotifyBase):
         else: # Text
             #payload['parse_mode'] = 'Markdown'
             payload['parse_mode'] = 'HTML'
-            payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
+            payload['text'] = '<b>%s</b>\r\n%s' % (
+                self.escape_html(title),
+                self.escape_html(body),
+            )
 
         # Create a copy of the chat_ids list
         chat_ids = list(self.chat_ids)
@@ -212,7 +297,7 @@ class NotifyTelegram(NotifyBase):
                     r = requests.post(
                         image_url,
                         data=image_payload,
-                        headers = {
+                        headers={
                             'User-Agent': self.app_id,
                         },
                         files=files,
