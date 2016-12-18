@@ -94,6 +94,10 @@ functionality such as:
                   information) was found, then an empty dictionary is returned
                   instead.
 
+* is_unique_instance() - Allows you to ensure your instance of your script is
+                  unique. This is useful for Scheduled scripts which can be
+                  called and then run concurrently with NZBGet.
+
 Ideally, you'll write your script using this class as your base wrapper
 requiring you to only define a main() function and call run().
 You no longer need to manage the different return codes NZBGet uses,
@@ -124,12 +128,16 @@ from tempfile import gettempdir
 from os import environ
 from os import makedirs
 from os import chdir
+from os import unlink
 from os import getcwd
 from os import listdir
 from os import access
 from os import W_OK
 from os import R_OK
 from os import X_OK
+from os import kill
+from os import getpid
+from os import name as os_name
 from os.path import isdir
 from os.path import islink
 from os.path import isfile
@@ -143,6 +151,7 @@ from getpass import getuser
 from logging import Logger
 from datetime import datetime
 from Utils import tidy_path
+from urllib import unquote
 
 from Logger import VERBOSE_DEBUG
 from Logger import VERY_VERBOSE_DEBUG
@@ -152,6 +161,8 @@ from Logger import destroy_logger
 from Utils import ESCAPED_PATH_SEPARATOR
 from Utils import ESCAPED_WIN_PATH_SEPARATOR
 from Utils import ESCAPED_NUX_PATH_SEPARATOR
+
+import signal
 
 # Initialize the default character set to use
 DEFAULT_CHARSET = u'utf-8'
@@ -231,6 +242,7 @@ SKIP_DIRECTORIES = (
     '.AppleDouble',
     '__MACOSX',
 )
+
 class EXIT_CODE(object):
     """List of exit codes for post processing
     """
@@ -254,6 +266,32 @@ EXIT_CODES = (
    EXIT_CODE.FAILURE,
    EXIT_CODE.NONE,
 )
+
+class NZBGetExitException(Exception):
+    def __init__(self, code=EXIT_CODE.NONE):
+        # Now for your custom code...
+        self.code = code
+
+class NZBGetSuccess(NZBGetExitException):
+    def __init__(self):
+        super(NZBGetExitException, self).\
+            __init__(code=EXIT_CODE.SUCCESS)
+
+class NZBGetFailure(NZBGetExitException):
+    def __init__(self):
+        super(NZBGetExitException, self).\
+            __init__(code=EXIT_CODE.FAILURE)
+
+class NZBGetParCheckCurrent(NZBGetExitException):
+    def __init__(self):
+        super(NZBGetExitException, self).\
+            __init__(code=EXIT_CODE.PARCHECK_CURRENT)
+
+class NZBGetParCheckAll(NZBGetExitException):
+    def __init__(self):
+        super(NZBGetExitException, self).\
+            __init__(code=EXIT_CODE.PARCHECK_ALL)
+
 
 class Health(tuple):
     """
@@ -628,6 +666,9 @@ class ScriptBase(object):
         # an api function is made.
         self.api = None
 
+        # Acquire our PID
+        self.pid = getpid()
+
         # Extra debug modes used from command line; it gets to be
         # too noisy if you pass this into nzbget but if you really
         # insist, you can define a VDEBUG or a VVDEBUG as arguments
@@ -676,6 +717,14 @@ class ScriptBase(object):
             self.tempdir = self.system.get('TEMPDIR')
         else:
             self.tempdir = tempdir
+
+        # The pidfile is initialized if we call is_unique_instance()
+        self.pidfile = None
+
+        # We record the timestamp of our pid file after it's created
+        # so that if it's missing, or has a different time stamp associated
+        # with it, we can assume someone is mucking about; we will close
+        self.pidfile_tstamp = None
 
         # version detection
         try:
@@ -841,6 +890,248 @@ class ScriptBase(object):
             getattr(
                 self, '%s_%s' % (self.script_mode, 'init')
             )(*args, **kwargs)
+
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        # Signal Handling
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        try:
+            if os_name == 'nt':
+                signal.signal(signal.SIGBREAK, self.signal_quit)
+            else:
+                signal.signal(signal.SIGCHLD, self.signal_quit)
+
+            if signal.getsignal(signal.SIGINT) == signal.default_int_handler:
+                # only handle if there isn't already a handler, e.g. for Pdb.
+                signal.signal(signal.SIGINT, self.signal_quit)
+
+            signal.signal(signal.SIGTERM, self.signal_quit)
+
+        except ValueError:
+            # This can occur if calling the script from within a thread
+            # we just gracefully move on if this happens
+            pass
+
+    def is_unique_instance(self, pidfile=None,die_on_fail=True,
+                           verbose=True):
+        """
+        Writes a PID file if one is not already present and returns
+        True if the instance is unique.
+
+        if the pidfile isn't specified, then it is automatically
+        determined.
+
+        if die_on_fail is set to True, then detected non-unique
+        instances will cause the script to exit.
+
+        verbose is a rather useless switch; but it helps control some of the
+        redundant log messages since the script is called before the
+        whole script exits, and if die_on_fail is set, you'll end up seeing
+        these messages twice.  The final clean-up runs this script with
+        the quiet flag set to True.
+        """
+        def _pid_running(pid):
+            """ Returns False if the pid wasn't found running
+            otherwise it returns True if it was found running.
+            """
+            try:
+               kill(pid, 0)
+            except OSError:
+                return False
+            return True
+
+        if pidfile is not None:
+            self.pidfile = pidfile
+
+        if not self.pidfile:
+           self.pidfile = join(self.tempdir, '.run', '%s-%s.pid' % (
+               __name__, self.script_mode,
+           ))
+
+        if self.pidfile_tstamp is not None:
+            # PID-File already created and running; test
+            try:
+                pidfile_tstamp = datetime\
+                    .fromtimestamp(stat(self.pidfile)[ST_MTIME])
+
+            except (IndexError, ValueError, OSError):
+                if verbose:
+                    self.logger.warning(
+                        'Detected PID-File tampering (missing/bad).',
+                    )
+
+                # Reset class pidfile information and do not touch
+                # PID-File as there is a chance it is no longer
+                # ours
+                self.pidfile_tstamp = None
+
+                if die_on_fail:
+                    raise NZBGetExitException
+                return False
+
+            if pidfile_tstamp != self.pidfile_tstamp:
+                if verbose:
+                    self.logger.warning(
+                        'Detected PID-File tampering (changed timestamp).',
+                    )
+
+                # Reset class pidfile information and do not touch
+                # PID-File as there is a chance it is no longer
+                # ours
+                self.pidfile_tstamp = None
+
+                if die_on_fail:
+                    raise NZBGetExitException
+                return False
+
+        if verbose:
+            self.logger.debug('Testing for PID-File: %s (die_on_fail=%s)' % (
+                self.pidfile,
+                die_on_fail and "True" or "False",
+            ))
+
+        # PID Directory
+        piddir = dirname(self.pidfile)
+
+        # An NZBGet Mode means we should work out of a writeable directory
+        if not isdir(piddir):
+            try:
+                makedirs(piddir, 0755)
+                if verbose:
+                    self.logger.info(
+                        'Created PID-File directory: %s' % piddir
+                    )
+            except (IOError, OSError):
+                if verbose:
+                    self.logger.error(
+                        'PID-File directory could not be ' + \
+                        'created: %s' % piddir
+                    )
+                if die_on_fail:
+                    raise NZBGetExitException
+                return False
+
+        if isfile(self.pidfile):
+            try:
+                pid = int(open(self.pidfile, 'r').read())
+                if verbose:
+                    self.logger.debug(
+                        'PID-File identifies PID %d (our PID is %d):' % (
+                        pid,
+                        self.pid,
+                    ))
+
+            except (ValueError, TypeError), e:
+                # Bad data
+                if verbose:
+                    self.logger.info(
+                            'Removed (dead) PID-File: %s' % self.pidfile)
+                try:
+                    unlink(self.pidfile)
+                    if verbose:
+                        self.logger.info(
+                            'Removed (dead) PID-File: %s' % self.pidfile)
+                except:
+                    unlink(self.pidfile)
+                    if verbose:
+                        self.logger.warning(
+                            'Failed to removed (dead) PID-File: %s' % \
+                            self.pidfile)
+
+                    # It probably isn't ours
+                    self.pidfile_tstamp = None
+
+                    if die_on_fail:
+                        raise NZBGetExitException
+
+                    return False
+
+            except (IOError, OSError):
+                # Can't access content
+                if verbose:
+                    self.logger.warning(
+                        'Can not access PID-File: %s' % self.pidfile)
+
+                # It probably isn't ours
+                self.pidfile_tstamp = None
+
+                if die_on_fail:
+                    raise NZBGetExitException
+                return False
+
+            if pid != self.pid:
+                if _pid_running(pid):
+                    if verbose:
+                        self.logger.warning(
+                           'Process is already running in ' +
+                            'another instance (pid=%d)' % pid,
+                        )
+
+                    # We're done
+                    if die_on_fail:
+                        raise NZBGetExitException
+                    return False
+            else:
+                # Nothing more to do
+                return True
+
+        # Write our PIDFile
+        try:
+           fp = open(self.pidfile, "w")
+
+        except:
+            if verbose:
+                self.logger.warning('Could not open PID-File for writing.')
+            if die_on_fail:
+                raise NZBGetExitException
+            return False
+
+        try:
+           fp.write("%s" % str(self.pid))
+        except:
+            if verbose:
+                self.logger.warning('Could not write PID into PID-File.')
+            fp.close()
+            if die_on_fail:
+                raise NZBGetExitException
+            return False
+
+        try:
+            fp.close()
+        except:
+            if verbose:
+                self.logger.warning('Could not close PID-File.')
+            if die_on_fail:
+                raise NZBGetExitException
+            return False
+
+        # We now want to get the modify time of our pid file
+        try:
+            self.pidfile_tstamp = datetime\
+                .fromtimestamp(stat(self.pidfile)[ST_MTIME])
+
+        except (IndexError, ValueError, OSError):
+            if verbose:
+                self.logger.warning(
+                    'Could not exctract PID-File creation.',
+                )
+
+            try:
+                # Cleanup
+                unlink(self.pidfile)
+            except:
+                pass
+
+            if die_on_fail:
+                raise NZBGetExitException
+            return False
+
+        # We wrote our PID file successfully
+        if verbose:
+            self.logger.info(
+                 'Created PID-File: %s (pid=%d)' % (
+                     self.pidfile, self.pid,
+            ))
+        return True
 
     def __del__(self):
         if self.logger_id:
@@ -1133,7 +1424,7 @@ class ScriptBase(object):
 
         return results
 
-    def parse_url(self, url, default_schema='http'):
+    def parse_url(self, url, default_schema='http', qsd_auth=True):
         """A function that greatly simplifies the parsing of a url
         specified by the end user.
 
@@ -1268,6 +1559,24 @@ class ScriptBase(object):
                 # no problem then, user only exists
                 # and it's already assigned
                 pass
+
+        if qsd_auth:
+            # Allow people to place a user= inline in the query string
+            if result['user'] is None:
+                try:
+                    if 'user' in result['qsd'] and len(result['qsd']['user']):
+                        result['user'] = unquote(result['qsd']['user'])
+
+                except AttributeError:
+                    pass
+
+            if result['password'] is None:
+                try:
+                    if 'pass' in result['qsd'] and len(result['qsd']['pass']):
+                        result['password'] = unquote(result['qsd']['pass'])
+
+                except AttributeError:
+                    pass
 
         try:
             (result['host'], result['port']) = \
@@ -2406,8 +2715,9 @@ class ScriptBase(object):
         # multi-scripts need to define a
         #  - postprocess_main()
         #  - scan_main()
-        #  - schedule_main()
+        #  - scheduler_main()
         #  - queue_main()
+        #  - feed_main()
         #
         # otherwise main() is executed
         if hasattr(self, '%s_%s' % (self.script_mode, 'main')):
@@ -2416,6 +2726,11 @@ class ScriptBase(object):
 
         try:
             exit_code = main_function(*args, **kwargs)
+
+        except NZBGetExitException, e:
+            # One of our own exceptions
+            exit_code = e.code
+
         except:
             # Try to capture error
             exc_type, exc_value, exc_traceback = exc_info()
@@ -2430,6 +2745,19 @@ class ScriptBase(object):
                 self.logger.error('Fatal Exception:\n%s' % \
                     ''.join('  ' + line for line in lines))
             exit_code = EXIT_CODE.FAILURE
+
+        # Handle tidying of PID-File if it exists
+        if isinstance(self.pidfile, basestring):
+            if self.is_unique_instance(die_on_fail=False, verbose=False):
+                # It is our PID-File; so do our cleanup
+                try:
+                    unlink(self.pidfile)
+                    self.logger.info(
+                        'Removed PID-File: %s' % self.pidfile)
+                except:
+                    self.logger.warning(
+                        'Failed to remove PID-File: %s' % self.pidfile)
+                    pass
 
         # Simplify return codes for those who just want to use
         # True/False/None
@@ -2450,6 +2778,8 @@ class ScriptBase(object):
                 'changing response to a failure (%d).' % (EXIT_CODE.FAILURE),
             )
             exit_code = EXIT_CODE.FAILURE
+        self.logger.debug(
+           'Exiting with return code: %d' % exit_code)
         return exit_code
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -2552,7 +2882,7 @@ class ScriptBase(object):
                 cleaned = self._path_win_re.sub('|\\1', cleaned)
                 cleaned = self._path_winnw_re.sub('|\\1', cleaned)
                 cleaned = self._path_win_drive_re.sub('|\\1:\\2', cleaned)
-                result += cleaned.split('|')
+                result += re.split('[,|]+', cleaned)
 
             elif isinstance(arg, (list, tuple)):
                 for _arg in arg:
@@ -2561,7 +2891,7 @@ class ScriptBase(object):
                         cleaned = self._path_win_re.sub('|\\1', cleaned)
                         cleaned = self._path_winnw_re.sub('|\\1', cleaned)
                         cleaned = self._path_win_drive_re.sub('|\\1:\\2', cleaned)
-                        result += cleaned.split('|')
+                        result += re.split('[,|]+', cleaned)
 
                     # A list inside a list? - use recursion
                     elif isinstance(_arg, (list, tuple)):
@@ -2644,6 +2974,28 @@ class ScriptBase(object):
         self.script_mode = SCRIPT_MODE.NONE
 
         return self.script_mode
+
+    def signal_quit(self, signum, frame):
+        """
+        Quit signal received
+        """
+        # Determine the function to use
+        # multi-scripts need to define a
+        #  - postprocess_signal_quit()
+        #  - scan_signal_quit()
+        #  - scheduler_signal_quit()
+        #  - queue_signal_quit()
+        #  - feed_signal_quit()
+        #
+        # otherwise we go ahead and gracefully exit
+        exit_code = 1
+        if hasattr(self, '%s_%s' % (self.script_mode, 'signal_quit')):
+            signal_function = getattr(
+                self, '%s_%s' % (self.script_mode, 'signal_quit'))
+            exit_code = signal_function(*args, **kwargs)
+
+        self.logger.info('Quit Signal Received; Exiting.')
+        raise NZBGetExitException
 
     def main(self, *args, **kwargs):
         """Write all of your code here making uses of your functions while
