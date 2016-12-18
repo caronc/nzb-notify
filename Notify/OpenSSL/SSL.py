@@ -1247,6 +1247,8 @@ class Connection(object):
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        elif isinstance(buf, basestring):
+            buf = bytes(buf)
         if isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
@@ -1272,6 +1274,8 @@ class Connection(object):
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
+        elif isinstance(buf, basestring):
+            buf = bytes(buf)
         if isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
