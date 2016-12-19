@@ -895,11 +895,6 @@ class ScriptBase(object):
         # Signal Handling
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         try:
-            if os_name == 'nt':
-                signal.signal(signal.SIGBREAK, self.signal_quit)
-            else:
-                signal.signal(signal.SIGCHLD, self.signal_quit)
-
             if signal.getsignal(signal.SIGINT) == signal.default_int_handler:
                 # only handle if there isn't already a handler, e.g. for Pdb.
                 signal.signal(signal.SIGINT, self.signal_quit)
@@ -2995,6 +2990,7 @@ class ScriptBase(object):
             exit_code = signal_function(*args, **kwargs)
 
         self.logger.info('Quit Signal Received; Exiting.')
+        self.logger.debug('%d Signal Received.' % signum)
         raise NZBGetExitException
 
     def main(self, *args, **kwargs):
