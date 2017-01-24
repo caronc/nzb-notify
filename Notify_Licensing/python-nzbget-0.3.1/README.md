@@ -1,27 +1,29 @@
+[![Build Status](https://travis-ci.org/caronc/pynzbget.svg?branch=master)](https://travis-ci.org/caronc/pynzbget)[![Coverage Status](https://coveralls.io/repos/caronc/pynzbget/badge.svg?branch=master)](https://coveralls.io/r/caronc/pynzbget?branch=master)
+
 Description
 =================
 This provides a python framework to design NZBGet scripts with. The intent
 was to greatly simplify the development and debugging process. It was
-initially designed to work with NZBGet v13 but was made to be compatible
-with versions 12 and 11 as well.
+initially designed to work with NZBGet v13, but was made to be compatible
+with versions 12 and 11 as well. Naturally it works with all newer versions as well (v14, v15, v16, etc).
 
 * It contains a built in meta tag parser to extract content from NZB-Files.
    _Note: This can only happen if lxml is installed on your system_.
 * It can preform very basic obfuscation support on filenames that can not be
   interpreted.
 * It creates a common SQLite database (optionally) to additionally write
-  content passed via the set() function.  This allows another script to later
+  content passed via the set() function. This allows another script to later
   call get() and retrieve the data set() by another.
 * It prepares logging right out of the box for you, there is no setup required
 * All return codes have been simplified to None/True/False (you can still
-  use the old ones if you want)
+  use the old ones if you want).
 * It handles all of the exception handling. By this I mean, your code can throw
   an except and it's traceback will be captured gracefully to logging. Then the
   framework will look after returning a correct failure error code to NZBGet.
 * It provides some very useful functions that are always being re-written
   inside of every other NZBGet script such as file scanning.
 * It greatly simplifies the handling of environment variables and interaction
-  to and from NZBGet
+  to and from NZBGet.
 
 Documentation
 =============
@@ -36,17 +38,17 @@ Simplified Development
 ======================
 The following are some of the functionality that is built in for you:
 
- * validate() - handle environment checking, correct versioning as well
+ * __validate()__ - Handle environment checking, correct versioning as well
                 as if the expected configuration variables you specified
                 are present.
 
- * health_check() - Checks the status of the retrieved content, currently
-                this is only useful during Post-Processing
+ * __health_check()__ - Checks the status of the retrieved content, currently
+                this is only useful during Post-Processing.
 
- * push()     - pushes a variables to the NZBGet server
+ * __push()__ - Pushes a variables to the NZBGet server.
 
 
- * set()/get()- Hash table get/set attributes that can be set in one script
+ * __set()/get()__ - Hash table get/set attributes that can be set in one script
                 and then later retrieved from another. get() can also
                 be used to fetch content that was previously pushed using
                 the push() tool. You no longer need to work with environment
@@ -54,67 +56,77 @@ The following are some of the functionality that is built in for you:
                 put here as well so that it can be retrieved by another
                 script.
 
- * unset()    - This allows you to unset values set by set() and get() as well
-                as ones set by push()
+ * __unset()__    - This allows you to unset values set by set() and get() as well
+                as ones set by push().
 
- * nzb_set()  - Similar to the set() function identified above except it
+ * __nzb_set()__  - Similar to the set() function identified above except it
                 is used to build an nzb meta hash table which can be later
                 pushed to the server using push_dnzb().
 
- * nzb_get()  - Retieves NZB Meta information previously stored.
+ * __add_nzb()__  - Using the built in API/RPC NZBGet supports, this
+                allows you to specify a path to an NZBFile which you want to
+                enqueue for downloading.
 
- * nzb_unset()- Removes a variable previously set completely.
+ * __nzb_get()__  - Retieves NZB Meta information previously stored.
 
- * get_api()  - Retreive a simple API/RPC object built from the global
-                variables NZBGet passes into an external program when
-                called.
+ * __nzb_unset()__ - Removes a variable previously set completely.
 
- * get_files()- list all files in a specified directory as well as fetching
+ * __get_statistics()__ - Using the built in API/RPC NZBGet supports, this
+                retrieves and returns the statistics in an easy to ready
+                dictionary  (_PostProcessScript_ only).
+
+ * __get_logs()__ - Using the built in API/RPC NZBGet supports, this
+                retrieves and returns the latest logs.
+
+ * __get_files()__ - list all files in a specified directory as well as fetching
                 their details such as filesize, modified date, etc in an
                 easy to reference dictionary.  You can provide a ton of
                 different filters to minimize the content returned. Filters
                 can by a regular expression, file prefixes, and/or suffixes.
 
- * parse_nzbfile() - Parse an NZB-File and extract all of its meta
+ * __parse_nzbfile()__ - Parse an NZB-File and extract all of its meta
                      information from it. lxml must be installed on your
-                     system for this to work correctly
+                     system for this to work correctly.
 
- * parse_list() - Takes a string (or more) as well as lists of strings as
+ * __parse_list()__ - Takes a string (or more) as well as lists of strings as
                   input. It then cleans it up and produces an easy to
                   manage list by combining all of the results into 1.
                   Hence: parse_list('.mkv, .avi') returns:
                       [ '.mkv', '.avi' ]
 
- * parse_path_list() - Very smilar to parse_list() except that it is used
+ * __parse_path_list()__ - Very smilar to parse_list() except that it is used
                   to handle directory paths while cleaning them up at the
                   same time.
 
- * parse_bool() - Handles all of NZBGet's configuration options such as
+ * __parse_bool()__ - Handles all of NZBGet's configuration options such as
                   'on' and 'off' as well as 'yes' or 'no', or 'True' and
                   'False'.  It greatly simplifies the checking of these
-                  variables passed in from NZBGet
+                  variables passed in from NZBGet.
 
 
- * push_guess() - You can push a guessit dictionary (or one of your own
+ * __push_guess()__ - You can push a guessit dictionary (or one of your own
                   that can help identify your release for other scripts
-                  to use later after yours finishes
+                  to use later after yours finishes.
 
- * pull_guess() - Pull a previous guess pushed by another script.
+ * __pull_guess()__ - Pull a previous guess pushed by another script.
                   why redo grunt work if it's already done for you?
                   if no previous guess content was pushed, then an
                   empty dictionary is returned.
 
- * push_dnzb() - You can push all nzb meta information onbtained to
+ * __push_dnzb()__ - You can push all nzb meta information onbtained to
                   the NZBGet server as DNZB_ meta tags.
 
- * pull_dnzb() - Pull all DNZB_ meta tags issued by the server and
+ * __pull_dnzb()__ - Pull all DNZB_ meta tags issued by the server and
                  return their values in a dictionary.
                   if no  DNZB_ (NZB Meta information) was found, then an
                   empty dictionary is returned instead.
 
- * deobfuscate() - Take a filename and return it in a deobfuscated to the
+ * __deobfuscate()__ - Take a filename and return it in a deobfuscated to the
                    best of its ability. (_PostProcessScript_ only)
 
+ * __is_unique_instance()__ - Allows you to ensure your instance of your script is
+                  unique. This is useful for Scheduled scripts which can be
+                  called and then run concurrently with NZBGet.
 How To Use
 ==========
 * Developers are only required to define a class that inherits the NZBGet class
@@ -125,7 +137,7 @@ _PostProcessScript_, etc.).
 
 Post Process Script Example
 ===========================
-```
+```python
 #############################################################################
 ### NZBGET POST-PROCESSING SCRIPT                                         ###
 #
@@ -169,9 +181,9 @@ class MyPostProcessScript(PostProcessScript):
         print 'STATUS %s' self.get('STATUS')
         print 'SCRIPTSTATUS %s' self.get('SCRIPTSTATUS')
 
-        # Set any variable you want by any key.  Note that if you use
+        # Set any variable you want by any key. Note that if you use
         # keys that were defined by the system (such as CATEGORY, DIRECTORY,
-        # etc, you may have some undesirable results.  Try to avoid reusing
+        # etc, you may have some undesirable results. Try to avoid reusing
         # system variables already defined (identified above):
         self.set('MY_KEY', 'MY_VALUE')
 
@@ -197,7 +209,7 @@ class MyPostProcessScript(PostProcessScript):
         # as follows:
         print 'DEBUG %s' self.get('DEBUG')
 
-        # Returns have been made easy.  Just return:
+        # Returns have been made easy. Just return:
         #   * True if everything was successful
         #   * False if there was a problem
         #   * None if you want to report that you've just gracefully
@@ -206,7 +218,7 @@ class MyPostProcessScript(PostProcessScript):
                   success status.
 
         # Feel free to use the actual exit codes as well defined by
-        # NZBGet on their website.  They have also been defined here
+        # NZBGet on their website. They have also been defined here
         # from nzbget import EXIT_CODE
 
         return True
@@ -224,7 +236,7 @@ if __name__ == "__main__":
 
 Scan Script Example
 ===================
-```
+```python
 ############################################################################
 ### NZBGET SCAN SCRIPT                                                   ###
 #
@@ -283,7 +295,7 @@ if __name__ == "__main__":
 
 Scheduler Script Example
 =======================
-```
+```python
 ############################################################################
 ### NZBGET SCHEDULER SCRIPT                                               ###
 #
@@ -336,7 +348,7 @@ if __name__ == "__main__":
 
 MultiScript Example
 =======================
-```
+```python
 ############################################################################
 ### NZBGET POST-PROCESSING/SCHEDULER SCRIPT                              ###
 #

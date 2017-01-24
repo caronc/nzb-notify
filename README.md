@@ -80,7 +80,7 @@ should be known that Notify.py depends on the following packages:
 | *markdown                    | 2.5.1   | https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26                        |
 | ndg-httpsclient              | 0.3.2   | https://pypi.python.org/pypi/ndg-httpsclient/0.3.2                                   |
 | ordereddict                  | 1.1     | https://pypi.python.org/pypi/ordereddict/1.1                                         |
-| pynzbget                     | 0.2.3   | https://pypi.python.org/pypi/pynzbget/0.2.3                                          |
+| pynzbget                     | 0.3.1   | https://pypi.python.org/pypi/pynzbget/0.3.1                                          |
 | requests **[P]**             | 2.3.0   | https://pypi.python.org/pypi/requests/2.3.0                                          |
 | six                          | 1.6.1   | https://pypi.python.org/pypi/six/1.6.1                                               |
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |

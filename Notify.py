@@ -3,7 +3,7 @@
 #
 # Notififications Core
 #
-# Copyright (C) 2014-2016 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2017 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of NZB-Notify.
 #
@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Tue, Sep 20th, 2016.
+# Date: Mon, Jan 22th, 2017.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.5.5
+# Script Version: 0.5.6
 #
 
 ###########################################################################
