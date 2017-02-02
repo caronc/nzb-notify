@@ -14,8 +14,7 @@ Installation Instructions
 2. Simply place the __Notify.py__ and __Notify__ directory together.
    * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
    * __NZBGet users__: As one additional note; this script makes use of the RPC feature of NZBGet in order to retrive all of the status information it will notify you with.  Its very important that this is configured correctly (in the 'Settings -> Security' area). The out of the box settings should work fine; but worth noting here should experience any issues.
-
-   * __SABnzbd users__: You'll point your SABnzbd configuration to reference sabnzbd-notify.py and _not_ Notify.py.
+   * __SABnzbd users__: You'll point your SABnzbd configuration to reference sabnzbd-notify.py via the _Script_ entry and _not_ Notify.py. However, please note that the Notify.py script is still required (as sabnzbd-notify.py is a wrapper to it).  You will use the _Parameters_ section to provide the services you wish to notify (see below how they are constructed).
 
 The Non-NZBGet/SABnzbd users can also use this script from the command line.
 See the __Command Line__ section below for more instructions on how to do this.
@@ -60,7 +59,7 @@ It also just supports straight forward emailing too:
 Common supported services where the smtp port, server, userid structure, and security is already known are as follows:
 * [Google](https://mail.google.com) - __mailtos://userid:pass@gmail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (mail.google.com) and appropriate secure port (587).  It also automatically constructs your userid as being userid@gmail.com. __Note:__ If you're using 2 way authentication, you'll need to [generate an app password](https://security.google.com/settings/security/apppasswords)
 * [Hotmail](https://hotmail.com) - __mailtos://userid:pass@hotmail.com__ or __mailtos://userid:pass@live.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (465).  It also automatically constructs your userid as being userid@live.com or userid@hotmail.com depending on what you identified.
-* [Prontomail](http://www.prontomail.com) - __mailtos://userid:pass@prontomail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (secure.emailsrvr.com) and appropriate secure port (465).  It also automatically constructs your userid as being userid@prontomail.com. 
+* [Prontomail](http://www.prontomail.com) - __mailtos://userid:pass@prontomail.com__  knows to use a secure connection (even if you specify mailto://) and to use the smtp server (secure.emailsrvr.com) and appropriate secure port (465).  It also automatically constructs your userid as being userid@prontomail.com.
 * [Yahoo](https://mail.yahoo.com) - __mailtos://userid:pass@yahoo.com__ knows to use a secure connection (even if you specify mailto://) and to use the smtp server smtp.live.com and appropriate secure port (587).  It also automatically constructs your userid as being userid@yahoo.com or userid@yahoo.ca depending on what you identified.
 
 To eliminate any confusion, any url parameter (key=value) specified will over-ride what was detected in the url; hence:
