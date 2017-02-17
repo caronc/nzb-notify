@@ -22,6 +22,10 @@
 from time import sleep
 import re
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 import markdown
 
 from logging import Logger
