@@ -2,7 +2,7 @@
 #
 # A base scripting class for NZBGet
 #
-# Copyright (C) 2014-2015 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2017 Chris Caron <lead2gold@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,10 @@ functionality such as:
  * parse_nzbfile() - Parse an NZB-File and extract all of its meta
                      information from it. lxml must be installed on your
                      system for this to work correctly
+
+ * parse_nzbcontent() - Parse meta information from the specified NZB Content
+                     lxml must be installed on your system for this to work
+                     correctly.
 
  * parse_url()  - Parse a URL and extract the protocol, user, pass,
                   remote directory and hostname from the string.
@@ -125,6 +129,7 @@ Additionally all exception handling is wrapped to make debugging easier.
 
 import re
 from tempfile import gettempdir
+from tempfile import mkstemp
 from os import environ
 from os import makedirs
 from os import chdir
@@ -152,6 +157,10 @@ from logging import Logger
 from datetime import datetime
 from Utils import tidy_path
 from urllib import unquote
+import ssl
+
+import traceback
+from sys import exc_info
 
 from Logger import VERBOSE_DEBUG
 from Logger import VERY_VERBOSE_DEBUG
@@ -161,6 +170,7 @@ from Logger import destroy_logger
 from Utils import ESCAPED_PATH_SEPARATOR
 from Utils import ESCAPED_WIN_PATH_SEPARATOR
 from Utils import ESCAPED_NUX_PATH_SEPARATOR
+from Utils import unescape_xml
 
 import signal
 
@@ -226,6 +236,7 @@ from base64 import standard_b64encode
 try:
     # Python 2
     from xmlrpclib import ServerProxy
+    from xmlrpclib import SafeTransport
 except ImportError:
     # Python 3
     from xmlrpc.client import ServerProxy
@@ -266,6 +277,20 @@ EXIT_CODES = (
    EXIT_CODE.FAILURE,
    EXIT_CODE.NONE,
 )
+
+class NZBGetDuplicateMode(object):
+    """Defines Duplicate Mode. This is used when Adding NZB-Files directly
+    """
+    # This is default duplicate mode. Only nzb-files with higher scores
+    # (when already downloaded) are considered.
+    SCORE = u'SCORE'
+
+    # All NZB-Files regardless of their scores are downloaded
+    ALL  = 'ALL'
+
+    # Force download and disable all duplicate checks.
+    FORCE = 'FORCE'
+
 
 class NZBGetExitException(Exception):
     def __init__(self, code=EXIT_CODE.NONE):
@@ -1419,6 +1444,45 @@ class ScriptBase(object):
 
         return results
 
+    def parse_nzbcontent(self, nzbcontent):
+        """
+        Parses nzb-content (extracted from within an NZB-File)
+
+        This script first writes the contents of the NZB to a new file
+        so that we can parse it using the parse_nzbfile() which already
+        manages all the built in support for the several XML parsers
+        out there.
+
+        """
+        # Temporarily write content to a temporary file
+        fname = mkstemp(
+            suffix='.tmp.nzb', dir=self.tempdir, text=True,
+        )
+
+        try:
+            fd = open(fname)
+        except:
+            return {}
+
+        try:
+            fd.write(nzbcontent)
+
+        finally:
+            fd.close()
+
+        results = self.parse_nzbfile(fname)
+
+        try:
+            unlink(fname)
+        except:
+            if verbose:
+                self.logger.warning(
+                    'Failed to removed (temporary) NZB-File: %s' % \
+                    fname)
+
+        return results
+
+
     def parse_url(self, url, default_schema='http', qsd_auth=True):
         """A function that greatly simplifies the parsing of a url
         specified by the end user.
@@ -2245,13 +2309,46 @@ class ScriptBase(object):
             str(port),
         )
 
-        # Establish a connection to the server
+        # Establish a connection to the server; since most NZBGet secure
+        # servers can't verified since they're hosted internally, we set
+        # the CERT_NONE flag.
+
+        # Future TODO: make this an option for those who want to verify
+        # the host.
         try:
-            self.api = ServerProxy(xmlrpc_url)
-            self.logger.debug('API connected @ %s' % xmlrpc_url)
+            # Python >= 2.7.9
+            context = ssl._create_unverified_context())
+            try:
+                self.api = ServerProxy(
+                    xmlrpc_url,
+                    verbose=False,
+                    use_datetime=True,
+                    context=context,
+                )
+            except:
+                self.logger.debug('API connection failed @ %s' % xmlrpc_url)
+                return False
+
         except:
-            self.logger.debug('API connection failed @ %s' % xmlrpc_url)
-            return False
+            # Python < 2.7.9
+            transport = SafeTransport(
+                use_datetime=True,
+                context=context,
+            )
+
+            try:
+                self.api = ServerProxy(
+                    xmlrpc_url,
+                    verbose=False,
+                    use_datetime=True,
+                    transport=transport,
+                )
+
+            except:
+                self.logger.debug('API connection failed @ %s' % xmlrpc_url)
+                return False
+
+            self.logger.debug('API connected @ %s' % xmlrpc_url)
 
         return True
 
@@ -2296,25 +2393,81 @@ class ScriptBase(object):
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Add NZB File to Queue
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    def add_nzb(self, filename):
+    def add_nzb(self, filename, content=None, category=None,
+                priority=PRIORITY.NORMAL):
         """Simply add's an NZB file to NZBGet (via the API)
         """
         if not self.api_connect():
             # Could not connect
             return None
 
-        try:
-            f = open(filename, "r")
-        except:
-            return False
+        # Defaults
+        add_to_top = False
+        add_paused = False
+        dup_key = ''
+        dup_score = 0
+        dup_mode = NZBGetDuplicateMode.FORCE
 
-        content = f.read()
-        f.close()
+        if content is None:
+            if not category:
+                # Verify content is an NZB-File
+                meta = self.parse_nzbfile(filename)
+                category = unescape_xml(meta.get('CATEGORY', '').strip())
+
+            try:
+                f = open(filename, "r")
+
+            except:
+                self.logger.debug('API:NZB-File Could not open: %s' % filename)
+                return False
+
+            try:
+                content = f.read()
+
+            except:
+                self.logger.debug('API:NZB-File Could not read: %s' % filename)
+                return False
+
+            f.close()
+
+        elif not category:
+            # We have content already loaded; We need to convert it into an
+            # XML object for parsing
+            meta = self.parse_nzbcontent(content)
+            category = unescape_xml(meta.get('CATEGORY', '').strip())
+
+        # Encode content
         b64content = standard_b64encode(content)
+
         try:
-            return self.api.append(filename, 'software', False, b64content)
+            return self.api.append(
+                filename,
+                b64content,
+                category,
+                priority,
+                add_to_top,
+                add_paused,
+                dup_key,
+                dup_score,
+                dup_mode,
+            )
+
         except:
+            # Try to capture error
+            exc_type, exc_value, exc_traceback = exc_info()
+            lines = traceback.format_exception(
+                     exc_type, exc_value, exc_traceback)
+            if self.script_mode != SCRIPT_MODE.NONE:
+                # NZBGet Mode enabled
+                for line in lines:
+                    self.logger.error(line)
+            else:
+                # Display error as is
+                self.logger.error('API:NZB-File append() Exception:\n%s' % \
+                    ''.join('  ' + line for line in lines))
+
             return False
+        return True
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # File Retrieval
@@ -2700,9 +2853,6 @@ class ScriptBase(object):
         """The intent is this is the script you run from within your script
         after overloading the main() function of your class
         """
-        import traceback
-        from sys import exc_info
-
         # Default
         main_function = self.main
 
