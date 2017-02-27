@@ -2317,7 +2317,7 @@ class ScriptBase(object):
         # the host.
         try:
             # Python >= 2.7.9
-            context = ssl._create_unverified_context())
+            context = ssl._create_unverified_context()
             try:
                 self.api = ServerProxy(
                     xmlrpc_url,
@@ -2329,7 +2329,7 @@ class ScriptBase(object):
                 self.logger.debug('API connection failed @ %s' % xmlrpc_url)
                 return False
 
-        except:
+        except AttributeError:
             # Python < 2.7.9
             transport = SafeTransport(
                 use_datetime=True,
