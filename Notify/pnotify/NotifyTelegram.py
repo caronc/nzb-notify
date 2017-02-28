@@ -67,7 +67,7 @@ VALIDATE_BOT_TOKEN = re.compile(
 
 # Chat ID is required
 IS_CHAT_ID_RE = re.compile(
-    r'(@*(?P<idno>[0-9]{1,10})|(?P<name>[a-z_-][a-z0-9_-]*))',
+    r'(@*(?P<idno>-?[0-9]{1,10})|(?P<name>[a-z_-][a-z0-9_-]*))',
     re.IGNORECASE,
 )
 
