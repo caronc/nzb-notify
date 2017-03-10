@@ -431,6 +431,10 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         for _server in servers:
 
+            # swap hash (#) tag values with their html version
+            # This is useful for accepting channels (as arguments to pushbullet)
+            _server = _server.replace('/#', '/%23')
+
             server = self.parse_url(_server, default_schema='unknown')
             if not server:
                 # This is a dirty hack; but it's the only work around to
