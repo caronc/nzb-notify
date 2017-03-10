@@ -32,7 +32,7 @@ from NotifyBase import IS_EMAIL_RE
 PUSHBULLET_SEND_TO_ALL = 'ALL_DEVICES'
 
 # PushBullet uses the http protocol with JSON requests
-PUSHBULLET_URL = 'https://api.pushbullet.com/api/pushes'
+PUSHBULLET_URL = 'https://api.pushbullet.com/v2/pushes'
 
 # Used to break apart list of potential recipients by their delimiter
 # into a usable list.
