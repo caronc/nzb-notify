@@ -165,10 +165,11 @@ The syntax is very similar except SABnzbd expects 4 distinct arguments.
 |   3   | The message body. |
 |   4   | Comma delmited URL strings just like the ones already discussed above.
 
-=== SABnzbd Configuration ===
+### SABnzbd Configuration
 First, make sure you've placed __sabnzb-notify.py__, __Notify.py__, and the __Notify__ inside of the _/path/to/SABnzbd/scripts/_ directory or the instructions below will not work.
 
 Once you know the _URL_(s) that work for you, you can set SABnzbd to automatically notify setting it up as follows. From within SABnzbd's web interface:
+
 - Click on __Settings__
 - Click on __Notifications__
 - Place a checkbox in the __Enable notification script__ option.
