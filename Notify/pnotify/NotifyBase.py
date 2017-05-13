@@ -31,6 +31,9 @@ from os.path import join
 from os.path import dirname
 from os.path import abspath
 
+# For conversion
+from chardet import detect as chardet_detect
+
 # Define a general HTML Escaping
 try:
     # use sax first because it's faster
@@ -323,6 +326,60 @@ class NotifyBase(object):
 
         return escaped
 
+    def to_utf8(self, content):
+        """
+        Attempts to convert non-utf8 content to... (you guessed it) utf8
+        """
+        if not content:
+            return ''
+
+        if isinstance(content, unicode):
+            return content.encode('utf-8')
+
+        result = chardet_detect(content)
+        encoding = result['encoding']
+        try:
+            content = content.decode(
+                encoding,
+                errors='replace',
+            )
+            return content.encode('utf-8')
+
+        except UnicodeError:
+            raise ValueError(
+                '%s contains invalid characters' % (
+                    content,
+            ))
+
+        except KeyError:
+            raise ValueError(
+                '%s encoding could not be detected ' % (
+                    content,
+            ))
+
+        except TypeError:
+            try:
+                content = content.decode(
+                    encoding,
+                    'replace',
+                )
+                return content.encode('utf-8')
+
+            except UnicodeError:
+                raise ValueError(
+                    '%s contains invalid characters' % (
+                        content,
+                ))
+
+            except KeyError:
+                raise ValueError(
+                    '%s encoding could not be detected ' % (
+                        content,
+                ))
+
+        return ''
+
+
     def to_html(self, body):
         """
         Returns the specified title in an html format and factors
@@ -357,6 +414,10 @@ class NotifyBase(object):
             body = ''
         if not isinstance(title, basestring):
             title = ''
+
+        # Ensure we're set up as UTF-8
+        title = self.to_utf8(title)
+        body = self.to_utf8(body)
 
         if title:
             title = title[0:self.title_maxlen]
