@@ -164,3 +164,16 @@ The syntax is very similar except SABnzbd expects 4 distinct arguments.
 |   2   | The title of the notification message.  If this is an empty string, then there is enough information based on the notification type you passed in (argument 1) to generate a title. |
 |   3   | The message body. |
 |   4   | Comma delmited URL strings just like the ones already discussed above.
+
+### SABnzbd Configuration
+First, make sure you've placed __sabnzb-notify.py__, __Notify.py__, and the __Notify__ inside of the _/path/to/SABnzbd/scripts/_ directory or the instructions below will not work.
+
+Once you know the _URL_(s) that work for you, you can set SABnzbd to automatically notify setting it up as follows. From within SABnzbd's web interface:
+
+- Click on __Settings__
+- Click on __Notifications__
+- Place a checkbox in the __Enable notification script__ option.
+- Choose __sabnzb-notify.py__ from the Script dropdown menu.
+- Specify the URL such as kodi://192.168.0.2 in the _Parameters_ section. You can specify more then one URL here by simply using a _comma_ (,) as a delimiter.
+
+CentOS/RedHat users can also refer to a [blog entry I prepared](http://nuxref.com/2016/10/20/sabnzbd-installation-centos-7/) for this which includes RPM packaging for both [SABnzbd](http://repo.nuxref.com/centos/7/en/x86_64/custom/repoview/sabnzbd.html) and [NZB-Notify](http://repo.nuxref.com/centos/7/en/x86_64/custom/repoview/sabnzbd-script-notify.html). These can be easily installed (with all required dependencies by just getting yourself set up with my repository [here](http://nuxref.com/nuxref-repository/).
