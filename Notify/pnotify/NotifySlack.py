@@ -206,6 +206,9 @@ class NotifySlack(NotifyBase):
             if len(channel) > 1 and channel[0] == '+':
                 # Treat as encoded id if prefixed with a +
                 _channel = channel[1:]
+            elif len(channel) > 1 and channel[0] == '@':
+                # Treat @ value 'as is'
+                _channel = channel
             else:
                 # Prefix with channel hash tag
                 _channel = '#%s' % channel
