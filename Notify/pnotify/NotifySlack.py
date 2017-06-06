@@ -203,9 +203,16 @@ class NotifySlack(NotifyBase):
                 )
                 continue
 
+            if len(channel) > 1 and channel[0] == '+':
+                # Treat as encoded id if prefixed with a +
+                _channel = channel[1:]
+            else:
+                # Prefix with channel hash tag
+                _channel = '#%s' % channel
+
             # prepare JSON Object
             payload = {
-                'channel': '#%s' % channel,
+                'channel': _channel,
                 'username': self.user,
                 # Use Markdown language
                 'mrkdwn': True,
