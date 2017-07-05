@@ -218,6 +218,9 @@ class NotifyBase(object):
         self.include_image = include_image
         self.secure = secure
 
+        # Certificate Verification (for SSL calls); default to being enabled
+        self.verify_certificate = kwargs.get('verify', True)
+
         self.host = kwargs.get('host', '')
         self.port = kwargs.get('port')
         if self.port:

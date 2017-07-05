@@ -171,7 +171,9 @@ class NotifyXBMC(NotifyBase):
 
         url += '/jsonrpc'
 
-        self.logger.debug('XBMC/KODI POST URL: %s' % url)
+        self.logger.debug('XBMC/KODI POST URL: %s (cert_verify=%r)' % (
+            url, self.verify_certificate,
+        ))
         self.logger.debug('XBMC/KODI Payload: %s' % str(payload))
         try:
             r = requests.post(
@@ -179,6 +181,7 @@ class NotifyXBMC(NotifyBase):
                 data=payload,
                 headers=headers,
                 auth=auth,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem

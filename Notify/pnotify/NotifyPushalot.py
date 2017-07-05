@@ -96,13 +96,16 @@ class NotifyPushalot(NotifyBase):
             if image_url:
                 payload['Image'] = image_url
 
-        self.logger.debug('Pushalot POST URL: %s' % PUSHALOT_URL)
+        self.logger.debug('Pushalot POST URL: %s (cert_verify=%r)' % (
+            PUSHALOT_URL, self.verify_certificate,
+        ))
         self.logger.debug('Pushalot Payload: %s' % str(payload))
         try:
             r = requests.post(
                 PUSHALOT_URL,
                 data=dumps(payload),
                 headers=headers,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem

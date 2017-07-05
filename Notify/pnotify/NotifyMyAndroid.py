@@ -120,13 +120,16 @@ class NotifyMyAndroid(NotifyBase):
         if self.devapikey:
             payload['developerkey'] = self.devapikey
 
-        self.logger.debug('NMA POST URL: %s' % NMA_URL)
+        self.logger.debug('NMA POST URL: %s (cert_verify=%r)' % (
+            NMA_URL, self.verify_certificate,
+        ))
         self.logger.debug('NMA Payload: %s' % str(payload))
         try:
             r = requests.post(
                 NMA_URL,
                 data=payload,
                 headers=headers,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem

@@ -120,7 +120,9 @@ class NotifyPushBullet(NotifyBase):
                     recipient,
                 )
 
-            self.logger.debug('PushBullet POST URL: %s' % PUSHBULLET_URL)
+            self.logger.debug('PushBullet POST URL: %s (cert_verify=%r)' % (
+                PUSHBULLET_URL, self.verify_certificate,
+            ))
             self.logger.debug('PushBullet Payload: %s' % str(payload))
             try:
                 r = requests.post(
@@ -128,6 +130,7 @@ class NotifyPushBullet(NotifyBase):
                     data=dumps(payload),
                     headers=headers,
                     auth=auth,
+                    verify=self.verify_certificate,
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem

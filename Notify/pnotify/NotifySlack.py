@@ -232,13 +232,16 @@ class NotifySlack(NotifyBase):
             if image_url:
                 payload['attachments'][0]['footer_icon'] = image_url
 
-            self.logger.debug('Slack POST URL: %s' % url)
+            self.logger.debug('Slack POST URL: %s (cert_verify=%r)' % (
+                url, self.verify_certificate,
+            ))
             self.logger.debug('Slack Payload: %s' % str(payload))
             try:
                 r = requests.post(
                     url,
                     data=dumps(payload),
                     headers=headers,
+                    verify=self.verify_certificate,
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem

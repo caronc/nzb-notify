@@ -129,7 +129,9 @@ class NotifyBoxcar(NotifyBase):
 
         url += '/api/push'
 
-        self.logger.debug('Boxcar POST URL: %s' % url)
+        self.logger.debug('Boxcar POST URL: %s (cert_verify=%r)' % (
+            url, self.verify_certificate,
+        ))
         self.logger.debug('Boxcar Payload: %s' % str(payload))
         try:
             r = requests.post(
@@ -137,6 +139,7 @@ class NotifyBoxcar(NotifyBase):
                 data=dumps(payload),
                 headers=headers,
                 auth=auth,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 try:

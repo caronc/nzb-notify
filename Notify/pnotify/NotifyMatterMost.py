@@ -120,13 +120,16 @@ class NotifyMatterMost(NotifyBase):
 
         url += '/hooks/%s' % self.authtoken
 
-        self.logger.debug('MatterMost POST URL: %s' % url)
+        self.logger.debug('MatterMost POST URL: %s (cert_verify=%r)' % (
+            url, self.verify_certificate,
+        ))
         self.logger.debug('MatterMost Payload: %s' % str(payload))
         try:
             r = requests.post(
                 url,
                 data=dumps(payload),
                 headers=headers,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem

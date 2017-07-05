@@ -157,7 +157,9 @@ class NotifyJoin(NotifyBase):
             # Prepare the URL
             url = '%s?%s' % (JOIN_URL, urlencode(url_args))
 
-            self.logger.debug('Join POST URL: %s' % url)
+            self.logger.debug('Join POST URL: %s (cert_verify=%r)' % (
+                url, self.verify_certificate,
+            ))
             self.logger.debug('Join Payload: %s' % str(payload))
 
             try:
@@ -165,6 +167,7 @@ class NotifyJoin(NotifyBase):
                     url,
                     data=payload,
                     headers=headers,
+                    verify=self.verify_certificate,
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem
