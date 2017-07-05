@@ -72,13 +72,16 @@ class NotifyFaast(NotifyBase):
             if image_url:
                 payload['icon_url'] = image_url
 
-        self.logger.debug('Faast POST URL: %s' % FAAST_URL)
+        self.logger.debug('Faast POST URL: %s (cert_verify=%r)' % (
+            FAAST_URL, self.verify_certificate,
+        ))
         self.logger.debug('Faast Payload: %s' % str(payload))
         try:
             r = requests.post(
                 FAAST_URL,
                 data=payload,
                 headers=headers,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem

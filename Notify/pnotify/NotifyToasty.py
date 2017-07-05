@@ -99,13 +99,16 @@ class NotifyToasty(NotifyBase):
             # URL to transmit content via
             url = '%s%s' % (TOASTY_URL, device)
 
-            self.logger.debug('Toasty POST URL: %s' % url)
+            self.logger.debug('Toasty POST URL: %s (cert_verify=%r)' % (
+                url, self.verify_certificate,
+            ))
             self.logger.debug('Toasty Payload: %s' % str(payload))
             try:
                 r = requests.get(
                     url,
                     data=payload,
                     headers=headers,
+                    verify=self.verify_certificate,
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem

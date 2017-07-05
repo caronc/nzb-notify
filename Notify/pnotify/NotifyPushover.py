@@ -163,7 +163,9 @@ class NotifyPushover(NotifyBase):
 
                 payload['device'] = device
 
-            self.logger.debug('Pushover POST URL: %s' % PUSHOVER_URL)
+            self.logger.debug('Pushover POST URL: %s (cert_verify=%r)' % (
+                PUSHOVER_URL, self.verify_certificate,
+            ))
             self.logger.debug('Pushover Payload: %s' % str(payload))
             try:
                 r = requests.post(
@@ -171,6 +173,7 @@ class NotifyPushover(NotifyBase):
                     data=payload,
                     headers=headers,
                     auth=auth,
+                    verify=self.verify_certificate,
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem

@@ -86,7 +86,9 @@ class NotifyJSON(NotifyBase):
 
         url += self.fullpath
 
-        self.logger.debug('JSON POST URL: %s' % url)
+        self.logger.debug('JSON POST URL: %s (cert_verify=%r)' % (
+            url, self.verify_certificate,
+        ))
         self.logger.debug('JSON Payload: %s' % str(payload))
         try:
             r = requests.post(
@@ -94,6 +96,7 @@ class NotifyJSON(NotifyBase):
                 data=dumps(payload),
                 headers=headers,
                 auth=auth,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 try:

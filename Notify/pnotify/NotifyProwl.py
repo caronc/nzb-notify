@@ -124,13 +124,16 @@ class NotifyProwl(NotifyBase):
         if self.providerkey:
             payload['providerkey'] = self.providerkey
 
-        self.logger.debug('Prowl POST URL: %s' % PROWL_URL)
+        self.logger.debug('Prowl POST URL: %s (cert_verify=%r)' % (
+            PROWL_URL, self.verify_certificate,
+        ))
         self.logger.debug('Prowl Payload: %s' % str(payload))
         try:
             r = requests.post(
                 PROWL_URL,
                 data=payload,
                 headers=headers,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 # We had a problem

@@ -292,7 +292,9 @@ class NotifyTelegram(NotifyBase):
                     'chat_id': payload['chat_id'],
                     'disable_notification': True,
                 }
-                self.logger.debug('Telegram (image) POST URL: %s' % image_url)
+                self.logger.debug('Telegram (image) POST URL: %s (cert_verify=%r)' % (
+                    image_url, self.verify_certificate,
+                ))
                 self.logger.debug('Telegram (image) Payload: %s' % str(image_payload))
 
                 try:
@@ -303,6 +305,7 @@ class NotifyTelegram(NotifyBase):
                             'User-Agent': self.app_id,
                         },
                         files=files,
+                        verify=self.verify_certificate,
                     )
                     if r.status_code != requests.codes.ok:
                         # We had a problem
@@ -352,6 +355,9 @@ class NotifyTelegram(NotifyBase):
                     continue
 
             self.logger.debug('Telegram POST URL: %s' % url)
+            self.logger.debug('Telegram POST URL: %s (cert_verify=%r)' % (
+                url, self.verify_certificate,
+            ))
             self.logger.debug('Telegram Payload: %s' % str(payload))
 
             try:
@@ -359,6 +365,7 @@ class NotifyTelegram(NotifyBase):
                     url,
                     data=dumps(payload),
                     headers=headers,
+                    verify=self.verify_certificate,
                 )
                 if r.status_code != requests.codes.ok:
                     # We had a problem

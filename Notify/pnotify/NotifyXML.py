@@ -104,7 +104,9 @@ class NotifyXML(NotifyBase):
         url += self.fullpath
         payload = re_table.sub(lambda x: re_map[x.group()], self.payload)
 
-        self.logger.debug('XML POST URL: %s' % url)
+        self.logger.debug('XML POST URL: %s (cert_verify=%r)' % (
+            url, self.verify_certificate,
+        ))
         self.logger.debug('XML Payload: %s' % str(payload))
         try:
             r = requests.post(
@@ -112,6 +114,7 @@ class NotifyXML(NotifyBase):
                 data=payload,
                 headers=headers,
                 auth=auth,
+                verify=self.verify_certificate,
             )
             if r.status_code != requests.codes.ok:
                 try:

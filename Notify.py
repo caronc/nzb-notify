@@ -518,6 +518,9 @@ class NotifyScript(PostProcessScript, QueueScript):
                 # Base
                 'include_image': include_image,
                 'secure': (server['schema'][-1] == 's'),
+                # Support SSL Certificate 'verify' keyword
+                # Default to being enabled (True)
+                'verify': self.parse_bool(server['qsd'].get('verify', True)),
                 # Overrides
                 'override_image_url': image_url,
                 'override_image_path': image_path,
