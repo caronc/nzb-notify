@@ -75,6 +75,8 @@
 #  - tgram:// -> An Telegram Notification
 #  - xml:// -> A simple xml (SOAP) Notification
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
+#  - mmost:// -> A (Unsecure) MatterMost Notification
+#  - mmosts:// -> A Secure MatterMost Notification
 #
 #
 # NOTE: If no port is specified, then the default port for the service
@@ -132,6 +134,26 @@
 # Some mail services are pretty mainstream (such as gmail.com, hotmail.com,
 # etc). Specifying one of these hosts for the domain will result in the
 # proper port, security, and SMTP mail server configuration automatically.
+#
+#
+# NOTE: MattterMost notifications require you to generate a WebHook Key. By default it will use port 8065 unless otherwise specified.
+#
+# Once you've got this information; here is the structure of the message:
+#  - mmost://domain.com/WebHookKey
+#  - mmost://domain.com:8065/WebHookKey
+#
+# You can send a notification to a channel with the following:
+#  - mmost://domain.com/WebHookKey?channel=test
+#
+# Or as a user:
+#  - mmost://user@domain.com/WebHookKey
+#
+# If you're running an https setup, then just use mmosts://
+#  - mmosts://domain.com/WebHookKey
+#  - mmosts://domain.com:8065/WebHookKey
+#  - mmosts://domain.com/WebHookKey?channel=test
+#  - mmosts://user@domain.com/WebHookKey
+#
 #
 # NOTE: Notify My Android requires an API Key it uses to comuncate with the
 # remote server.  This is specified inline with the service request like so:
@@ -299,6 +321,8 @@ NOTIFY_JSON_SCHEMA = 'json'
 NOTIFY_JSONS_SCHEMA = 'jsons'
 NOTIFY_KODI_SCHEMA = 'kodi'
 NOTIFY_KODIS_SCHEMA = 'kodis'
+NOTIFY_MATTERMOST_SCHEMA = 'mmost'
+NOTIFY_MATTERMOSTS_SCHEMA = 'mmosts'
 NOTIFY_PUSHALOT_SCHEMA = 'palot'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 NOTIFY_PUSHOVER_SCHEMA = 'pover'
@@ -325,6 +349,10 @@ SCHEMA_MAP = {
     NOTIFY_KODI_SCHEMA: NotifyXBMC,
     # Secure KODI Notification
     NOTIFY_KODIS_SCHEMA: NotifyXBMC,
+    # MatterMost (Unsecure) Notification
+    NOTIFY_MATTERMOST_SCHEMA: NotifyMatterMost,
+    # MatterMost (Secure) Notification
+    NOTIFY_MATTERMOSTS_SCHEMA: NotifyMatterMost,
     # Growl Notification
     NOTIFY_GROWL_SCHEMA: NotifyGrowl,
     # Prowl Notification
@@ -679,6 +707,41 @@ class NotifyScript(PostProcessScript, QueueScript):
                 notify_args = notify_args + {
                     'apikey': server['host'],
                     'devices': devices,
+                }.items()
+
+            # #######################################################################
+            # MatterMost Notification Support
+            # #######################################################################
+            elif server['schema'] in (
+                NOTIFY_MATTERMOST_SCHEMA,
+                NOTIFY_MATTERMOSTS_SCHEMA):
+
+                try:
+                    authtoken = filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    ))[0]
+
+                except (AttributeError, IndexError):
+                    # Force some bad values that will get caught
+                    # in parsing later
+                    authtoken = None
+
+                channel = None
+                if 'channel' in server['qsd'] and len(server['qsd']['channel']):
+                    # Allow the user to specify the channel to post to
+                    try:
+                        channel = unquote(server['qsd']['channel']).strip()
+
+                    except (AttributeError, TypeError, ValueError):
+                        self.logger.warning(
+                            'An invalid MatterMost channel of "%s" ' % server['qsd']['channel'] +\
+                            'was specified and will be ignored.'
+                        )
+                        pass
+
+                notify_args = notify_args + {
+                    'authtoken': authtoken,
+                    'channel': channel,
                 }.items()
 
             # #######################################################################
