@@ -102,10 +102,8 @@ class NotifyMatterMost(NotifyBase):
 
         # prepare JSON Object
         payload = {
-            'payload': {
-                'text': body,
-                'icon_url': self.image_url(notify_type),
-            }
+            'text': body,
+            'icon_url': self.image_url(notify_type),
         }
 
         if self.user:
