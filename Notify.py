@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Mon, Jan 22th, 2017.
+# Date: Wed, Jul 5th, 2017.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.5.6
+# Script Version: 0.6.0
 #
 
 ###########################################################################
