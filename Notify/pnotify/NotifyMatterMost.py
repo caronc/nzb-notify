@@ -27,6 +27,7 @@ from NotifyBase import NotifyFormat
 from NotifyBase import NotifyImageSize
 from NotifyBase import NotifyType
 from NotifyBase import HTTP_ERROR_MAP
+from NotifyBase import NOTIFY_APPLICATION_ID
 import re
 
 # Some Reference Locations:
@@ -107,10 +108,13 @@ class NotifyMatterMost(NotifyBase):
         }
 
         if self.user:
-            payload['payload']['username'] = self.user
+            payload['username'] = self.user
+
+        else:
+            payload['username'] = NOTIFY_APPLICATION_ID
 
         if self.channel:
-            payload['payload']['channel'] = self.channel
+            payload['channel'] = self.channel
 
         url = '%s://%s' % (self.schema, self.host)
         if isinstance(self.port, int):
