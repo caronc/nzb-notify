@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Wed, Jul 5th, 2017.
+# Date: Wed, Jul 7th, 2017.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.6.0
+# Script Version: 0.6.1
 #
 
 ###########################################################################
@@ -290,6 +290,9 @@
 # developers and support staff will only be able to help you much easier
 # if they have this extra bit of detail in your logging output.
 #Debug=no
+
+# You can test your server configuration here.
+#TestServers@Test Server Configuration
 
 ### NZBGET QUEUE/POST-PROCESSING SCRIPT
 ###########################################################################
@@ -1141,6 +1144,53 @@ class NotifyScript(PostProcessScript, QueueScript):
             if logs:
                 body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### Logs ###' + \
                     ('%s * ' % NOTIFY_NEWLINE) + ('%s * ' % NOTIFY_NEWLINE).join(logs)
+
+        # Preform Notifications
+        return self.notify(
+            servers,
+            title=title,
+            body=body,
+            notify_type=notify_type,
+        )
+
+    def action_testservers(self, *args, **kwargs):
+        """
+        Execute the TestServers Test Action
+        """
+
+        if not self.validate(keys=(
+            'Servers',
+            'IncludeImage',
+            'IncludeFiles',
+            'IncludeStats',
+            'IncludeLogs',
+            'OnFailure',
+            'OnSuccess',
+        )):
+            return False
+
+        servers = self.parse_list(self.get('Servers', ''))
+        on_failure = self.parse_bool(self.get('OnFailure'))
+        on_success = self.parse_bool(self.get('OnSuccess'))
+
+        include_stats = self.parse_bool(self.get('IncludeStats'))
+        include_files = self.parse_bool(self.get('IncludeFiles'))
+        include_logs = self.get('IncludeLogs', 'NO').upper()
+
+        # Prepare our Test Response
+        notify_type = NotifyType.INFO
+        title='NZBGet-Notify Configuration Test'
+        body='## NZBGet-Notify Configuration Test ##\r\n'
+        body += '- **OnFailure**: %s\r\n' % (
+            'Yes' if on_failure else 'No')
+        body += '- **OnSuccess**: %s\r\n' % (
+            'Yes' if on_success else 'No')
+        body += '- **Include Statistics**: %s\r\n' % (
+            'Yes' if include_stats else 'No')
+        body += '- **Include File Listings**: %s\r\n' % (
+            'Yes' if include_files else 'No')
+        body += '- **Include Log Details**: %s\r\n' % (
+            'Yes' if include_logs else 'No')
 
         # Preform Notifications
         return self.notify(
