@@ -103,7 +103,7 @@ class NotifyMatterMost(NotifyBase):
 
         # prepare JSON Object
         payload = {
-            'text': '#### %s\n%s' % (title, body),
+            'text': '###### %s\n%s' % (title, body),
             'icon_url': self.image_url(notify_type),
         }
 
