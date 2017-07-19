@@ -136,7 +136,8 @@
 # proper port, security, and SMTP mail server configuration automatically.
 #
 #
-# NOTE: MattterMost notifications require you to generate a WebHook Key. By default it will use port 8065 unless otherwise specified.
+# NOTE: MattterMost notifications require you to generate a WebHook Key.
+# By default it will use port 8065 unless otherwise specified.
 #
 # Once you've got this information; here is the structure of the message:
 #  - mmost://domain.com/WebHookKey
