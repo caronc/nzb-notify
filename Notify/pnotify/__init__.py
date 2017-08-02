@@ -40,4 +40,3 @@ from NotifySlack import NotifySlack
 from NotifyJoin import NotifyJoin
 from NotifyTelegram import NotifyTelegram
 from NotifyMatterMost import NotifyMatterMost
-from NotifyPushjet import NotifyPushjet
