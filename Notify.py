@@ -302,7 +302,6 @@ import re
 from os.path import join
 from os.path import abspath
 from os.path import dirname
-from os.path import isfile
 from urllib import unquote
 
 sys.path.insert(0, join(dirname(abspath(__file__)), 'Notify'))
@@ -341,6 +340,8 @@ NOTIFY_XMLS_SCHEMA = 'xmls'
 NOTIFY_SLACK_SCHEMA = 'slack'
 NOTIFY_JOIN_SCHEMA = 'join'
 NOTIFY_TELEGRAM_SCHEMA = 'tgram'
+NOTIFY_PUSHJET_SCHEMA = 'pjet'
+NOTIFY_PUSHJETS_SCHEMA = 'pjets'
 
 SCHEMA_MAP = {
     # BOXCAR Notification
@@ -393,6 +394,10 @@ SCHEMA_MAP = {
     NOTIFY_JOIN_SCHEMA: NotifyJoin,
     # Telegram Notification
     NOTIFY_TELEGRAM_SCHEMA: NotifyTelegram,
+    # Pushjet Notification
+    NOTIFY_PUSHJET_SCHEMA: NotifyPushjet,
+    # Pushjet Notification (secure)
+    NOTIFY_PUSHJETS_SCHEMA: NotifyPushjet,
 }
 
 class IncludeLogOption(object):
@@ -949,7 +954,6 @@ class NotifyScript(PostProcessScript, QueueScript):
                 body = re.split('[\r\n]+', body)
                 body[0] = body[0].strip('#').strip()
                 body = '\r\n'.join(body[0:2])
-
             try:
                 #self.logger.debug('Initializing %s with:\r\n%s' % (
                 #    SCHEMA_MAP[server['schema']].__name__,
