@@ -317,9 +317,3 @@ class Api(object):
             response = {}
         return status, response
 
-default_api = Api(DEFAULT_API_URL)
-
-# I feel like this is illegal in most of the world.
-Api.Service = with_api_bound(Service, default_api)
-Api.Device = with_api_bound(Device, default_api)
-PushjetModel._api = default_api

@@ -88,7 +88,7 @@ should be known that Notify.py depends on the following packages:
 | pyOpenSSL **[P]**            | 16.2.0  | https://pypi.python.org/pypi/pyOpenSSL/16.2.0                                          |
 | gntp                         | 1.0.2   | https://pypi.python.org/pypi/gntp/1.0.2                                              |
 | urllib3 **[P]**              | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
-| pushjet                      | 1..0.0    | https://pypi.python.org/pypi/pushjet/1.0.0                                           |
+| pushjet                      | 1.0.0    | https://pypi.python.org/pypi/pushjet/1.0.0                                           |
 
 **Note:** The items above denoted with a **[P]** were patched in efforts to:
 - Make their libaries compatible with Python v2.6.

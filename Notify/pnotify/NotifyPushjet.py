@@ -19,16 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-import pushjet
 from pushjet import errors
+from pushjet import pushjet
 
 from NotifyBase import NotifyBase
 from NotifyBase import NotifyFormat
 from NotifyBase import NotifyImageSize
-
-# Image Support (72x72)
-PUSHJET_IMAGE_XY = NotifyImageSize.XY_72
-
 
 class NotifyPushjet(NotifyBase):
     """
@@ -41,7 +37,6 @@ class NotifyPushjet(NotifyBase):
         """
         super(NotifyPushjet, self).__init__(
             title_maxlen=250, body_maxlen=32768,
-            image_size=PUSHJET_IMAGE_XY,
             notify_format=NotifyFormat.TEXT,
             **kwargs)
 
@@ -61,10 +56,11 @@ class NotifyPushjet(NotifyBase):
                 api = pushjet.Api(server)
                 service = api.Service(secret_key=self.user)
             else:
-                service = pushjet.Service(secret_key=self.host)
+                api = pushjet.Api(pushjet.DEFAULT_API_URL)
+                service = api.Service(secret_key=self.host)
 
             service.send(body, title)
-        except errors.PushjetError as e:
+        except (errors.PushjetError, ValueError) as e:
             self.logger.warning('Failed to send Pushjet notification')
             self.logger.debug('Pushjet Exception: %s' % str(e))
             return False
