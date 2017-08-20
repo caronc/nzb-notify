@@ -2,7 +2,7 @@
 #
 # Telegram Notify Wrapper
 #
-# Copyright (C) 2016 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2016-2017 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of NZB-Notify.
 #
@@ -69,7 +69,7 @@ VALIDATE_BOT_TOKEN = re.compile(
 # If the Chat ID is positive, then it's addressed to a single person
 # If the Chat ID is negative, then it's targeting a group
 IS_CHAT_ID_RE = re.compile(
-    r'(@*(?P<idno>-?[0-9]{1,10})|(?P<name>[a-z_-][a-z0-9_-]*))',
+    r'(@*(?P<idno>-?[0-9]{1,32})|(?P<name>[a-z_-][a-z0-9_-]*))',
     re.IGNORECASE,
 )
 
