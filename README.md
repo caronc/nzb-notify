@@ -2,8 +2,8 @@ __Note:__ This script was originally written to be an [NZBGet](http://nzbget.net
 
 SABnzbd users can reference sabnzbd-notify.py to gain support of the tool as well.
 
-[![Paypal](https://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
-[![Patreon](https://repo.nuxref.com/pub/img/patreondonate.svg)](https://www.patreon.com/lead2gold)
+[![Paypal](http://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
+[![Patreon](http://repo.nuxref.com/pub/img/patreondonate.svg)](https://www.patreon.com/lead2gold)
 
 ## Notify Processing Script
 
