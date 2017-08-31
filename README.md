@@ -2,14 +2,16 @@ __Note:__ This script was originally written to be an [NZBGet](http://nzbget.net
 
 SABnzbd users can reference sabnzbd-notify.py to gain support of the tool as well.
 
-Notify Processing Script
-========================
+[![Paypal](https://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
+[![Patreon](https://repo.nuxref.com/pub/img/patreondonate.svg)](https://www.patreon.com/lead2gold)
+
+## Notify Processing Script
+
 Send notifications to all of the popular notification services (PushBullet, NotifyMyAndroid, XBMC, Email etc). NZBGet (and/or SABnzbd) will automatically notify you of anything it downloads. You can chain as many notification services as you want and support most of the advance features each service offers you too.
 
 You can even run the tool from the command line for your own custom use. Notify.py was written in such a way that there wouldn't be a lot of effort to add more notification services either.  Feel free to contact me if one you would like to use is missing.
 
-Installation Instructions
-=========================
+## Installation Instructions
 1. Ensure you have at least Python v2.6 or higher installed onto your system.
 2. Simply place the __Notify.py__ and __Notify__ directory together.
    * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
@@ -25,8 +27,7 @@ if you do not have the packages already available to your global
 environment. These dependant packages are all identified under the
 _Dependencies_ section below.
 
-Supported Notify Services
-=========================
+## Supported Notify Services
 The table below identifies the provider _Notify.py_ supports and the
 location that content is retrieved from.
 
@@ -67,8 +68,7 @@ Common supported services where the smtp port, server, userid structure, and sec
 To eliminate any confusion, any url parameter (key=value) specified will over-ride what was detected in the url; hence:
 * mailto://usera:pass123@domain.com?user=foobar@domain.com: the userid of _foobar_ would over-ride the userid _usera_ specified.  However since the password was not over-ridden, the password of _pass123_ would be used still.
 
-Dependencies
-============
+## Dependencies
 The following dependencies are already provided for you within the
 _Notify_ directory and no further effort is required by you. However, it
 should be known that Notify.py depends on the following packages:
@@ -100,8 +100,7 @@ John Gruber's python _markdown_ is officially available [here](https://github.co
 To be as transparent as possible, all patches have been provided in the
 [_/patches_](https://github.com/caronc/nzbget-notify/tree/master/patches) directory.
 
-Command Line
-============
+## Command Line
 Notify.py has a built in command line interface that can be easily tied
 to a cron entry or can be easilly called from the command line to automate
 the fetching of subtitles.
@@ -150,8 +149,7 @@ python Notify.py \
     -t "Hello" -b "World!"
 ```
 
-SABnzbd Users
-=============
+## SABnzbd Users
 SABnzbd users can test that their script is working okay manually as well if they're having issues with it through their application.  This is also a great way to test out that you've created the correct URL string.
 ```bash
 # Send a notification to XBMC (assuming its listening on
@@ -180,3 +178,6 @@ Once you know the _URL_(s) that work for you, you can set SABnzbd to automatical
 - Specify the URL such as kodi://192.168.0.2 in the _Parameters_ section. You can specify more then one URL here by simply using a _comma_ (,) as a delimiter.
 
 CentOS/RedHat users can also refer to a [blog entry I prepared](http://nuxref.com/2016/10/20/sabnzbd-installation-centos-7/) for this which includes RPM packaging for both [SABnzbd](http://repo.nuxref.com/centos/7/en/x86_64/custom/repoview/sabnzbd.html) and [NZB-Notify](http://repo.nuxref.com/centos/7/en/x86_64/custom/repoview/sabnzbd-script-notify.html). These can be easily installed (with all required dependencies by just getting yourself set up with my repository [here](http://nuxref.com/nuxref-repository/).
+
+## Donations
+If you like this script and feel like donating, you can do so through either [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E) or [Patreon](https://www.patreon.com/lead2gold)! Thank you so much to everyone who has donated in the past!
