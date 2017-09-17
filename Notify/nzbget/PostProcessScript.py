@@ -648,7 +648,7 @@ class PostProcessScript(ScriptBase):
             group = [ x for x in self.api.listgroups(0) \
                      if x['NZBID'] == nzbid ][0]
 
-        except SocketError, e:
+        except SocketError as e:
             self.logger.warning('RCP Connection Failure (%d): %s' % (
                 e[0], e[1]))
             return None

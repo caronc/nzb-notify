@@ -2934,7 +2934,7 @@ class ScriptBase(object):
         try:
             exit_code = main_function(*args, **kwargs)
 
-        except NZBGetExitException, e:
+        except NZBGetExitException as e:
             # One of our own exceptions
             exit_code = e.code
 
