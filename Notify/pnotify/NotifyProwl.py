@@ -22,9 +22,9 @@
 import requests
 import re
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import HTTP_ERROR_MAP
 
 # Prowl uses the http protocol with JSON requests
 PROWL_URL = 'https://api.prowlapp.com/publicapi/add'

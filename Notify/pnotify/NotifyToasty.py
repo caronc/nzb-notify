@@ -23,10 +23,10 @@ from urllib import quote
 import requests
 import re
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import NotifyImageSize
-from NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import NotifyImageSize
+from .NotifyBase import HTTP_ERROR_MAP
 
 # Toasty uses the http protocol with JSON requests
 TOASTY_URL = 'http://api.supertoasty.com/notify/'

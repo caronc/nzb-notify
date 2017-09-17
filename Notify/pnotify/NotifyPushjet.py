@@ -22,9 +22,9 @@
 from pushjet import errors
 from pushjet import pushjet
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import NotifyImageSize
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import NotifyImageSize
 
 class NotifyPushjet(NotifyBase):
     """

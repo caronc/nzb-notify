@@ -22,12 +22,12 @@
 from json import dumps
 import requests
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import NotifyImageSize
-from NotifyBase import NotifyType
-from NotifyBase import HTTP_ERROR_MAP
-from NotifyBase import NOTIFY_APPLICATION_ID
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import NotifyImageSize
+from .NotifyBase import NotifyType
+from .NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NOTIFY_APPLICATION_ID
 import re
 
 # Some Reference Locations:

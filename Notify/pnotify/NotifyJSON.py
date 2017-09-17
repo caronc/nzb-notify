@@ -22,10 +22,10 @@
 from json import dumps
 import requests
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import NotifyImageSize
-from NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import NotifyImageSize
+from .NotifyBase import HTTP_ERROR_MAP
 
 # Image Support (128x128)
 JSON_IMAGE_XY = NotifyImageSize.XY_128

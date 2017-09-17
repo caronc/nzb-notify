@@ -161,11 +161,11 @@ from os.path import abspath
 from socket import error as SocketError
 
 # Relative Includes
-from ScriptBase import ScriptBase
-from ScriptBase import Health
-from ScriptBase import SCRIPT_MODE
-from ScriptBase import NZBGET_BOOL_FALSE
-from Utils import os_path_split as split
+from .ScriptBase import ScriptBase
+from .ScriptBase import Health
+from .ScriptBase import SCRIPT_MODE
+from .ScriptBase import NZBGET_BOOL_FALSE
+from .Utils import os_path_split as split
 
 # Obfuscated Expression
 OBFUSCATED_PATH_RE = re.compile(

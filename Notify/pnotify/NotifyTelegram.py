@@ -49,11 +49,11 @@ import re
 from json import loads
 from json import dumps
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import HTTP_ERROR_MAP
-#from NotifyBase import HTML_NOTIFY_MAP
-#from NotifyBase import NotifyImageSize
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import HTTP_ERROR_MAP
+#from .NotifyBase import HTML_NOTIFY_MAP
+#from .NotifyBase import NotifyImageSize
 
 # Telegram uses the http protocol with JSON requests
 TELEGRAM_BOT_URL = 'https://api.telegram.org/bot'

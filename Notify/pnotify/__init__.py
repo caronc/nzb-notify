@@ -19,25 +19,25 @@
 # You should have received a copy of the GNU General Public License
 # along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from NotifyBase import NotifyType
-from NotifyBase import NOTIFY_NEWLINE
-from NotifyBase import NotifyFormat
+from .NotifyBase import NotifyType
+from .NotifyBase import NOTIFY_NEWLINE
+from .NotifyBase import NotifyFormat
 
-from NotifyBoxcar import NotifyBoxcar
-from NotifyEmail import NotifyEmail
-from NotifyFaast import NotifyFaast
-from NotifyGrowl import NotifyGrowl
-from NotifyJSON import NotifyJSON
-from NotifyMyAndroid import NotifyMyAndroid
-from NotifyProwl import NotifyProwl
-from NotifyPushalot import NotifyPushalot
-from NotifyPushBullet import NotifyPushBullet
-from NotifyPushover import NotifyPushover
-from NotifyToasty import NotifyToasty
-from NotifyXBMC import NotifyXBMC
-from NotifyXML import NotifyXML
-from NotifySlack import NotifySlack
-from NotifyJoin import NotifyJoin
-from NotifyTelegram import NotifyTelegram
-from NotifyMatterMost import NotifyMatterMost
-from NotifyPushjet import NotifyPushjet
+from .NotifyBoxcar import NotifyBoxcar
+from .NotifyEmail import NotifyEmail
+from .NotifyFaast import NotifyFaast
+from .NotifyGrowl import NotifyGrowl
+from .NotifyJSON import NotifyJSON
+from .NotifyMyAndroid import NotifyMyAndroid
+from .NotifyProwl import NotifyProwl
+from .NotifyPushalot import NotifyPushalot
+from .NotifyPushBullet import NotifyPushBullet
+from .NotifyPushover import NotifyPushover
+from .NotifyToasty import NotifyToasty
+from .NotifyXBMC import NotifyXBMC
+from .NotifyXML import NotifyXML
+from .NotifySlack import NotifySlack
+from .NotifyJoin import NotifyJoin
+from .NotifyTelegram import NotifyTelegram
+from .NotifyMatterMost import NotifyMatterMost
+from .NotifyPushjet import NotifyPushjet

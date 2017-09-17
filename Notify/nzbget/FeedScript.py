@@ -145,9 +145,9 @@ import re
 from os import environ
 
 # Relative Includes
-from ScriptBase import ScriptBase
-from ScriptBase import NZBGET_BOOL_FALSE
-from ScriptBase import SCRIPT_MODE
+from .ScriptBase import ScriptBase
+from .ScriptBase import NZBGET_BOOL_FALSE
+from .ScriptBase import SCRIPT_MODE
 
 # Environment variable that prefixes all NZBGET options being passed into
 # scripts with respect to the NZB-File (used in Feed Scripts)

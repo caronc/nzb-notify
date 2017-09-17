@@ -21,10 +21,10 @@
 
 import requests
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import NotifyImageSize
-from NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import NotifyImageSize
+from .NotifyBase import HTTP_ERROR_MAP
 
 # Faast uses the http protocol with JSON requests
 FAAST_URL = 'https://www.appnotifications.com/account/notifications.json'

@@ -39,8 +39,8 @@ from os.path import isdir
 from os import unlink
 from os import makedirs
 
-from Logger import init_logger
-from Logger import destroy_logger
+from .Logger import init_logger
+from .Logger import destroy_logger
 from logging import Logger
 
 # This should always be set to the current database version

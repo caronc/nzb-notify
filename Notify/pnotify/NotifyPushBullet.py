@@ -23,10 +23,10 @@ from json import dumps
 import requests
 import re
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import HTTP_ERROR_MAP
-from NotifyBase import IS_EMAIL_RE
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import IS_EMAIL_RE
 
 # Flag used as a placeholder to sending to all devices
 PUSHBULLET_SEND_TO_ALL = 'ALL_DEVICES'

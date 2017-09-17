@@ -154,20 +154,20 @@ from os.path import splitext
 from getpass import getuser
 from logging import Logger
 from datetime import datetime
-from Utils import tidy_path
+from .Utils import tidy_path
 import ssl
 
 import traceback
 from sys import exc_info
 
-from Logger import VERBOSE_DEBUG
-from Logger import VERY_VERBOSE_DEBUG
-from Logger import init_logger
-from Logger import destroy_logger
+from .Logger import VERBOSE_DEBUG
+from .Logger import VERY_VERBOSE_DEBUG
+from .Logger import init_logger
+from .Logger import destroy_logger
 
-from Utils import ESCAPED_WIN_PATH_SEPARATOR
-from Utils import ESCAPED_NUX_PATH_SEPARATOR
-from Utils import unescape_xml
+from .Utils import ESCAPED_WIN_PATH_SEPARATOR
+from .Utils import ESCAPED_NUX_PATH_SEPARATOR
+from .Utils import unescape_xml
 
 import signal
 
@@ -210,8 +210,8 @@ except ImportError:
 
 # Database Support if sqllite is installed
 try:
-    from Database import Database
-    from Database import Category
+    from .Database import Database
+    from .Database import Category
 except ImportError:
     # No panic, we just can't use database
     pass

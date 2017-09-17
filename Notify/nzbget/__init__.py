@@ -20,9 +20,9 @@ __author__ = 'Chris Caron <lead2gold@gmail.com>'
 __license__ = 'GPLv3'
 __copywrite__ = 'Copyright 2014-2017 Chris Caron <lead2gold@gmail.com'
 
-from ScriptBase import *
-from SchedulerScript import *
-from PostProcessScript import *
-from FeedScript import *
-from ScanScript import *
-from QueueScript import *
+from .ScriptBase import *
+from .SchedulerScript import *
+from .PostProcessScript import *
+from .FeedScript import *
+from .ScanScript import *
+from .QueueScript import *

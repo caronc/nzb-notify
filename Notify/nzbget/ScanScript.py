@@ -155,11 +155,11 @@ from os.path import basename
 from os.path import abspath
 
 # Relative Includes
-from ScriptBase import ScriptBase
-from ScriptBase import SCRIPT_MODE
-from ScriptBase import NZBGET_BOOL_FALSE
-from ScriptBase import PRIORITY
-from ScriptBase import PRIORITIES
+from .ScriptBase import ScriptBase
+from .ScriptBase import SCRIPT_MODE
+from .ScriptBase import NZBGET_BOOL_FALSE
+from .ScriptBase import PRIORITY
+from .ScriptBase import PRIORITIES
 
 # Environment variable that prefixes all NZBGET options being passed into
 # scripts with respect to the NZB-File (used in Scan Scripts)

@@ -34,10 +34,10 @@ import re
 
 from urllib import urlencode
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import HTTP_ERROR_MAP
-from NotifyBase import NotifyImageSize
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NotifyImageSize
 
 # Join uses the http protocol with JSON requests
 JOIN_URL = 'https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush'

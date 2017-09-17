@@ -19,9 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import IS_EMAIL_RE
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import IS_EMAIL_RE
 
 # Default Non-Encryption Port
 EMAIL_SMTP_PORT = 25

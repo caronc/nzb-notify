@@ -19,9 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NZB-Notify. If not, see <http://www.gnu.org/licenses/>.
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import NotifyImageSize
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import NotifyImageSize
 from gntp.notifier import GrowlNotifier
 from gntp.errors import NetworkError as GrowlNetworkError
 from gntp.errors import AuthError as GrowlAuthenticationError

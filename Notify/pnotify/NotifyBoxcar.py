@@ -27,9 +27,9 @@ import re
 # into a usable list.
 TAGS_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
-from NotifyBase import NotifyBase
-from NotifyBase import NotifyFormat
-from NotifyBase import HTTP_ERROR_MAP
+from .NotifyBase import NotifyBase
+from .NotifyBase import NotifyFormat
+from .NotifyBase import HTTP_ERROR_MAP
 
 # Used to validate Tags, Aliases and Devices
 IS_TAG = re.compile(r'^[A-Za-z0-9]{1,63}$')
