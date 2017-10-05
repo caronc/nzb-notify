@@ -23,6 +23,7 @@ __copywrite__ = 'Copyright 2014-2017 Chris Caron <lead2gold@gmail.com'
 from .ScriptBase import *
 from .SchedulerScript import *
 from .PostProcessScript import *
+from .SABPostProcessScript import *
 from .FeedScript import *
 from .ScanScript import *
 from .QueueScript import *

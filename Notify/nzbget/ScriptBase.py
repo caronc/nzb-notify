@@ -73,6 +73,10 @@ functionality such as:
                   Hence: parse_list('.mkv, .avi') returns:
                       [ '.mkv', '.avi' ]
 
+ * parse_regex() - Takes a comma delimited list of regular expressions
+                   and returns a list of already pre-compiled regular
+                   expressions. Any entries that can't be parsed are logged.
+
  * parse_path_list() - Very smilar to parse_list() except that it is used
                   to handle directory paths while cleaning them up at the
                   same time.
@@ -160,6 +164,8 @@ import ssl
 import traceback
 from sys import exc_info
 
+from .Logger import DETAIL as LOG_DETAIL
+from .Logger import DEBUG as LOG_DEBUG
 from .Logger import VERBOSE_DEBUG
 from .Logger import VERY_VERBOSE_DEBUG
 from .Logger import init_logger
@@ -252,6 +258,76 @@ SKIP_DIRECTORIES = (
 )
 
 
+class SCRIPT_MODE(object):
+    # After the download of nzb-file is completed NZBGet can call
+    # post-processing scripts (pp-scripts). The scripts can perform further
+    # processing of downloaded files such es delete unwanted files
+    # (*.url, etc.), send an e-mail notification, transfer the files to other
+    # application and do any other things.
+    POSTPROCESSING = u'postprocess'
+
+    # Scan scripts are called when a new file is found in the incoming nzb
+    # directory (option `NzbDir`). If a file is being added via web-interface
+    # or via RPC-API from a third-party app the file is saved into nzb
+    # directory and then processed. NZBGet loads only files with nzb-extension
+    # but it calls the scan scripts for every file found in the nzb directory.
+    # This allows for example for scan scripts which unpack zip-files
+    # containing nzb-files.
+
+    # To activate a scan script or multiple scripts put them into `ScriptDir`,
+    # then choose them in the option `ScanScript`.
+    SCAN = u'scan'
+
+    # Queue scripts are called after the download queue was changed. In the
+    # current version the queue scripts are called only after an nzb-file was
+    # added to queue. In the future they can be calledon other events too.
+
+    # To activate a queue script or multiple scripts put them into `ScriptDir`,
+    # then choose them in the option `QueueScript`.
+    QUEUE = u'queue'
+
+    # Scheduler scripts are called by scheduler tasks (setup by the user).
+
+    # To activate a scheduler script or multiple scripts put them into
+    # `ScriptDir`, then choose them in the option `TaskX.Script`.
+    SCHEDULER = u'scheduler'
+
+    # To activate a feed script or multiple scripts put them into
+    # `ScriptDir`, then choose them in the option `FeedX.Script`.
+    FEED = u'feed'
+
+    # To activate a test call to the script, we look for NZBCP_
+    # entries. These are populated through calls made available thorugh the
+    # configuration portion of NZBGet. v1.8 introduced the ability to
+    # test if your configuration is set up okay.
+    CONFIG_ACTION = u'action'
+
+    # SABnzbd Support
+    SABNZBD_POSTPROCESSING = u'sabnzbd_postprocess'
+
+    # None is detected if you aren't using one of the above types
+    NONE = 'shell'
+
+# Depending on certain environment variables, a mode can be detected
+# a mode can be used to. When using a MultiScript
+SCRIPT_MODES = (
+    # The order these are listed is very important,
+    # it identifies the order when preforming sanity
+    # checking
+    SCRIPT_MODE.CONFIG_ACTION,
+    SCRIPT_MODE.POSTPROCESSING,
+    SCRIPT_MODE.SCAN,
+    SCRIPT_MODE.QUEUE,
+    SCRIPT_MODE.SCHEDULER,
+    SCRIPT_MODE.FEED,
+
+    # SABnzbd Support
+    SCRIPT_MODE.SABNZBD_POSTPROCESSING,
+
+    # None should always be the last entry
+    SCRIPT_MODE.NONE,
+)
+
 class EXIT_CODE(object):
     """List of exit codes for post processing
     """
@@ -259,14 +335,27 @@ class EXIT_CODE(object):
     # Request NZBGet to do par-check/repair for current nzb-file.
     # This code can be used by pp-scripts doing unpack on their own.
     PARCHECK_ALL = 92
-    # Post-process successful
+    # Action successful
     SUCCESS = 93
-    # Post-process failed
+    # Action failed
     FAILURE = 94
     # Process skipped. Use this code when your script determines that it is
     # neither a success or failure. Perhaps your just not processing anything
     # due to how content was parsed.
     NONE = 95
+
+class SHELL_EXIT_CODE(object):
+    """List of exit codes for shell execution
+    """
+    # Action successful
+    SUCCESS = 0
+    # Action failed
+    FAILURE = 1
+    # Process skipped. Use this code when your script determines that it is
+    # neither a success or failure. Perhaps your just not processing anything
+    # due to how content was parsed. For shell execution; this is just the same
+    # as a success as there is nothing good or bad to handle here
+    NONE = 0
 
 EXIT_CODES = (
     EXIT_CODE.PARCHECK_CURRENT,
@@ -276,6 +365,29 @@ EXIT_CODES = (
     EXIT_CODE.NONE,
 )
 
+SHELL_EXIT_CODE_MAP = {
+    # a mapping of the exit codes to they're shell
+    # based value
+    EXIT_CODE.PARCHECK_CURRENT: 0,
+
+    EXIT_CODE.PARCHECK_ALL: 0,
+
+    EXIT_CODE.SUCCESS: 0,
+
+    EXIT_CODE.FAILURE: 1,
+
+    EXIT_CODE.NONE: 0
+}
+
+# We define the modes to which we want to use the common
+# exit codes over the NZBGet ones
+COMMON_MODES = (
+    # SABnzbd Support
+    SCRIPT_MODE.SABNZBD_POSTPROCESSING,
+
+    # None should always be the last entry
+    SCRIPT_MODE.NONE,
+)
 
 class NZBGetDuplicateMode(object):
     """Defines Duplicate Mode. This is used when Adding NZB-Files directly
@@ -553,6 +665,9 @@ CFG_ENVIRO_ID = u'NZBPO_'
 # are found in the environment, they are saved to the `config` dictionary
 SHR_ENVIRO_ID = u'NZBR_'
 
+# SABnzbd Support
+SAB_ENVIRO_ID = u'SAB_'
+
 # Environment ID used when calling tests commands from NZBGet
 """
 For example... the below would attempt to execute the function
@@ -599,6 +714,7 @@ SYS_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % SYS_ENVIRO_ID)
 CFG_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % CFG_ENVIRO_ID)
 SHR_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % SHR_ENVIRO_ID)
 TST_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % TST_ENVIRO_ID)
+SAB_OPTS_RE = re.compile('^%s([A-Z0-9_]+)$' % SAB_ENVIRO_ID)
 DNZB_OPTS_RE = re.compile('^%s%s([A-Z0-9_]+)$' % (
     SHR_ENVIRO_ID,
     SHR_ENVIRO_DNZB_ID,
@@ -646,71 +762,6 @@ NZBGET_DATABASE_FILENAME = "nzbget/nzbget.db"
 VALID_URL_RE = re.compile(r'^[\s]*([^:\s]+):[/\\]*([^?]+)(\?(.+))?[\s]*$')
 VALID_HOST_RE = re.compile(r'^[\s]*([^:/\s]+)')
 VALID_QUERY_RE = re.compile(r'^(.*[/\\])([^/\\]*)$')
-
-
-class SCRIPT_MODE(object):
-    # After the download of nzb-file is completed NZBGet can call
-    # post-processing scripts (pp-scripts). The scripts can perform further
-    # processing of downloaded files such es delete unwanted files
-    # (*.url, etc.), send an e-mail notification, transfer the files to other
-    # application and do any other things.
-    POSTPROCESSING = u'postprocess'
-
-    # Scan scripts are called when a new file is found in the incoming nzb
-    # directory (option `NzbDir`). If a file is being added via web-interface
-    # or via RPC-API from a third-party app the file is saved into nzb
-    # directory and then processed. NZBGet loads only files with nzb-extension
-    # but it calls the scan scripts for every file found in the nzb directory.
-    # This allows for example for scan scripts which unpack zip-files
-    # containing nzb-files.
-
-    # To activate a scan script or multiple scripts put them into `ScriptDir`,
-    # then choose them in the option `ScanScript`.
-    SCAN = u'scan'
-
-    # Queue scripts are called after the download queue was changed. In the
-    # current version the queue scripts are called only after an nzb-file was
-    # added to queue. In the future they can be calledon other events too.
-
-    # To activate a queue script or multiple scripts put them into `ScriptDir`,
-    # then choose them in the option `QueueScript`.
-    QUEUE = u'queue'
-
-    # Scheduler scripts are called by scheduler tasks (setup by the user).
-
-    # To activate a scheduler script or multiple scripts put them into
-    # `ScriptDir`, then choose them in the option `TaskX.Script`.
-    SCHEDULER = u'scheduler'
-
-    # To activate a feed script or multiple scripts put them into
-    # `ScriptDir`, then choose them in the option `FeedX.Script`.
-    FEED = u'feed'
-
-    # To activate a test call to the script, we look for NZBCP_
-    # entries. These are populated through calls made available thorugh the
-    # configuration portion of NZBGet. v1.8 introduced the ability to
-    # test if your configuration is set up okay.
-    CONFIG_ACTION = u'action'
-
-    # None is detected if you aren't using one of the above types
-    NONE = ''
-
-# Depending on certain environment variables, a mode can be detected
-# a mode can be used to. When using a MultiScript
-SCRIPT_MODES = (
-    # The order these are listed is very important,
-    # it identifies the order when preforming sanity
-    # checking
-    SCRIPT_MODE.CONFIG_ACTION,
-    SCRIPT_MODE.POSTPROCESSING,
-    SCRIPT_MODE.SCAN,
-    SCRIPT_MODE.QUEUE,
-    SCRIPT_MODE.SCHEDULER,
-    SCRIPT_MODE.FEED,
-
-    # None should always be the last entry
-    SCRIPT_MODE.NONE,
-)
 
 
 class ScriptBase(object):
@@ -768,8 +819,12 @@ class ScriptBase(object):
         self.database_key = database_key
 
         # Fetch System Environment (passed from NZBGet)
-        self.system = dict([(SYS_OPTS_RE.match(k).group(1), v.strip())
-            for (k, v) in environ.items() if SYS_OPTS_RE.match(k)])
+        self.system = dict(
+            dict([(SYS_OPTS_RE.match(k).group(1), v.strip())
+            for (k, v) in environ.items() if SYS_OPTS_RE.match(k)]).items() +\
+            dict([(SAB_OPTS_RE.match(k).group(1), v.strip())
+            for (k, v) in environ.items() if SAB_OPTS_RE.match(k)]).items()
+        )
 
         # Fetch/Load Script Specific Configuration
         self.config = dict([(CFG_OPTS_RE.match(k).group(1), v.strip())
@@ -836,13 +891,21 @@ class ScriptBase(object):
         if self.vvdebug:
             self.debug = VERY_VERBOSE_DEBUG
 
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        # Detect the script mode we're running in
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        self.detect_mode(mode=script_mode)
+        nzbget_mode = self.script_mode not in (
+            SCRIPT_MODE.NONE, SCRIPT_MODE.SABNZBD_POSTPROCESSING,
+        )
+
         if isinstance(self.logger, basestring):
             # Use Log File
             self.logger = init_logger(
                 name=self.logger_id,
                 logger=logger,
                 debug=self.debug,
-                nzbget_mode=False,
+                nzbget_mode=nzbget_mode,
             )
 
         elif not isinstance(self.logger, Logger):
@@ -853,7 +916,7 @@ class ScriptBase(object):
                     name=self.logger_id,
                     logger=None,
                     debug=self.debug,
-                    nzbget_mode=True,
+                    nzbget_mode=nzbget_mode,
                 )
             else:
                 # Use STDOUT for now
@@ -861,10 +924,12 @@ class ScriptBase(object):
                     name=self.logger_id,
                     logger=True,
                     debug=self.debug,
-                    nzbget_mode=True,
+                    nzbget_mode=nzbget_mode,
                 )
         else:
             self.logger_id = None
+
+        self.logger.debug('Script Mode: %s' % self.script_mode)
 
         # Track the current working directory
         try:
@@ -900,8 +965,17 @@ class ScriptBase(object):
             # Note: This is a very verbose process, so it is only performed
             #       if both the debug and vvdebug flags are set.
             # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            for k, v in self.system.items():
-                self.logger.vvdebug('%s%s=%s' % (SYS_ENVIRO_ID, k, v))
+            if nzbget_mode:
+                for k, v in self.system.items():
+                    self.logger.vvdebug('%s%s=%s' % (SYS_ENVIRO_ID, k, v))
+
+            elif self.script_mode is SCRIPT_MODE.SABNZBD_POSTPROCESSING:
+                for k, v in self.system.items():
+                    self.logger.vvdebug('%s%s=%s' % (SAB_ENVIRO_ID, k, v))
+
+            else:
+                for k, v in self.system.items():
+                    self.logger.vvdebug('%s=%s' % (k, v))
 
             for k, v in self.config.items():
                 self.logger.vvdebug('%s%s=%s' % (CFG_ENVIRO_ID, k, v))
@@ -923,38 +997,9 @@ class ScriptBase(object):
         else:
             environ['%sDEBUG' % SYS_ENVIRO_ID] = NZBGET_BOOL_FALSE
 
-        if script_mode is not None:
-            if script_mode in self.script_dict.keys() + [SCRIPT_MODE.NONE, ]:
-                self.script_mode = script_mode
-                if self.script_mode is SCRIPT_MODE.NONE:
-                    self.logger.debug('Script mode forced off.')
-                else:
-                    self.logger.debug(
-                        'Script mode forced to: %s' % self.script_mode,
-                    )
-            else:
-                self.logger.warning(
-                    'Could not force script mode to: %s' % script_mode,
-                )
-
-        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        # Detect the mode we're running in
-        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        if self.script_mode is None:
-            self.detect_mode()
-
-        if self.script_mode == SCRIPT_MODE.NONE:
-            # Reload logging without NZBGet mode configured
-            self.logger = init_logger(
-                name=self.logger_id,
-                logger=self.logger,
-                debug=self.debug,
-
-                # NZBGet mode disabled
-                nzbget_mode=False,
-            )
-        else:
-            # An NZBGet Mode means we should work out of a writeable directory
+        if self.script_mode != SCRIPT_MODE.NONE:
+            # An NZBGet/SABnzbd Mode means we should work out of a writeable
+            # directory
             try:
                 chdir(self.tempdir)
             except OSError:
@@ -983,6 +1028,45 @@ class ScriptBase(object):
             # This can occur if calling the script from within a thread
             # we just gracefully move on if this happens
             pass
+
+    def set_debugging(self, enabled=True):
+        """
+        Provides a toggle to the debug function built into
+        the framework. You can also set enabled to the log level
+        you wish it to be at
+        """
+
+        if enabled is True and not self.debug:
+            self.debug = True
+            # Set debugging on logging
+            self.logger.setLevel(LOG_DEBUG)
+            for h in self.logger.handlers:
+                h.setLevel(LOG_DEBUG)
+            return
+
+        elif enabled in (False, None) and self.debug:
+            self.debug = False
+            # Set debugging on logging
+            self.logger.setLevel(LOG_DETAIL)
+            for h in self.logger.handlers:
+                h.setLevel(LOG_DETAIL)
+            return
+
+        # Convert to integer
+        try:
+            enabled = int(enabled)
+
+        except ValueError:
+            # user set enabled to non-int convertable (ValueError)
+            enabled = LOG_DETAIL
+
+        # Set the level based on what was specified
+        if enabled >= 0:
+            self.debug = (enabled <= LOG_DEBUG)
+            self.logger.setLevel(enabled)
+            for h in self.logger.handlers:
+                h.setLevel(enabled)
+        return
 
     def is_unique_instance(self, pidfile=None, die_on_fail=True,
                            verbose=True):
@@ -2269,8 +2353,7 @@ class ScriptBase(object):
             is_okay = False
 
         if self.script_mode == SCRIPT_MODE.NONE:
-            # Nothing more to process if not utilizaing
-            # NZBGet environment
+            # Nothing more to process if not utilizing the correct environment
             return is_okay
 
         if min_version > self.version:
@@ -2282,7 +2365,9 @@ class ScriptBase(object):
 
         # Always a bad thing if SCRIPTDIR doesn't work since that is
         # introduced in v11 (the minimum version we support)
-        if not 'SCRIPTDIR' in self.system:
+        if self.script_mode not in (
+                SCRIPT_MODE.SABNZBD_POSTPROCESSING,
+                SCRIPT_MODE.NONE) and not 'SCRIPTDIR' in self.system:
             self.logger.error(
                 'Validation - (<v11) Directive not set: %s' % 'SCRIPTDIR',
             )
@@ -2769,9 +2854,15 @@ class ScriptBase(object):
         current_depth += 1
         self.logger.vdebug('Directory depth offset %d' % current_depth)
 
-        # Get Directory entries
-        dirents = [ d for d in listdir(search_dir) \
-                  if d not in ('..', '.') ]
+        try:
+            # Get Directory entries
+            dirents = [ d for d in listdir(search_dir) \
+                      if d not in ('..', '.') ]
+        except OSError, e:
+            # Uh oh, we have no access to the directories
+            self.logger.error('Could not access %s' % search_dir)
+            self.logger.error('Reason %s' % str(e))
+            return {}
 
         for dirent in dirents:
             # Store Path
@@ -2915,6 +3006,7 @@ class ScriptBase(object):
 
         # Determine the function to use
         # multi-scripts need to define a
+        #  - sabnzbd_postprocess_main()
         #  - postprocess_main()
         #  - scan_main()
         #  - scheduler_main()
@@ -2985,6 +3077,15 @@ class ScriptBase(object):
                 'changing response to a failure (%d).' % (EXIT_CODE.FAILURE),
             )
             exit_code = EXIT_CODE.FAILURE
+
+        # Shell Mappings occur on return codes
+        if self.script_mode in (
+                SCRIPT_MODE.SABNZBD_POSTPROCESSING,
+                SCRIPT_MODE.NONE):
+            if exit_code in SHELL_EXIT_CODE_MAP:
+                exit_code = SHELL_EXIT_CODE_MAP[exit_code]
+
+        # Perform Shell Translation if requird
         self.logger.debug(
            'Exiting with return code: %d' % exit_code)
         return exit_code
@@ -3114,6 +3215,99 @@ class ScriptBase(object):
         # to a set() first. filter() eliminates any empty entries
         return filter(bool, list(set([tidy_path(p) for p in result])))
 
+    def parse_regex(self, *args, **kwargs):
+        """
+        Parses a comma separated list of regular expressions.
+
+        You can append as many items to the argument listing for
+        parsing.
+
+        Hence: parse_regex('*.iso, *.avi, ??.srt', simple=True) compiles the
+               three regular expressions and returns a list.
+
+        By default the parsing uses commas and/or spaces as delimiters.
+
+        When simple is set to True, values like * and ? are used. Otherwise
+        the entries are compiled directly without any extra conversion
+
+        """
+
+        # Delimits our regular expressions
+        delimiter = re.compile('[ \t,]+')
+
+        # Allow the variable 'simple' to be passed in
+        try:
+            simple = bool(kwargs.get('simple', True))
+        except:
+            # Default
+            simple = True
+
+        result = []
+        for arg in args:
+            if isinstance(arg, basestring):
+                result += delimiter.split(arg)
+
+            elif isinstance(arg, re._pattern_type):
+                # Nothing further to do
+                result += arg
+
+            elif isinstance(arg, (list, tuple)):
+                for _arg in arg:
+                    if isinstance(arg, basestring):
+                        result += delimiter.split(arg)
+                    # A list inside a list? - use recursion
+                    elif isinstance(_arg, (list, tuple)):
+                        result += self.parse_regex(_arg)
+                    else:
+                        # Convert whatever it is to a string and work with it
+                        result += self.parse_regex(str(_arg))
+            else:
+                # Convert whatever it is to a string and work with it
+                result += self.parse_regex(str(arg))
+
+        result = filter(bool, list(set(result)))
+        results = []
+        for f in result:
+            if isinstance(f, re._pattern_type):
+                # We can just keep moving on with already compiled expressions
+                results.append(f)
+                continue
+
+            # iterate over our results and store those that compile
+            if simple:
+                # Convert content
+                # escape special characters reserved for regex
+                _f = f.replace('.', '\.');
+                _f = _f.replace('^', '\^');
+                _f = _f.replace('+', '\+');
+                _f = _f.replace('$', '\$');
+                _f = _f.replace('[', '\[');
+                _f = _f.replace(']', '\]');
+                _f = _f.replace('(', '\(');
+                _f = _f.replace(')', '\)');
+                _f = _f.replace('|', '\|');
+                # convert question marks
+                _f = _f.replace('?', '.');
+                # convert asterix's in to .*
+                _f = _f.replace('*', '.*');
+                self.logger.vdebug(
+                    'Built simple regex "%s" from "%s"' % (_f, f))
+            else:
+                _f = f
+
+            try:
+                results.append(re.compile(_f, flags=re.IGNORECASE))
+                self.logger.vdebug('Compiled regex "%s"' % _f)
+
+            except Exception as e:
+                self.logger.error(
+                    'Invalid regular expression: "%s"' % f,
+                )
+
+        # apply as well as make the list unique by converting it
+        # to a set() first. filter() eliminates any empty entries
+        return filter(bool, list(set(results)))
+
     def parse_bool(self, arg, default=False):
         """
         NZBGet uses 'yes' and 'no' as well as other strings such
@@ -3207,23 +3401,25 @@ class ScriptBase(object):
             # We're set
             return True
 
-        self.logger.warning('The developer of this script did not'\
-            ' create test mapping to this command.')
+        # no mapping
         return False
 
-    def detect_mode(self):
+    def detect_mode(self, mode=None):
         """
         Attempt to detect the script mode based on environment variables
         The modes are defied at the top and are determined by a certain
         set of global variables defined.
         """
+
+        if mode is not None:
+            self.script_mode = mode
+
         if self.script_mode is not None:
-            return self.script_mode
+            if self.script_mode in self.script_dict.keys() + [SCRIPT_MODE.NONE, ]:
+                return self.script_mode
 
-        if len(self.script_dict):
-            self.logger.vdebug('Detecting possible script mode from: %s' % \
-                         ', '.join(self.script_dict.keys()))
-
+        # If we reach here, self.script_mode is invalid and/or is not
+        # set; we need to detect it's value
         if len(self.script_dict.keys()):
             for k in [ v for v in SCRIPT_MODES \
                       if v in self.script_dict.keys() + [
@@ -3232,13 +3428,10 @@ class ScriptBase(object):
                     if getattr(self, '%s_%s' % (k, 'sanity_check'))():
                         self.script_mode = k
                         if self.script_mode != SCRIPT_MODE.NONE:
-                            self.logger.vdebug(
-                                'Script Mode: %s' % self.script_mode.upper())
                             return self.script_mode
 
-        self.logger.vdebug('Script Mode: STANDALONE')
+        # Undetected; assume NONE
         self.script_mode = SCRIPT_MODE.NONE
-
         return self.script_mode
 
     def signal_quit(self, signum, frame):

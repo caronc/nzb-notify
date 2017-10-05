@@ -167,15 +167,12 @@ from .ScriptBase import SCRIPT_MODE
 from .ScriptBase import NZBGET_BOOL_FALSE
 from .Utils import os_path_split as split
 
-# Obfuscated Expression
-OBFUSCATED_PATH_RE = re.compile(
-    '^[a-z0-9]+$',
-    re.IGNORECASE,
-)
-OBFUSCATED_FILE_RE = re.compile(
-    '^[a-z0-9]+\.[a-z0-9]+$',
-    re.IGNORECASE,
-)
+from .PostProcessCommon import OBFUSCATED_PATH_RE
+from .PostProcessCommon import OBFUSCATED_FILE_RE
+from .PostProcessCommon import SCRIPT_STATUS
+from .PostProcessCommon import PAR_STATUS
+from .PostProcessCommon import UNPACK_STATUS
+
 
 class TOTAL_STATUS(object):
     """Cumulative (Total) Status of NZB Processing
@@ -192,46 +189,6 @@ class TOTAL_STATUS(object):
     # this case; however it's possible to force calling scripts with command
     # "post-process again".
     DELETED = 'DELETED'
-
-# TOTALSTATUS Delimiter
-TOTALSTATUS_DELIMITER = '/'
-
-class SCRIPT_STATUS(object):
-    """Summary status of the scripts executed before the current one
-    """
-    # no other scripts were executed yet or all of them have ended with an exit
-    # code of: NONE
-    NONE = 'NONE'
-    # all other scripts have ended with exit code "SUCCESS"
-    SUCCESS = 'SUCCESS'
-    # at least one of the script has failed
-    FAILURE = 'FAILURE'
-
-class PAR_STATUS(object):
-    """This is a depricated flag (as of NZBGet v13) but previously
-    provides the status of the par-check of the downloaded content.
-    """
-    # not checked: par-check is disabled or nzb-file does not contain
-    # any par-files
-    SKIPPED = 0
-    # checked and failed to repair
-    FAILURE = 1
-    # checked and successfully repaired
-    SUCCESS = 2
-    # checked and can be repaired but repair is disabled
-    DISABLED = 3
-
-class UNPACK_STATUS(object):
-    """This is a depricated flag (as of NZBGet v13) but previously
-    provides the status of the unpacking of the downloaded content.
-    """
-    # unpack is disabled or was skipped due to nzb-file properties
-    # or due to errors during par-check
-    SKIPPED = 0
-    # unpack failed
-    FAILURE = 1
-    # unpack was successful
-    SUCCESS = 2
 
 # Environment variable that prefixes all NZBGET options being passed into
 # scripts with respect to the NZB-File (used in Post Processing Scripts)
@@ -557,7 +514,7 @@ class PostProcessScript(ScriptBase):
                 missing_opts = list(required_opts ^ found_opts)
                 self.logger.error(
                     'Validation - (v13) Directives not set: %s' % \
-                      missing_opts.join(', ')
+                      ', '.join(missing_opts),
                 )
                 is_okay = False
 
