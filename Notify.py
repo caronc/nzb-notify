@@ -71,8 +71,9 @@
 #  - pover:// -> A Pushover Notification
 #  - toasty:// -> A (Super) Toasty Notification
 #  - xbmc:// -> An XBMC Notification (protocol v2)
-#  - slack:// -> An Slack Notification
-#  - tgram:// -> An Telegram Notification
+#  - slack:// -> A Slack Notification
+#  - tgram:// -> A Telegram Notification
+#  - tweet:// -> A Twitter Direct Message (DM) Notification
 #  - xml:// -> A simple xml (SOAP) Notification
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
 #  - mmost:// -> A (Unsecure) MatterMost Notification
@@ -209,6 +210,24 @@
 #  - tgram://ChatID@BotToken
 #  - tgram://ChatID1@BotToken/ChatID2/ChatIDN
 #
+# NOTE: Twitter Notifications
+# You'll need to first visit https://apps.twitter.com and generate an
+# app you can reference here.
+#
+# Once you create the app, you'll need to generate the Access Tokens. This
+# Is done from the "Keys and Access Tokens" Tab.
+#
+# You'll have 4 Tokens to work with at this point on this same page.
+#  - A Consumer Key
+#  - A Consumer Secret
+#  - An Access Token
+#  - An Access Token Secret
+#
+# You will also need either your UserID (or Owner ID) plus the 4 keys
+# to assemble your tweet url:
+#  - tweet://userid@ConsumerKey/ConsumerSecret/AccessToken/AccessSecret
+#  - tweet://ownerid@ConsumerKey/ConsumerSecret/AccessToken/AccessSecret
+#
 #
 # NOTE: Join notifications pretty much work out of the box. Just visit
 #       https://play.google.com/store/apps/details?id=com.joaomgcd.join and
@@ -340,6 +359,7 @@ NOTIFY_XMLS_SCHEMA = 'xmls'
 NOTIFY_SLACK_SCHEMA = 'slack'
 NOTIFY_JOIN_SCHEMA = 'join'
 NOTIFY_TELEGRAM_SCHEMA = 'tgram'
+NOTIFY_TWITTER_SCHEMA = 'tweet'
 NOTIFY_PUSHJET_SCHEMA = 'pjet'
 NOTIFY_PUSHJETS_SCHEMA = 'pjets'
 
@@ -394,6 +414,8 @@ SCHEMA_MAP = {
     NOTIFY_JOIN_SCHEMA: NotifyJoin,
     # Telegram Notification
     NOTIFY_TELEGRAM_SCHEMA: NotifyTelegram,
+    # Twitter Notification
+    NOTIFY_TWITTER_SCHEMA: NotifyTwitter,
     # Pushjet Notification
     NOTIFY_PUSHJET_SCHEMA: NotifyPushjet,
     # Pushjet Notification (secure)
@@ -831,6 +853,35 @@ class NotifyScript(PostProcessScript, QueueScript):
                 notify_args = notify_args + {
                     'bot_token': bot_token,
                     'chat_ids': chat_ids,
+                }.items()
+
+            # #######################################################################
+            # Twitter Notification Support
+            # #######################################################################
+            elif server['schema'] == NOTIFY_TWITTER_SCHEMA:
+
+                # The first token is stored in the hostnamee
+                consumer_key = server['host']
+
+                # Now fetch the remaining tokens
+                try:
+                    consumer_secret, access_token_key, access_token_secret = \
+                        filter(bool, PATHSPLIT_LIST_DELIM.split(
+                        unquote(server['fullpath']).lstrip('/'),
+                    ))[0:3]
+
+                except (AttributeError, IndexError):
+                    # Force some bad values that will get caught
+                    # in parsing later
+                    consumer_secret = None
+                    access_token_key = None
+                    access_token_secret = None
+
+                notify_args = notify_args + {
+                    'ckey': consumer_key,
+                    'csecret': consumer_secret,
+                    'akey': access_token_key,
+                    'asecret': access_token_secret,
                 }.items()
 
             # #######################################################################

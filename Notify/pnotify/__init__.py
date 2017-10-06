@@ -34,6 +34,7 @@ from .NotifyPushalot import NotifyPushalot
 from .NotifyPushBullet import NotifyPushBullet
 from .NotifyPushover import NotifyPushover
 from .NotifyToasty import NotifyToasty
+from .NotifyTwitter import NotifyTwitter
 from .NotifyXBMC import NotifyXBMC
 from .NotifyXML import NotifyXML
 from .NotifySlack import NotifySlack
