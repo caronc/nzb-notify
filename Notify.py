@@ -1267,7 +1267,7 @@ class NotifyScript(PostProcessScript, QueueScript):
         notify_type = NotifyType.INFO
 
         if not servers:
-            self.logger.debug('No servers were specified --servers (-s)')
+            self.logger.info('No servers were specified --servers (-s)')
             return False
 
         # Preform Notifications
