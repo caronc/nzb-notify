@@ -44,7 +44,7 @@ from .exceptions import (
 try:
     from ssl_match_hostname import match_hostname
 except:
-    from backports.ssl_match_hostname import match_hostname
+    from _backports.ssl_match_hostname import match_hostname
 
 from .util.ssl_ import (
     resolve_cert_reqs,

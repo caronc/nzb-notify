@@ -32,7 +32,7 @@ from .exceptions import (
 try:
     from ssl_match_hostname import CertificateError
 except ImportError:
-    from backports.ssl_match_hostname import CertificateError
+    from _backports.ssl_match_hostname import CertificateError
 
 import six
 from .connection import (
