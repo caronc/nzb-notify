@@ -1529,7 +1529,9 @@ class Connection(object):
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
-        if isinstance(buf, _buffer):
+        elif isinstance(buf, basestring):
+            buf = bytes(buf)
+        elif isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
             raise TypeError("data must be a memoryview, buffer or byte string")
@@ -1556,7 +1558,9 @@ class Connection(object):
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
-        if isinstance(buf, _buffer):
+        elif isinstance(buf, basestring):
+            buf = bytes(buf)
+        elif isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
             raise TypeError("buf must be a memoryview, buffer or byte string")

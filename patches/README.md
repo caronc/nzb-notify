@@ -15,7 +15,7 @@ There were several libraries patched for various reasons:
 The patches identified are exclusive the version they were created against and
 will most likely not work if applied against anything else.
 
-### pyOpenSSL v0.14
+### pyOpenSSL v17.3.0
 I had an issue with unicode strings not correctly processing so I made a small
 patch that seems to resolve the issue.
 
