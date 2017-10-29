@@ -88,7 +88,7 @@ should be known that Notify.py depends on the following packages:
 | requests-oauthlib            | 0.8.0   | https://pypi.python.org/pypi/requests-oauthlib/0.8.0                                 |
 | six                          | 1.6.1   | https://pypi.python.org/pypi/six/1.6.1                                               |
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |
-| pyOpenSSL **[P]**            | 16.2.0  | https://pypi.python.org/pypi/pyOpenSSL/16.2.0                                        |
+| pyOpenSSL **[P]**            | 17.3.0  | https://pypi.python.org/pypi/pyOpenSSL/17.3.0                                        |
 | pySocks                      | 1.6.7   | https://pypi.python.org/pypi/pySocks/1.6.7                                           |
 | tweepy                       | 3.5.0   | https://pypi.python.org/pypi/tweepy/3.5.0                                            |
 | gntp                         | 1.0.2   | https://pypi.python.org/pypi/gntp/1.0.2                                              |

@@ -1,3 +1,4 @@
+import os
 import socket
 from sys import platform
 from functools import wraps, partial
@@ -5,9 +6,11 @@ from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
 
-from six import binary_type as _binary_type
-from six import integer_types as integer_types
-from six import int2byte, indexbytes
+from cryptography.utils import deprecated
+
+from six import (
+    binary_type as _binary_type, integer_types as integer_types, int2byte,
+    indexbytes)
 
 from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
@@ -18,6 +21,7 @@ from OpenSSL._util import (
     native as _native,
     path_string as _path_string,
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
+    no_zero_allocator as _no_zero_allocator,
 )
 
 from OpenSSL.crypto import (
@@ -55,9 +59,8 @@ TLSv1_2_METHOD = 6
 OP_NO_SSLv2 = _lib.SSL_OP_NO_SSLv2
 OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _lib.SSL_OP_NO_TLSv1
-
-OP_NO_TLSv1_1 = getattr(_lib, "SSL_OP_NO_TLSv1_1", 0)
-OP_NO_TLSv1_2 = getattr(_lib, "SSL_OP_NO_TLSv1_2", 0)
+OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
+OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
 
 MODE_RELEASE_BUFFERS = _lib.SSL_MODE_RELEASE_BUFFERS
 
@@ -128,6 +131,24 @@ SSL_CB_CONNECT_LOOP = _lib.SSL_CB_CONNECT_LOOP
 SSL_CB_CONNECT_EXIT = _lib.SSL_CB_CONNECT_EXIT
 SSL_CB_HANDSHAKE_START = _lib.SSL_CB_HANDSHAKE_START
 SSL_CB_HANDSHAKE_DONE = _lib.SSL_CB_HANDSHAKE_DONE
+
+# Taken from https://golang.org/src/crypto/x509/root_linux.go
+_CERTIFICATE_FILE_LOCATIONS = [
+    "/etc/ssl/certs/ca-certificates.crt",  # Debian/Ubuntu/Gentoo etc.
+    "/etc/pki/tls/certs/ca-bundle.crt",  # Fedora/RHEL 6
+    "/etc/ssl/ca-bundle.pem",  # OpenSUSE
+    "/etc/pki/tls/cacert.pem",  # OpenELEC
+    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  # CentOS/RHEL 7
+]
+
+_CERTIFICATE_PATH_LOCATIONS = [
+    "/etc/ssl/certs",  # SLES10/SLES11
+]
+
+# These values are compared to output from cffi's ffi.string so they must be
+# byte strings.
+_CRYPTOGRAPHY_MANYLINUX1_CA_DIR = b"/opt/pyca/cryptography/openssl/certs"
+_CRYPTOGRAPHY_MANYLINUX1_CA_FILE = b"/opt/pyca/cryptography/openssl/cert.pem"
 
 
 class Error(Exception):
@@ -367,6 +388,137 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
         )
 
 
+class _OCSPServerCallbackHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an OCSP callback for the server
+    side.
+
+    Annoyingly, OpenSSL defines one OCSP callback but uses it in two different
+    ways. For servers, that callback is expected to retrieve some OCSP data and
+    hand it to OpenSSL, and may return only SSL_TLSEXT_ERR_OK,
+    SSL_TLSEXT_ERR_FATAL, and SSL_TLSEXT_ERR_NOACK. For clients, that callback
+    is expected to check the OCSP data, and returns a negative value on error,
+    0 if the response is not acceptable, or positive if it is. These are
+    mutually exclusive return code behaviours, and they mean that we need two
+    helpers so that we always return an appropriate error code if the user's
+    code throws an exception.
+
+    Given that we have to have two helpers anyway, these helpers are a bit more
+    helpery than most: specifically, they hide a few more of the OpenSSL
+    functions so that the user has an easier time writing these callbacks.
+
+    This helper implements the server side.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cdata):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Extract the data if any was provided.
+                if cdata != _ffi.NULL:
+                    data = _ffi.from_handle(cdata)
+                else:
+                    data = None
+
+                # Call the callback.
+                ocsp_data = callback(conn, data)
+
+                if not isinstance(ocsp_data, _binary_type):
+                    raise TypeError("OCSP callback must return a bytestring.")
+
+                # If the OCSP data was provided, we will pass it to OpenSSL.
+                # However, we have an early exit here: if no OCSP data was
+                # provided we will just exit out and tell OpenSSL that there
+                # is nothing to do.
+                if not ocsp_data:
+                    return 3  # SSL_TLSEXT_ERR_NOACK
+
+                # Pass the data to OpenSSL. Insanely, OpenSSL doesn't make a
+                # private copy of this data, so we need to keep it alive, but
+                # it *does* want to free it itself if it gets replaced. This
+                # somewhat bonkers behaviour means we need to use
+                # OPENSSL_malloc directly, which is a pain in the butt to work
+                # with. It's ok for us to "leak" the memory here because
+                # OpenSSL now owns it and will free it.
+                ocsp_data_length = len(ocsp_data)
+                data_ptr = _lib.OPENSSL_malloc(ocsp_data_length)
+                _ffi.buffer(data_ptr, ocsp_data_length)[:] = ocsp_data
+
+                _lib.SSL_set_tlsext_status_ocsp_resp(
+                    ssl, data_ptr, ocsp_data_length
+                )
+
+                return 0
+            except Exception as e:
+                self._problems.append(e)
+                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+
+        self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
+
+
+class _OCSPClientCallbackHelper(_CallbackExceptionHelper):
+    """
+    Wrap a callback such that it can be used as an OCSP callback for the client
+    side.
+
+    Annoyingly, OpenSSL defines one OCSP callback but uses it in two different
+    ways. For servers, that callback is expected to retrieve some OCSP data and
+    hand it to OpenSSL, and may return only SSL_TLSEXT_ERR_OK,
+    SSL_TLSEXT_ERR_FATAL, and SSL_TLSEXT_ERR_NOACK. For clients, that callback
+    is expected to check the OCSP data, and returns a negative value on error,
+    0 if the response is not acceptable, or positive if it is. These are
+    mutually exclusive return code behaviours, and they mean that we need two
+    helpers so that we always return an appropriate error code if the user's
+    code throws an exception.
+
+    Given that we have to have two helpers anyway, these helpers are a bit more
+    helpery than most: specifically, they hide a few more of the OpenSSL
+    functions so that the user has an easier time writing these callbacks.
+
+    This helper implements the client side.
+    """
+
+    def __init__(self, callback):
+        _CallbackExceptionHelper.__init__(self)
+
+        @wraps(callback)
+        def wrapper(ssl, cdata):
+            try:
+                conn = Connection._reverse_mapping[ssl]
+
+                # Extract the data if any was provided.
+                if cdata != _ffi.NULL:
+                    data = _ffi.from_handle(cdata)
+                else:
+                    data = None
+
+                # Get the OCSP data.
+                ocsp_ptr = _ffi.new("unsigned char **")
+                ocsp_len = _lib.SSL_get_tlsext_status_ocsp_resp(ssl, ocsp_ptr)
+                if ocsp_len < 0:
+                    # No OCSP data.
+                    ocsp_data = b''
+                else:
+                    # Copy the OCSP data, then pass it to the callback.
+                    ocsp_data = _ffi.buffer(ocsp_ptr[0], ocsp_len)[:]
+
+                valid = callback(conn, ocsp_data, data)
+
+                # Return 1 on success or 0 on error.
+                return int(bool(valid))
+
+            except Exception as e:
+                self._problems.append(e)
+                # Return negative value if an exception is hit.
+                return -1
+
+        self.callback = _ffi.callback("int (*)(SSL *, void *)", wrapper)
+
+
 def _asFileDescriptor(obj):
     fd = None
     if not isinstance(obj, integer_types):
@@ -474,6 +626,15 @@ class Context(object):
         _openssl_assert(context != _ffi.NULL)
         context = _ffi.gc(context, _lib.SSL_CTX_free)
 
+        # If SSL_CTX_set_ecdh_auto is available then set it so the ECDH curve
+        # will be auto-selected. This function was added in 1.0.2 and made a
+        # noop in 1.1.0+ (where it is set automatically).
+        try:
+            res = _lib.SSL_CTX_set_ecdh_auto(context, 1)
+            _openssl_assert(res == 1)
+        except AttributeError:
+            pass
+
         self._context = context
         self._passphrase_helper = None
         self._passphrase_callback = None
@@ -489,11 +650,10 @@ class Context(object):
         self._npn_select_callback = None
         self._alpn_select_helper = None
         self._alpn_select_callback = None
+        self._ocsp_helper = None
+        self._ocsp_callback = None
+        self._ocsp_data = None
 
-        # SSL_CTX_set_app_data(self->ctx, self);
-        # SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE |
-        #                             SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
-        #                             SSL_MODE_AUTO_RETRY);
         self.set_mode(_lib.SSL_MODE_ENABLE_PARTIAL_WRITE)
 
     def load_verify_locations(self, cafile, capath=None):
@@ -555,8 +715,69 @@ class Context(object):
 
         :return: None
         """
+        # SSL_CTX_set_default_verify_paths will attempt to load certs from
+        # both a cafile and capath that are set at compile time. However,
+        # it will first check environment variables and, if present, load
+        # those paths instead
         set_result = _lib.SSL_CTX_set_default_verify_paths(self._context)
         _openssl_assert(set_result == 1)
+        # After attempting to set default_verify_paths we need to know whether
+        # to go down the fallback path.
+        # First we'll check to see if any env vars have been set. If so,
+        # we won't try to do anything else because the user has set the path
+        # themselves.
+        dir_env_var = _ffi.string(
+            _lib.X509_get_default_cert_dir_env()
+        ).decode("ascii")
+        file_env_var = _ffi.string(
+            _lib.X509_get_default_cert_file_env()
+        ).decode("ascii")
+        if not self._check_env_vars_set(dir_env_var, file_env_var):
+            default_dir = _ffi.string(_lib.X509_get_default_cert_dir())
+            default_file = _ffi.string(_lib.X509_get_default_cert_file())
+            # Now we check to see if the default_dir and default_file are set
+            # to the exact values we use in our manylinux1 builds. If they are
+            # then we know to load the fallbacks
+            if (
+                default_dir == _CRYPTOGRAPHY_MANYLINUX1_CA_DIR and
+                default_file == _CRYPTOGRAPHY_MANYLINUX1_CA_FILE
+            ):
+                # This is manylinux1, let's load our fallback paths
+                self._fallback_default_verify_paths(
+                    _CERTIFICATE_FILE_LOCATIONS,
+                    _CERTIFICATE_PATH_LOCATIONS
+                )
+
+    def _check_env_vars_set(self, dir_env_var, file_env_var):
+        """
+        Check to see if the default cert dir/file environment vars are present.
+
+        :return: bool
+        """
+        return (
+            os.environ.get(file_env_var) is not None or
+            os.environ.get(dir_env_var) is not None
+        )
+
+    def _fallback_default_verify_paths(self, file_path, dir_path):
+        """
+        Default verify paths are based on the compiled version of OpenSSL.
+        However, when pyca/cryptography is compiled as a manylinux1 wheel
+        that compiled location can potentially be wrong. So, like Go, we
+        will try a predefined set of paths and attempt to load roots
+        from there.
+
+        :return: None
+        """
+        for cafile in file_path:
+            if os.path.isfile(cafile):
+                self.load_verify_locations(cafile)
+                break
+
+        for capath in dir_path:
+            if os.path.isdir(capath):
+                self.load_verify_locations(None, capath)
+                break
 
     def use_certificate_chain_file(self, certfile):
         """
@@ -627,11 +848,10 @@ class Context(object):
             _raise_current_error()
 
     def _raise_passphrase_exception(self):
-        if self._passphrase_helper is None:
-            _raise_current_error()
-        exception = self._passphrase_helper.raise_if_problem(Error)
-        if exception is not None:
-            raise exception
+        if self._passphrase_helper is not None:
+            self._passphrase_helper.raise_if_problem(Error)
+
+        _raise_current_error()
 
     def use_privatekey_file(self, keyfile, filetype=_UNSPECIFIED):
         """
@@ -690,7 +910,6 @@ class Context(object):
             _text_to_bytes_and_warn("cafile", cafile)
         )
         _openssl_assert(ca_list != _ffi.NULL)
-        # SSL_CTX_set_client_CA_list doesn't return anything.
         _lib.SSL_CTX_set_client_CA_list(self._context, ca_list)
 
     def set_session_id(self, buf):
@@ -1047,8 +1266,7 @@ class Context(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        input_str_len = _ffi.cast("unsigned", len(protostr))
-        _lib.SSL_CTX_set_alpn_protos(self._context, input_str, input_str_len)
+        _lib.SSL_CTX_set_alpn_protos(self._context, input_str, len(protostr))
 
     @_requires_alpn
     def set_alpn_select_callback(self, callback):
@@ -1065,7 +1283,69 @@ class Context(object):
         _lib.SSL_CTX_set_alpn_select_cb(
             self._context, self._alpn_select_callback, _ffi.NULL)
 
-ContextType = Context
+    def _set_ocsp_callback(self, helper, data):
+        """
+        This internal helper does the common work for
+        ``set_ocsp_server_callback`` and ``set_ocsp_client_callback``, which is
+        almost all of it.
+        """
+        self._ocsp_helper = helper
+        self._ocsp_callback = helper.callback
+        if data is None:
+            self._ocsp_data = _ffi.NULL
+        else:
+            self._ocsp_data = _ffi.new_handle(data)
+
+        rc = _lib.SSL_CTX_set_tlsext_status_cb(
+            self._context, self._ocsp_callback
+        )
+        _openssl_assert(rc == 1)
+        rc = _lib.SSL_CTX_set_tlsext_status_arg(self._context, self._ocsp_data)
+        _openssl_assert(rc == 1)
+
+    def set_ocsp_server_callback(self, callback, data=None):
+        """
+        Set a callback to provide OCSP data to be stapled to the TLS handshake
+        on the server side.
+
+        :param callback: The callback function. It will be invoked with two
+            arguments: the Connection, and the optional arbitrary data you have
+            provided. The callback must return a bytestring that contains the
+            OCSP data to staple to the handshake. If no OCSP data is available
+            for this connection, return the empty bytestring.
+        :param data: Some opaque data that will be passed into the callback
+            function when called. This can be used to avoid needing to do
+            complex data lookups or to keep track of what context is being
+            used. This parameter is optional.
+        """
+        helper = _OCSPServerCallbackHelper(callback)
+        self._set_ocsp_callback(helper, data)
+
+    def set_ocsp_client_callback(self, callback, data=None):
+        """
+        Set a callback to validate OCSP data stapled to the TLS handshake on
+        the client side.
+
+        :param callback: The callback function. It will be invoked with three
+            arguments: the Connection, a bytestring containing the stapled OCSP
+            assertion, and the optional arbitrary data you have provided. The
+            callback must return a boolean that indicates the result of
+            validating the OCSP data: ``True`` if the OCSP data is valid and
+            the certificate can be trusted, or ``False`` if either the OCSP
+            data is invalid or the certificate has been revoked.
+        :param data: Some opaque data that will be passed into the callback
+            function when called. This can be used to avoid needing to do
+            complex data lookups or to keep track of what context is being
+            used. This parameter is optional.
+        """
+        helper = _OCSPClientCallbackHelper(callback)
+        self._set_ocsp_callback(helper, data)
+
+
+ContextType = deprecated(
+    Context, __name__,
+    "ContextType has been deprecated, use Context instead", DeprecationWarning
+)
 
 
 class Connection(object):
@@ -1143,6 +1423,8 @@ class Connection(object):
             self._context._npn_select_helper.raise_if_problem()
         if self._context._alpn_select_helper is not None:
             self._context._alpn_select_helper.raise_if_problem()
+        if self._context._ocsp_helper is not None:
+            self._context._ocsp_helper.raise_if_problem()
 
         error = _lib.SSL_get_error(ssl, result)
         if error == _lib.SSL_ERROR_WANT_READ:
@@ -1247,12 +1529,12 @@ class Connection(object):
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
-        elif isinstance(buf, basestring):
-            buf = bytes(buf)
         if isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
             raise TypeError("data must be a memoryview, buffer or byte string")
+        if len(buf) > 2147483647:
+            raise ValueError("Cannot send more than 2**31-1 bytes at once.")
 
         result = _lib.SSL_write(self._ssl, buf, len(buf))
         self._raise_ssl_error(self._ssl, result)
@@ -1274,8 +1556,6 @@ class Connection(object):
 
         if isinstance(buf, _memoryview):
             buf = buf.tobytes()
-        elif isinstance(buf, basestring):
-            buf = bytes(buf)
         if isinstance(buf, _buffer):
             buf = str(buf)
         if not isinstance(buf, bytes):
@@ -1286,7 +1566,13 @@ class Connection(object):
         data = _ffi.new("char[]", buf)
 
         while left_to_send:
-            result = _lib.SSL_write(self._ssl, data + total_sent, left_to_send)
+            # SSL_write's num arg is an int,
+            # so we cannot send more than 2**31-1 bytes at once.
+            result = _lib.SSL_write(
+                self._ssl,
+                data + total_sent,
+                min(left_to_send, 2147483647)
+            )
             self._raise_ssl_error(self._ssl, result)
             total_sent += result
             left_to_send -= result
@@ -1300,7 +1586,7 @@ class Connection(object):
             all other flags are ignored.
         :return: The string read from the Connection
         """
-        buf = _ffi.new("char[]", bufsiz)
+        buf = _no_zero_allocator("char[]", bufsiz)
         if flags is not None and flags & socket.MSG_PEEK:
             result = _lib.SSL_peek(self._ssl, buf, bufsiz)
         else:
@@ -1331,7 +1617,7 @@ class Connection(object):
         # We need to create a temporary buffer. This is annoying, it would be
         # better if we could pass memoryviews straight into the SSL_read call,
         # but right now we can't. Revisit this if CFFI gets that ability.
-        buf = _ffi.new("char[]", nbytes)
+        buf = _no_zero_allocator("char[]", nbytes)
         if flags is not None and flags & socket.MSG_PEEK:
             result = _lib.SSL_peek(self._ssl, buf, nbytes)
         else:
@@ -1382,7 +1668,7 @@ class Connection(object):
         if not isinstance(bufsiz, integer_types):
             raise TypeError("bufsiz must be an integer")
 
-        buf = _ffi.new("char[]", bufsiz)
+        buf = _no_zero_allocator("char[]", bufsiz)
         result = _lib.BIO_read(self._from_ssl, buf, bufsiz)
         if result <= 0:
             self._handle_bio_errors(self._from_ssl, result)
@@ -1619,7 +1905,7 @@ class Connection(object):
             return None
         length = _lib.SSL_get_server_random(self._ssl, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("unsigned char[]", length)
+        outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_get_server_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1635,7 +1921,7 @@ class Connection(object):
 
         length = _lib.SSL_get_client_random(self._ssl, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("unsigned char[]", length)
+        outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_get_client_random(self._ssl, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1651,7 +1937,7 @@ class Connection(object):
 
         length = _lib.SSL_SESSION_get_master_key(session, _ffi.NULL, 0)
         assert length > 0
-        outp = _ffi.new("unsigned char[]", length)
+        outp = _no_zero_allocator("unsigned char[]", length)
         _lib.SSL_SESSION_get_master_key(session, outp, length)
         return _ffi.buffer(outp, length)[:]
 
@@ -1791,7 +2077,7 @@ class Connection(object):
             # No Finished message so far.
             return None
 
-        buf = _ffi.new("char[]", size)
+        buf = _no_zero_allocator("char[]", size)
         function(self._ssl, buf, size)
         return _ffi.buffer(buf, size)[:]
 
@@ -1914,8 +2200,7 @@ class Connection(object):
         # Build a C string from the list. We don't need to save this off
         # because OpenSSL immediately copies the data out.
         input_str = _ffi.new("unsigned char[]", protostr)
-        input_str_len = _ffi.cast("unsigned", len(protostr))
-        _lib.SSL_set_alpn_protos(self._ssl, input_str, input_str_len)
+        _lib.SSL_set_alpn_protos(self._ssl, input_str, len(protostr))
 
     @_requires_alpn
     def get_alpn_proto_negotiated(self):
@@ -1932,8 +2217,24 @@ class Connection(object):
 
         return _ffi.buffer(data[0], data_len[0])[:]
 
+    def request_ocsp(self):
+        """
+        Called to request that the server sends stapled OCSP data, if
+        available. If this is not called on the client side then the server
+        will not send OCSP data. Should be used in conjunction with
+        :meth:`Context.set_ocsp_client_callback`.
+        """
+        rc = _lib.SSL_set_tlsext_status_type(
+            self._ssl, _lib.TLSEXT_STATUSTYPE_ocsp
+        )
+        _openssl_assert(rc == 1)
 
-ConnectionType = Connection
+
+ConnectionType = deprecated(
+    Connection, __name__,
+    "ConnectionType has been deprecated, use Connection instead",
+    DeprecationWarning
+)
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
 # but is exercised mostly by the Context initializer.
