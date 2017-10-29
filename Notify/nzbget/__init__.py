@@ -15,10 +15,10 @@
 # GNU Lesser General Public License for more details.
 #
 __title__ = 'pynzbget'
-__version__ = '0.5.1'
+__version__ = '0.6.1'
 __author__ = 'Chris Caron <lead2gold@gmail.com>'
 __license__ = 'GPLv3'
-__copywrite__ = 'Copyright 2014-2017 Chris Caron <lead2gold@gmail.com'
+__copywrite__ = 'Copyright 2014-2017 Chris Caron <lead2gold@gmail.com>'
 
 from .ScriptBase import *
 from .SchedulerScript import *

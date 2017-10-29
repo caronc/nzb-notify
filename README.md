@@ -79,17 +79,21 @@ should be known that Notify.py depends on the following packages:
 | backports-ssl_match_hostname | 3.4.0.2 | https://pypi.python.org/pypi/backports.ssl_match_hostname/3.4.0.2                    |
 | chardet                      | 2.2.1   | https://pypi.python.org/pypi/chardet/2.2.1                                           |
 | importlib                    | 1.0.1   | https://pypi.python.org/pypi/importlib/1.0.1                                         |
-| *markdown                    | 2.5.1   | https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26                        |
+| \*markdown                   | 2.5.1   | https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26                        |
 | ndg-httpsclient              | 0.3.2   | https://pypi.python.org/pypi/ndg-httpsclient/0.3.2                                   |
 | ordereddict                  | 1.1     | https://pypi.python.org/pypi/ordereddict/1.1                                         |
-| pynzbget                     | 0.3.1   | https://pypi.python.org/pypi/pynzbget/0.3.1                                          |
+| oauthlib                     | 2.0.4   | https://pypi.python.org/pypi/oauthlib/2.0.4                                          |
+| pynzbget                     | 0.6.1   | https://pypi.python.org/pypi/pynzbget/0.6.1                                          |
 | requests **[P]**             | 2.3.0   | https://pypi.python.org/pypi/requests/2.3.0                                          |
+| requests-oauthlib            | 0.8.0   | https://pypi.python.org/pypi/requests-oauthlib/0.8.0                                 |
 | six                          | 1.6.1   | https://pypi.python.org/pypi/six/1.6.1                                               |
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |
-| pyOpenSSL **[P]**            | 16.2.0  | https://pypi.python.org/pypi/pyOpenSSL/16.2.0                                          |
+| pyOpenSSL **[P]**            | 16.2.0  | https://pypi.python.org/pypi/pyOpenSSL/16.2.0                                        |
+| pySocks                      | 1.6.7   | https://pypi.python.org/pypi/pySocks/1.6.7                                           |
+| tweepy                       | 3.5.0   | https://pypi.python.org/pypi/tweepy/3.5.0                                            |
 | gntp                         | 1.0.2   | https://pypi.python.org/pypi/gntp/1.0.2                                              |
 | urllib3 **[P]**              | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
-| pushjet                      | 1.0.0    | https://pypi.python.org/pypi/pushjet/1.0.0                                           |
+| pushjet                      | 1.0.0   | https://pypi.python.org/pypi/pushjet/1.0.0                                           |
 
 **Note:** The items above denoted with a **[P]** were patched in efforts to:
 - Make their libaries compatible with Python v2.6.

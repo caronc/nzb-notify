@@ -1036,20 +1036,22 @@ class ScriptBase(object):
         you wish it to be at
         """
 
-        if enabled is True and not self.debug:
-            self.debug = True
-            # Set debugging on logging
-            self.logger.setLevel(LOG_DEBUG)
-            for h in self.logger.handlers:
-                h.setLevel(LOG_DEBUG)
+        if enabled is True:
+            if self.debug:
+                self.debug = True
+                # Set debugging on logging
+                self.logger.setLevel(LOG_DEBUG)
+                for h in self.logger.handlers:
+                    h.setLevel(LOG_DEBUG)
             return
 
-        elif enabled in (False, None) and self.debug:
-            self.debug = False
-            # Set debugging on logging
-            self.logger.setLevel(LOG_DETAIL)
-            for h in self.logger.handlers:
-                h.setLevel(LOG_DETAIL)
+        elif enabled in (False, None):
+            if self.debug:
+                self.debug = False
+                # Set debugging on logging
+                self.logger.setLevel(LOG_DETAIL)
+                for h in self.logger.handlers:
+                    h.setLevel(LOG_DETAIL)
             return
 
         # Convert to integer
@@ -1846,6 +1848,7 @@ class ScriptBase(object):
                         NZBGET_DATABASE_FILENAME,
                     ),
                     logger=self.logger,
+                    debug=self.debug,
                 )
 
                 # Database is ready to go
@@ -1971,6 +1974,7 @@ class ScriptBase(object):
                         NZBGET_DATABASE_FILENAME,
                     ),
                     logger=self.logger,
+                    debug=self.debug,
                 )
 
                 # Database is ready to go
@@ -2033,6 +2037,7 @@ class ScriptBase(object):
                         NZBGET_DATABASE_FILENAME,
                     ),
                     logger=self.logger,
+                    debug=self.debug,
                 )
 
                 # Fetch from database first
@@ -2096,6 +2101,7 @@ class ScriptBase(object):
                         NZBGET_DATABASE_FILENAME,
                     ),
                     logger=self.logger,
+                    debug=self.debug,
                 )
 
                 # Database is ready to go
@@ -2223,6 +2229,7 @@ class ScriptBase(object):
                         NZBGET_DATABASE_FILENAME,
                     ),
                     logger=self.logger,
+                    debug=self.debug,
                 )
 
                 # Database is ready to go
@@ -2273,6 +2280,7 @@ class ScriptBase(object):
                         NZBGET_DATABASE_FILENAME,
                     ),
                     logger=self.logger,
+                    debug=self.debug,
                 )
 
                 # Fetch from database first
@@ -3057,6 +3065,21 @@ class ScriptBase(object):
                     self.logger.warning(
                         'Failed to remove PID-File: %s' % self.pidfile)
                     pass
+
+
+        # If we reach here we call any mode_close() functions defined. allowing
+        # our scripts to perform any cleanup if need be
+        if len(self.script_dict.keys()):
+            for k in [ v for v in SCRIPT_MODES \
+                      if v in self.script_dict.keys() + [
+                              SCRIPT_MODE.CONFIG_ACTION, SCRIPT_MODE.NONE,]]:
+                if hasattr(self, '%s_%s' % (k, 'close')):
+                    try:
+                        # Execute our close() function we detected
+                        getattr(self, '%s_%s' % (k, 'close'))()
+                    except:
+                        # So be it, don't stop now...
+                        pass
 
         # Simplify return codes for those who just want to use
         # True/False/None
