@@ -68,7 +68,7 @@ class NotifyJSON(NotifyBase):
             'version': '1.0',
             'title': title,
             'message': body,
-            'image': self.image_url(notify_type),
+            'type': notify_type,
         }
 
         headers = {
