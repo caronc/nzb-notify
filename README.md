@@ -62,10 +62,9 @@ location that content is retrieved from.
 NZB-Notify have some email services built right into it (such as hotmail, gmail, etc) that greatly simplify the mailto:// service.  See more details [here](https://github.com/caronc/nzb-notify/wiki/Notify_email).
 
 ### Custom Notifications
-Those who host their own web server can have the status posted directly to it in the following formats:
-| Post Method | Service ID | Default Port | Example Syntax |
+| Post Method          | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
-| [JSON](https://github.com/caronc/nzb-notify/wiki/Notify_Custom_JSON)        | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
+| [JSON](https://github.com/caronc/nzb-notify/wiki/Notify_Custom_JSON)       | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
 | [XML](https://github.com/caronc/nzb-notify/wiki/Notify_Custom_XML)         | xml:// or xmls://   | (TCP) 80 or 443 | xml://hostname<br />xml://user@hostname<br />xml://user:password@hostname:port<br />xml://hostname/a/path/to/post/to
 
 ## Dependencies
