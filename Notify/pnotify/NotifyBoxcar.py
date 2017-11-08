@@ -65,7 +65,7 @@ class NotifyBoxcar(NotifyBase):
             recipients = []
 
         elif isinstance(recipients, basestring):
-            self.recipients = filter(bool, TAGS_LIST_DELIM.split(
+            recipients = filter(bool, TAGS_LIST_DELIM.split(
                 recipients,
             ))
 
