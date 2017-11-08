@@ -35,6 +35,8 @@
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
 # Script Version: 0.7.0
 #
+# Home: https://github.com/caronc/nzb-notify
+# Wiki: https://github.com/caronc/nzb-notify/wiki
 
 ###########################################################################
 ### OPTIONS
@@ -62,6 +64,7 @@
 #  - json:// -> A simple json query
 #  - jsons:// -> A secure, simple json query
 #  - kodi:// -> A KODI Notification
+#  - kodis:// -> A Secure KODI Notification
 #  - mailto:// -> An email Notification
 #  - mailtos:// -> A secure email Notification
 #  - nma:// -> Notify My Android Notification
@@ -71,6 +74,8 @@
 #  - pover:// -> A Pushover Notification
 #  - toasty:// -> A (Super) Toasty Notification
 #  - xbmc:// -> An XBMC Notification (protocol v2)
+#  - rocket:// -> A Rocket.Chat Notification
+#  - rockets:// -> A Secure Rocket.Chat Notification
 #  - slack:// -> A Slack Notification
 #  - tgram:// -> A Telegram Notification
 #  - tweet:// -> A Twitter Direct Message (DM) Notification
@@ -176,6 +181,22 @@
 #  - pbul://accesstoken/device
 #  - pbul://accesstoken/email@domain.net
 #  - pbul://accesstoken/#channel/#channel2/device/email@email.com
+#
+#
+# NOTE: Rocket.Chat notifications require a login and password. They can
+# support room_id's and channels, you can also do this by specifying them on
+# the path; as an example (mix and match as you feel). Use rocket:// for an
+# insecure connection and rockets:// for a secure one.
+#  - rocket://user:pass@hostname/#channel
+#  - rocket://user:pass@hostname:port/#channel
+#  - rocket://user:pass@hostname/room_id
+#  - rocket://user:pass@hostname:port/room_id
+#  - rocket://user:pass@hostname/room_id/#channel/room_id2/#channel2
+#  - rockets://user:pass@hostname/#channel
+#  - rockets://user:pass@hostname:port/#channel
+#  - rockets://user:pass@hostname/room_id
+#  - rockets://user:pass@hostname:port/room_id
+#  - rockets://user:pass@hostname/room_id/#channel/room_id2/#channel2
 #
 #
 # NOTE: Slack notifications require an incoming-webhook it can connect to.
@@ -349,6 +370,8 @@ NOTIFY_PUSHALOT_SCHEMA = 'palot'
 NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
 NOTIFY_PUSHOVER_SCHEMA = 'pover'
 NOTIFY_TOASTY_SCHEMA = 'toasty'
+NOTIFY_ROCKETCHAT_SCHEMA = 'rocket'
+NOTIFY_ROCKETCHATS_SCHEMA = 'rockets'
 NOTIFY_EMAIL_SCHEMA = 'mailto'
 NOTIFY_EMAILS_SCHEMA = 'mailtos'
 NOTIFY_NMA_SCHEMA = 'nma'
@@ -412,6 +435,10 @@ SCHEMA_MAP = {
     NOTIFY_SLACK_SCHEMA: NotifySlack,
     # Join Notification
     NOTIFY_JOIN_SCHEMA: NotifyJoin,
+    # Rocket.Chat Notification
+    NOTIFY_ROCKETCHAT_SCHEMA: NotifyRocketChat,
+    # Secure Rocket.Chat Notification
+    NOTIFY_ROCKETCHATS_SCHEMA: NotifyRocketChat,
     # Telegram Notification
     NOTIFY_TELEGRAM_SCHEMA: NotifyTelegram,
     # Twitter Notification
@@ -882,6 +909,19 @@ class NotifyScript(PostProcessScript, QueueScript):
                     'csecret': consumer_secret,
                     'akey': access_token_key,
                     'asecret': access_token_secret,
+                }.items()
+
+            # #######################################################################
+            # Rocket.Chat Notification Support
+            # #######################################################################
+            if server['schema'] in (NOTIFY_ROCKETCHAT_SCHEMA, NOTIFY_ROCKETCHATS_SCHEMA):
+                try:
+                    recipients = unquote(server['fullpath'])
+                except AttributeError:
+                    recipients = ''
+
+                notify_args = notify_args + {
+                    'recipients': recipients,
                 }.items()
 
             # #######################################################################

@@ -33,6 +33,7 @@ from .NotifyProwl import NotifyProwl
 from .NotifyPushalot import NotifyPushalot
 from .NotifyPushBullet import NotifyPushBullet
 from .NotifyPushover import NotifyPushover
+from .NotifyRocketChat import NotifyRocketChat
 from .NotifyToasty import NotifyToasty
 from .NotifyTwitter import NotifyTwitter
 from .NotifyXBMC import NotifyXBMC
