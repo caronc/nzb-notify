@@ -1052,7 +1052,7 @@ class NotifyScript(PostProcessScript, QueueScript):
                 #               for (k, v) in notify_args ]),
                 #))
                 nobj = SCHEMA_MAP[server['schema']](**dict(notify_args))
-            except TypeError, e:
+            except TypeError as e:
                 # Validation Failure
                 self.logger.error(
                     'Could not initialize %s instance.' % server['schema'],
