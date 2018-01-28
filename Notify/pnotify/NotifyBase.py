@@ -62,6 +62,7 @@ class NotifyType(object):
     FAILURE = 'failure'
     WARNING = 'warning'
 
+
 # Most Servers do not like more then 1 request per 5 seconds,
 # so 5.5 gives us a safe play range...
 NOTIFY_THROTTLE_SEC = 5.5
@@ -97,7 +98,6 @@ NOTIFY_IMAGE_SIZES = (
 HTTP_ERROR_MAP = {
     400: 'Bad Request - Unsupported Parameters.',
     401: 'Verification Failed.',
-    404: 'Unauthorized access.',
     404: 'Page not found.',
     405: 'Method not allowed.',
     500: 'Internal server error.',
@@ -444,10 +444,9 @@ class NotifyBase(object):
                     **kwargs):
                 return False
 
-            # If we got here, we sent part of the notification
-            # if there are any left, we should throttle so we
-            # don't overload the server with requests (they
-            # might not be happy with us otherwise)
+            # If we got here, we sent part of the notification if there are any
+            # left, we should throttle so we don't overload the server with
+            # requests (they might not be happy with us otherwise)
             if len(bodies):
                 self.throttle()
 
