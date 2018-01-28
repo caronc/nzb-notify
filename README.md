@@ -5,6 +5,9 @@ SABnzbd users can reference sabnzbd-notify.py to gain support of the tool as wel
 [![Paypal](http://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
 [![Patreon](http://repo.nuxref.com/pub/img/patreondonate.svg)](https://www.patreon.com/lead2gold)
 
+## Built on Apprise
+This guts of this script have been recently extracted into it's own project called [Apprise](https://github.com/caronc/apprise) which allows others to build Notifications into their applications as well.
+
 ## Notify Processing Script
 
 Send notifications to all of the popular notification services (PushBullet, NotifyMyAndroid, XBMC, Email etc). NZBGet (and/or SABnzbd) will automatically notify you of anything it downloads. You can chain as many notification services as you want and support most of the advance features each service offers you too.
@@ -29,44 +32,45 @@ _Dependencies_ section below.
 
 ## Supported Notifications
 The section identifies all of the services supported by this script.
+
 ### Popular Notification Services
 The table below identifies the provider _Notify.py_ supports and the
 location that content is retrieved from.
 
 | Notification Service | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
-| [Boxcar](https://github.com/caronc/nzb-notify/wiki/Notify_boxcar)  | boxcar://   | (TCP) 443   | boxcar://hostname<br />boxcar://hostname/@tag<br/>boxcar://hostname/device_token<br />boxcar://hostname/device_token1/device_token2/device_tokenN<br />boxcar://hostname/alias<br />boxcar://hostname/@tag/@tag2/alias/device_token
-| [Faast](https://github.com/caronc/nzb-notify/wiki/Notify_faast) | faast://    | (TCP) 443    | faast://authorizationtoken
-| [Growl](https://github.com/caronc/nzb-notify/wiki/Notify_growl)  | growl://   | (UDP) 23053   | growl://hostname<br />growl://hostname:portno<br />growl://password@hostname<br />growl://password@hostname:port</br>_Note: you can also use the get parameter _version_ which can allow the growl request to behave using the older v1.x protocol. An example would look like: growl://hostname?version=1
-| [Join](https://github.com/caronc/nzb-notify/wiki/Notify_join) | join://   | (TCP) 443    | join://apikey/device<br />join://apikey/device1/device2/deviceN/<br />join://apikey/group<br />join://apikey/groupA/groupB/groupN<br />join://apikey/DeviceA/groupA/groupN/DeviceN/
-| [KODI](https://github.com/caronc/nzb-notify/wiki/Notify_kodi) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
-| [Mattermost](https://github.com/caronc/nzb-notify/wiki/Notify_mattermost) | mmost://  | (TCP) 8065 | mmost://hostname/authkey<br />mmost://hostname:80/authkey<br />mmost://user@hostname:80/authkey<br />mmost://hostname/authkey?channel=channel<br />mmosts://hostname/authkey<br />mmosts://user@hostname/authkey<br />
-| [Notify My Android](https://github.com/caronc/nzb-notify/wiki/Notify_my_android) | nma://   | (TCP) 443    | nma://apikey
-| [Prowl](https://github.com/caronc/nzb-notify/wiki/Notify_prowl) | prowl://   | (TCP) 443    | prowl://apikey<br />prowl://apikey/providerkey
-| [Pushalot](https://github.com/caronc/nzb-notify/wiki/Notify_pushalot) | palot://    | (TCP) 443    | palot://authorizationtoken
-| [PushBullet](https://github.com/caronc/nzb-notify/wiki/Notify_pushbullet) | pbul://    | (TCP) 443    | pbul://accesstoken<br />pbul://accesstoken/#channel<br/>pbul://accesstoken/A_DEVICE_ID<br />pbul://accesstoken/email@address.com<br />pbul://accesstoken/#channel/#channel2/email@address.net/DEVICE
-| [Pushjet](https://github.com/caronc/nzb-notify/wiki/Notify_pushjet) | pjet://  | (TCP) 80   | pjet://secret<br />pjet://secret@hostname<br />pjet://secret@hostname:port<br />pjets://secret@hostname<br />pjets://secret@hostname:port<br /><i>Note: if no hostname defined https://api.pushjet.io will be used
-| [Pushover](https://github.com/caronc/nzb-notify/wiki/Notify_pushover)  | pover://   | (TCP) 443   | pover://user@token<br />pover://user@token/DEVICE<br />pover://user@token/DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and token_
-| [Rocket.Chat](https://github.com/caronc/nzb-notify/wiki/Notify_rocketchat) | rocket:// or rockets://  | (TCP) 80 or 443   | rocket://user:password@hostname/RoomID/Channel<br />rockets://user:password@hostname:443/Channel1/Channel1/RoomID<br />rocket://user:password@hostname/Channel
-| [Slack](https://github.com/caronc/nzb-notify/wiki/Notify_slack) | slack://  | (TCP) 443   | slack://TokenA/TokenB/TokenC/Channel<br />slack://botname@TokenA/TokenB/TokenC/Channel<br />slack://user@TokenA/TokenB/TokenC/Channel1/Channel2/ChannelN
-| [Super Toasty](https://github.com/caronc/nzb-notify/wiki/Notify_toasty)  | toasty://   | (TCP) 80   | toasty://user@DEVICE<br />toasty://user@DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and at least 1 device!_
-| [Telegram](https://github.com/caronc/nzb-notify/wiki/Notify_telegram) | tgram://  | (TCP) 443   | tgram://bottoken/ChatID<br />tgram://bottoken/ChatID1/ChatID2/ChatIDN
-| [Twitter](https://github.com/caronc/nzb-notify/wiki/Notify_twitter) | tweet://  | (TCP) 443   | tweet://user@CKey/CSecret/AKey/ASecret
-| [XBMC](https://github.com/caronc/nzb-notify/wiki/Notify_xbmc) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | xbmc://hostname<br />xbmc://user@hostname<br />xbmc://user:password@hostname:port
+| [Boxcar](https://github.com/caronc/apprise/wiki/Notify_boxcar)  | boxcar://   | (TCP) 443   | boxcar://hostname<br />boxcar://hostname/@tag<br/>boxcar://hostname/device_token<br />boxcar://hostname/device_token1/device_token2/device_tokenN<br />boxcar://hostname/@tag/@tag2/device_token
+| [Faast](https://github.com/caronc/apprise/wiki/Notify_faast) | faast://    | (TCP) 443    | faast://authorizationtoken
+| [Growl](https://github.com/caronc/apprise/wiki/Notify_growl)  | growl://   | (UDP) 23053   | growl://hostname<br />growl://hostname:portno<br />growl://password@hostname<br />growl://password@hostname:port</br>_Note: you can also use the get parameter _version_ which can allow the growl request to behave using the older v1.x protocol. An example would look like: growl://hostname?version=1
+| [Join](https://github.com/caronc/apprise/wiki/Notify_join) | join://   | (TCP) 443    | join://apikey/device<br />join://apikey/device1/device2/deviceN/<br />join://apikey/group<br />join://apikey/groupA/groupB/groupN<br />join://apikey/DeviceA/groupA/groupN/DeviceN/
+| [KODI](https://github.com/caronc/apprise/wiki/Notify_kodi) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
+| [Mattermost](https://github.com/caronc/apprise/wiki/Notify_mattermost) | mmost://  | (TCP) 8065 | mmost://hostname/authkey<br />mmost://hostname:80/authkey<br />mmost://user@hostname:80/authkey<br />mmost://hostname/authkey?channel=channel<br />mmosts://hostname/authkey<br />mmosts://user@hostname/authkey<br />
+| [Notify My Android](https://github.com/caronc/apprise/wiki/Notify_my_android) | nma://   | (TCP) 443    | nma://apikey
+| [Prowl](https://github.com/caronc/apprise/wiki/Notify_prowl) | prowl://   | (TCP) 443    | prowl://apikey<br />prowl://apikey/providerkey
+| [Pushalot](https://github.com/caronc/apprise/wiki/Notify_pushalot) | palot://    | (TCP) 443    | palot://authorizationtoken
+| [PushBullet](https://github.com/caronc/apprise/wiki/Notify_pushbullet) | pbul://    | (TCP) 443    | pbul://accesstoken<br />pbul://accesstoken/#channel<br/>pbul://accesstoken/A_DEVICE_ID<br />pbul://accesstoken/email@address.com<br />pbul://accesstoken/#channel/#channel2/email@address.net/DEVICE
+| [Pushjet](https://github.com/caronc/apprise/wiki/Notify_pushjet) | pjet://  | (TCP) 80   | pjet://secret<br />pjet://secret@hostname<br />pjet://secret@hostname:port<br />pjets://secret@hostname<br />pjets://secret@hostname:port<br /><i>Note: if no hostname defined https://api.pushjet.io will be used
+| [Pushover](https://github.com/caronc/apprise/wiki/Notify_pushover)  | pover://   | (TCP) 443   | pover://user@token<br />pover://user@token/DEVICE<br />pover://user@token/DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and token_
+| [Rocket.Chat](https://github.com/caronc/apprise/wiki/Notify_rocketchat) | rocket:// or rockets://  | (TCP) 80 or 443   | rocket://user:password@hostname/RoomID/Channel<br />rockets://user:password@hostname:443/Channel1/Channel1/RoomID<br />rocket://user:password@hostname/Channel
+| [Slack](https://github.com/caronc/apprise/wiki/Notify_slack) | slack://  | (TCP) 443   | slack://TokenA/TokenB/TokenC/Channel<br />slack://botname@TokenA/TokenB/TokenC/Channel<br />slack://user@TokenA/TokenB/TokenC/Channel1/Channel2/ChannelN
+| [Super Toasty](https://github.com/caronc/apprise/wiki/Notify_toasty)  | toasty://   | (TCP) 80   | toasty://user@DEVICE<br />toasty://user@DEVICE1/DEVICE2/DEVICEN<br />_Note: you must specify both your user_id and at least 1 device!_
+| [Telegram](https://github.com/caronc/apprise/wiki/Notify_telegram) | tgram://  | (TCP) 443   | tgram://bottoken/ChatID<br />tgram://bottoken/ChatID1/ChatID2/ChatIDN
+| [Twitter](https://github.com/caronc/apprise/wiki/Notify_twitter) | tweet://  | (TCP) 443   | tweet://user@CKey/CSecret/AKey/ASecret
+| [XBMC](https://github.com/caronc/apprise/wiki/Notify_xbmc) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | xbmc://hostname<br />xbmc://user@hostname<br />xbmc://user:password@hostname:port
 
 ### Email Support
 | Service ID | Default Port | Example Syntax |
 | ---------- | ------------ | -------------- |
-| [mailto://](https://github.com/caronc/nzb-notify/wiki/Notify_email)  |  (TCP) 25    | mailto://userid:pass@domain.com<br />mailto://domain.com?user=userid&pass=password<br/>mailto://domain.com:2525?user=userid&pass=password<br />mailto://user@gmail.com&pass=password<br />mailto://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
-| [mailtos//](https://github.com/caronc/nzb-notify/wiki/Notify_email) |  (TCP) 587   | mailtos://userid:pass@domain.com<br />mailtos://domain.com?user=userid&pass=password<br/>mailtos://domain.com:465?user=userid&pass=password<br />mailtos://user@hotmail.com&pass=password<br />mailtos://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
+| [mailto://](https://github.com/caronc/apprise/wiki/Notify_email)  |  (TCP) 25    | mailto://userid:pass@domain.com<br />mailto://domain.com?user=userid&pass=password<br/>mailto://domain.com:2525?user=userid&pass=password<br />mailto://user@gmail.com&pass=password<br />mailto://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
+| [mailtos//](https://github.com/caronc/apprise/wiki/Notify_email) |  (TCP) 587   | mailtos://userid:pass@domain.com<br />mailtos://domain.com?user=userid&pass=password<br/>mailtos://domain.com:465?user=userid&pass=password<br />mailtos://user@hotmail.com&pass=password<br />mailtos://userid:password@example.com?smtp=mail.example.com&from=noreply@example.com&name=no%20reply
 
-NZB-Notify have some email services built right into it (such as hotmail, gmail, etc) that greatly simplify the mailto:// service.  See more details [here](https://github.com/caronc/nzb-notify/wiki/Notify_email).
+Apprise have some email services built right into it (such as hotmail, gmail, etc) that greatly simplify the mailto:// service.  See more details [here](https://github.com/caronc/apprise/wiki/Notify_email).
 
 ### Custom Notifications
 | Post Method          | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
-| [JSON](https://github.com/caronc/nzb-notify/wiki/Notify_Custom_JSON)       | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
-| [XML](https://github.com/caronc/nzb-notify/wiki/Notify_Custom_XML)         | xml:// or xmls://   | (TCP) 80 or 443 | xml://hostname<br />xml://user@hostname<br />xml://user:password@hostname:port<br />xml://hostname/a/path/to/post/to
+| [JSON](https://github.com/caronc/apprise/wiki/Notify_Custom_JSON)       | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
+| [XML](https://github.com/caronc/apprise/wiki/Notify_Custom_XML)         | xml:// or xmls://   | (TCP) 80 or 443 | xml://hostname<br />xml://user@hostname<br />xml://user:password@hostname:port<br />xml://hostname/a/path/to/post/to
 
 ## Dependencies
 The following dependencies are already provided for you within the
@@ -83,26 +87,17 @@ should be known that Notify.py depends on the following packages:
 | ordereddict                  | 1.1     | https://pypi.python.org/pypi/ordereddict/1.1                                         |
 | oauthlib                     | 2.0.4   | https://pypi.python.org/pypi/oauthlib/2.0.4                                          |
 | pynzbget                     | 0.6.1   | https://pypi.python.org/pypi/pynzbget/0.6.1                                          |
-| requests **[P]**             | 2.3.0   | https://pypi.python.org/pypi/requests/2.3.0                                          |
+| requests                     | 2.3.0   | https://pypi.python.org/pypi/requests/2.3.0                                          |
 | requests-oauthlib            | 0.8.0   | https://pypi.python.org/pypi/requests-oauthlib/0.8.0                                 |
 | six                          | 1.6.1   | https://pypi.python.org/pypi/six/1.6.1                                               |
 | pyasn1                       | 0.1.7   | https://pypi.python.org/pypi/pyasn1/0.1.7                                            |
-| pyOpenSSL **[P]**            | 17.3.0  | https://pypi.python.org/pypi/pyOpenSSL/17.3.0                                        |
+| pyOpenSSL                    | 17.3.0  | https://pypi.python.org/pypi/pyOpenSSL/17.3.0                                        |
 | pySocks                      | 1.6.7   | https://pypi.python.org/pypi/pySocks/1.6.7                                           |
-| tweepy                       | 3.5.0   | https://pypi.python.org/pypi/tweepy/3.5.0                                            |
-| gntp                         | 1.0.2   | https://pypi.python.org/pypi/gntp/1.0.2                                              |
-| urllib3 **[P]**              | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
-| pushjet                      | 1.0.0   | https://pypi.python.org/pypi/pushjet/1.0.0                                           |
+| urllib3                      | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
+| apprise                      | 0.0.6   | https://pypi.python.org/pypi/apprise/0.0.6                                            |
 
-**Note:** The items above denoted with a **[P]** were patched in efforts to:
-- Make their libaries compatible with Python v2.6.
 - Fix bugs to add stability to the overall functionality.
 - Add the nessesary enhancments that benifit this wrapper tool.
-
-John Gruber's python _markdown_ is officially available [here](https://github.com/waylan/Python-Markdown), but I chose to use [this fork](https://github.com/EnTeQuAk/Python-Markdown/tree/feature/py26) (by [EnTeQuAk](https://github.com/EnTeQuAk) instead because it was backported to work with Python v2.6. The ticket [here](https://github.com/waylan/Python-Markdown/issues/345) explains the reasoning.
-
-To be as transparent as possible, all patches have been provided in the
-[_/patches_](https://github.com/caronc/nzbget-notify/tree/master/patches) directory.
 
 ## Command Line
 Notify.py has a built in command line interface that can be easily tied
