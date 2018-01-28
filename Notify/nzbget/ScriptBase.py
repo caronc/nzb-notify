@@ -2484,7 +2484,7 @@ class ScriptBase(object):
             # Python < 2.7.9
             transport = SafeTransport(
                 use_datetime=True,
-                context=context,
+                context=None,
             )
 
             try:
