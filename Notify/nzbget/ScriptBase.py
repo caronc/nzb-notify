@@ -2746,6 +2746,9 @@ class ScriptBase(object):
             regex_filter = _filters
 
         if current_depth == 1:
+            # Ensure we're always dealing with an absolute path
+            search_dir = abspath(search_dir)
+
             # noise reduction; only display this notice once (but not on
             # each recursive call)
             self.logger.debug("get_files('%s') with %d filter(s)" % (
