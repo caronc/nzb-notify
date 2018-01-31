@@ -2476,18 +2476,19 @@ class ScriptBase(object):
                     use_datetime=True,
                     context=context,
                 )
-            except:
+            except Exception as e:
                 self.logger.debug('API connection failed @ %s' % xmlrpc_url)
+                self.logger.debug('Failure Reason: %s' % str(e))
                 return False
 
         except AttributeError:
             # Python < 2.7.9
-            transport = SafeTransport(
-                use_datetime=True,
-                context=None,
-            )
-
             try:
+                transport = SafeTransport(
+                    use_datetime=True,
+                    context=None,
+                )
+
                 self.api = ServerProxy(
                     xmlrpc_url,
                     verbose=False,
@@ -2495,8 +2496,9 @@ class ScriptBase(object):
                     transport=transport,
                 )
 
-            except:
+            except Exception as e:
                 self.logger.debug('API connection failed @ %s' % xmlrpc_url)
+                self.logger.debug('Failure Reason: %s' % str(e))
                 return False
 
             self.logger.debug('API connected @ %s' % xmlrpc_url)
