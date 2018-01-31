@@ -134,6 +134,9 @@ Additionally all exception handling is wrapped to make debugging easier.
 import re
 from tempfile import gettempdir
 from tempfile import mkstemp
+from platform import system as p_system
+from platform import python_version as p_version
+from platform import release as p_release
 from os import environ
 from os import makedirs
 from os import chdir
@@ -930,6 +933,8 @@ class ScriptBase(object):
             self.logger_id = None
 
         self.logger.debug('Script Mode: %s' % self.script_mode)
+        self.logger.debug('Python v%s' % p_version())
+        self.logger.debug('OS: %s %s' % (p_system(), p_release()))
 
         # Track the current working directory
         try:
