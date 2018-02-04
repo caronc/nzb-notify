@@ -2466,9 +2466,11 @@ class ScriptBase(object):
 
         # Future TODO: make this an option for those who want to verify
         # the host.
+        context = hasattr(ssl, '_create_unverified_context') \
+                and ssl._create_unverified_context() or None
+
         try:
             # Python >= 2.7.9
-            context = ssl._create_unverified_context()
             try:
                 self.api = ServerProxy(
                     xmlrpc_url,
@@ -2484,16 +2486,14 @@ class ScriptBase(object):
         except AttributeError:
             # Python < 2.7.9
             try:
-                transport = SafeTransport(
-                    use_datetime=True,
-                    context=None,
-                )
-
                 self.api = ServerProxy(
                     xmlrpc_url,
                     verbose=False,
                     use_datetime=True,
-                    transport=transport,
+                    transport=SafeTransport(
+                        use_datetime=True,
+                        context=context,
+                    ),
                 )
 
             except Exception as e:
