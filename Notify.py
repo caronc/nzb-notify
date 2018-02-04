@@ -337,6 +337,7 @@
 
 ### NZBGET QUEUE/POST-PROCESSING SCRIPT
 ###########################################################################
+import logging
 import sys
 import re
 from os.path import join
@@ -352,102 +353,10 @@ from nzbget import QueueScript
 from nzbget import QueueEvent
 
 # Inherit Push Notification Scripts
-from pnotify import *
-from pnotify.NotifyBase import IS_EMAIL_RE
+from apprise import Apprise
+from apprise import NotifyType
+from apprise import AppriseAsset
 
-NOTIFY_BOXCAR_SCHEMA = 'boxcar'
-NOTIFY_BOXCARS_SCHEMA = 'boxcars'
-NOTIFY_FAAST_SCHEMA = 'faast'
-NOTIFY_GROWL_SCHEMA = 'growl'
-NOTIFY_PROWL_SCHEMA = 'prowl'
-NOTIFY_JSON_SCHEMA = 'json'
-NOTIFY_JSONS_SCHEMA = 'jsons'
-NOTIFY_KODI_SCHEMA = 'kodi'
-NOTIFY_KODIS_SCHEMA = 'kodis'
-NOTIFY_MATTERMOST_SCHEMA = 'mmost'
-NOTIFY_MATTERMOSTS_SCHEMA = 'mmosts'
-NOTIFY_PUSHALOT_SCHEMA = 'palot'
-NOTIFY_PUSHBULLET_SCHEMA = 'pbul'
-NOTIFY_PUSHOVER_SCHEMA = 'pover'
-NOTIFY_TOASTY_SCHEMA = 'toasty'
-NOTIFY_ROCKETCHAT_SCHEMA = 'rocket'
-NOTIFY_ROCKETCHATS_SCHEMA = 'rockets'
-NOTIFY_EMAIL_SCHEMA = 'mailto'
-NOTIFY_EMAILS_SCHEMA = 'mailtos'
-NOTIFY_NMA_SCHEMA = 'nma'
-NOTIFY_XBMC_SCHEMA = 'xbmc'
-NOTIFY_XBMCS_SCHEMA = 'xbmcs'
-NOTIFY_XML_SCHEMA = 'xml'
-NOTIFY_XMLS_SCHEMA = 'xmls'
-NOTIFY_SLACK_SCHEMA = 'slack'
-NOTIFY_JOIN_SCHEMA = 'join'
-NOTIFY_TELEGRAM_SCHEMA = 'tgram'
-NOTIFY_TWITTER_SCHEMA = 'tweet'
-NOTIFY_PUSHJET_SCHEMA = 'pjet'
-NOTIFY_PUSHJETS_SCHEMA = 'pjets'
-
-SCHEMA_MAP = {
-    # BOXCAR Notification
-    NOTIFY_BOXCAR_SCHEMA: NotifyBoxcar,
-    # Secure BOXCAR Notification
-    NOTIFY_BOXCARS_SCHEMA: NotifyBoxcar,
-    # FAAST Notification
-    NOTIFY_FAAST_SCHEMA: NotifyFaast,
-    # KODI Notification
-    NOTIFY_KODI_SCHEMA: NotifyXBMC,
-    # Secure KODI Notification
-    NOTIFY_KODIS_SCHEMA: NotifyXBMC,
-    # MatterMost (Unsecure) Notification
-    NOTIFY_MATTERMOST_SCHEMA: NotifyMatterMost,
-    # MatterMost (Secure) Notification
-    NOTIFY_MATTERMOSTS_SCHEMA: NotifyMatterMost,
-    # Growl Notification
-    NOTIFY_GROWL_SCHEMA: NotifyGrowl,
-    # Prowl Notification
-    NOTIFY_PROWL_SCHEMA: NotifyProwl,
-    # Toasty Notification
-    NOTIFY_TOASTY_SCHEMA: NotifyToasty,
-    # Email Notification
-    NOTIFY_EMAIL_SCHEMA: NotifyEmail,
-    # Secure Email Notification
-    NOTIFY_EMAILS_SCHEMA: NotifyEmail,
-    # Notify My Android Notification
-    NOTIFY_NMA_SCHEMA: NotifyMyAndroid,
-    # XBMC Notification
-    NOTIFY_XBMC_SCHEMA: NotifyXBMC,
-    # Secure XBMC Notification
-    NOTIFY_XBMCS_SCHEMA: NotifyXBMC,
-    # Pushalot Notification
-    NOTIFY_PUSHALOT_SCHEMA: NotifyPushalot,
-    # PushBullet Notification
-    NOTIFY_PUSHBULLET_SCHEMA: NotifyPushBullet,
-    # Pushover Notification
-    NOTIFY_PUSHOVER_SCHEMA: NotifyPushover,
-    # Simple JSON HTTP Notification
-    NOTIFY_JSON_SCHEMA: NotifyJSON,
-    # Secure Simple JSON HTTP Notification
-    NOTIFY_JSONS_SCHEMA: NotifyJSON,
-    # Simple XML HTTP Notification
-    NOTIFY_XML_SCHEMA: NotifyXML,
-    # Secure Simple XML HTTP Notification
-    NOTIFY_XMLS_SCHEMA: NotifyXML,
-    # Slack Notification
-    NOTIFY_SLACK_SCHEMA: NotifySlack,
-    # Join Notification
-    NOTIFY_JOIN_SCHEMA: NotifyJoin,
-    # Rocket.Chat Notification
-    NOTIFY_ROCKETCHAT_SCHEMA: NotifyRocketChat,
-    # Secure Rocket.Chat Notification
-    NOTIFY_ROCKETCHATS_SCHEMA: NotifyRocketChat,
-    # Telegram Notification
-    NOTIFY_TELEGRAM_SCHEMA: NotifyTelegram,
-    # Twitter Notification
-    NOTIFY_TWITTER_SCHEMA: NotifyTwitter,
-    # Pushjet Notification
-    NOTIFY_PUSHJET_SCHEMA: NotifyPushjet,
-    # Pushjet Notification (secure)
-    NOTIFY_PUSHJETS_SCHEMA: NotifyPushjet,
-}
 
 class IncludeLogOption(object):
     YES = 'YES'
@@ -467,10 +376,13 @@ class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
     """
-    def notify(self, servers, body, title, notify_type):
+    def notify(self, servers, body, title, notify_type=NotifyType.INFO):
         """
         processes list of servers specified
         """
+
+        # Apprise Asset Object
+        asset = AppriseAsset()
 
         # Include Image Flag
         _url = self.parse_url(self.get('IncludeImage'))
@@ -515,552 +427,21 @@ class NotifyScript(PostProcessScript, QueueScript):
             # we wanted.
             servers = self.parse_list(self.get('Servers', ''))
 
-        for _server in servers:
+        # Create our apprise object
+        a = Apprise(asset=asset)
 
-            # swap hash (#) tag values with their html version
-            # This is useful for accepting channels (as arguments to pushbullet)
-            _server = _server.replace('/#', '/%23')
+        for server in servers:
 
-            server = self.parse_url(_server, default_schema='unknown')
-            if not server:
-                # This is a dirty hack; but it's the only work around to
-                # tgram:// messages since the bot_token has a colon in it.
-                # It invalidates an normal URL.
-
-                # This hack searches for this bogus URL and corrects it
-                # so we can properly load it further down. The other
-                # alternative is to ask users to actually change the colon
-                # into a slash (which will work too), but it's more likely
-                # to cause confusion... So this is the next best thing
-                tgram = re.match(
-                    r'(?P<protocol>%s://)(bot)?(?P<prefix>([a-z0-9_-]+)(:[a-z0-9_-]+)?@)?(?P<btoken_a>[0-9]+):+(?P<remaining>.*)$' % \
-                    NOTIFY_TELEGRAM_SCHEMA,
-                    _server, re.IGNORECASE,
-                )
-
-                if tgram:
-                    if tgram.group('prefix'):
-                        server = self.parse_url('%s%s%s/%s' % (
-                                tgram.group('protocol'),
-                                tgram.group('prefix'),
-                                tgram.group('btoken_a'),
-                                tgram.group('remaining'),
-                            ),
-                            default_schema='unknown',
-                        )
-                    else:
-                        server = self.parse_url('%s%s/%s' % (
-                                tgram.group('protocol'),
-                                tgram.group('btoken_a'),
-                                tgram.group('remaining'),
-                            ),
-                            default_schema='unknown',
-                        )
-            if not server:
-                # Failed to parse te server
-                self.logger.error('Could not parse URL: %s' % server)
-                continue
-
-            self.logger.debug('Server parsed to: %s' % str(server))
-
-            # Some basic validation
-            if server['schema'] not in SCHEMA_MAP:
-                self.logger.error(
-                    '%s is not a supported server type.' % server['schema'].upper(),
-                )
-                continue
-
-            notify_args = server.copy().items() + {
-                # Logger Details
-                'logger': self.logger,
-                # Base
-                'include_image': include_image,
-                'secure': (server['schema'][-1] == 's'),
-                # Support SSL Certificate 'verify' keyword
-                # Default to being enabled (True)
-                'verify': self.parse_bool(server['qsd'].get('verify', True)),
-                # Overrides
-                'override_image_url': image_url,
-                'override_image_path': image_path,
-            }.items()
-
-            # #######################################################################
-            # Boxcar Notification Support
-            # #######################################################################
-            if server['schema'] in (NOTIFY_BOXCAR_SCHEMA, NOTIFY_BOXCARS_SCHEMA):
-                try:
-                    recipients = unquote(server['fullpath'])
-                except AttributeError:
-                    recipients = ''
-
-                notify_args = notify_args + {
-                    'recipients': recipients,
-                }.items()
-
-            # #######################################################################
-            # Faast Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_FAAST_SCHEMA:
-                notify_args = notify_args + {
-                    'authtoken': server['host'],
-                }.items()
-
-            # #######################################################################
-            # Email Notification Support
-            # #######################################################################
-            elif server['schema'] in (NOTIFY_EMAIL_SCHEMA, NOTIFY_EMAILS_SCHEMA):
-
-                # Default Format is HTML
-                notify_format = NotifyFormat.HTML
-
-                to_addr = ''
-                from_addr = ''
-                smtp_host = ''
-                if 'format' in server['qsd'] and len(server['qsd']['format']):
-                    # Extract email format (Text/Html)
-                    try:
-                        format = unquote(server['qsd']['format']).lower()
-                        if len(format) > 0 and format[0] == 't':
-                            notify_format = NotifyFormat.TEXT
-                    except AttributeError:
-                        pass
-
-                # get 'To' email address
-                try:
-                    to_addr = filter(bool, PATHSPLIT_LIST_DELIM.split(
-                          unquote(server['host'].lstrip('/')),
-                    ))[0]
-                except (AttributeError, IndexError):
-                    # No problem, we have other ways of getting
-                    # the To address
-                    pass
-
-                if not IS_EMAIL_RE.match(to_addr):
-                    if server['user']:
-                        # Try to be clever and build a potential
-                        # email address based on what we've been provided
-                        to_addr = '%s@%s' % (
-                            re.split('[\s@]+', server['user'])[0],
-                            re.split('[\s@]+', to_addr)[-1],
-                        )
-                        if not IS_EMAIL_RE.match(to_addr):
-                            self.logger.error(
-                                '%s does not contain a recipient email.' % \
-                                unquote(server['url'].lstrip('/')),
-                            )
-                            continue
-
-                # Attempt to detect 'from' email address
-                from_addr = to_addr
-                try:
-                    if 'from' in server['qsd'] and len(server['qsd']['from']):
-                        from_addr = server['qsd']['from']
-                        if not IS_EMAIL_RE.match(server['qsd']['from']):
-                            # Lets be clever and attempt to make the from
-                            # address email
-                            from_addr = '%s@%s' % (
-                            re.split('[\s@]+', from_addr)[0],
-                            re.split('[\s@]+', to_addr)[-1],
-                        )
-                        if not IS_EMAIL_RE.match(from_addr):
-                            self.logger.error(
-                                '%s does not contain a from address.' % \
-                                unquote(server['url'].lstrip('/')),
-                            )
-                            continue
-
-                except AttributeError:
-                    pass
-
-                try:
-                    if 'name' in server['qsd'] and len(server['qsd']['name']):
-                        # Extract from name to assocaite with from address
-                        notify_args = notify_args + {
-                            'name': unquote(server['qsd']['name']),
-                        }.items()
-                except AttributeError:
-                    pass
-
-                try:
-                    if 'timeout' in server['qsd'] and len(server['qsd']['timeout']):
-                        # Extract the timeout to assocaite with smtp server
-                        notify_args = notify_args + {
-                            'timeout': unquote(server['qsd']['timeout']),
-                        }.items()
-                except AttributeError:
-                    pass
-
-                try:
-                    if 'user' in server['qsd'] and len(server['qsd']['user']):
-                        # Extract from username to assocaite with smtp server
-                        notify_args = notify_args + {
-                            'user': unquote(server['qsd']['user']),
-                        }.items()
-                except AttributeError:
-                    pass
-
-                try:
-                    if 'pass' in server['qsd'] and len(server['qsd']['pass']):
-                        # Extract from password to assocaite with smtp server
-                        notify_args = notify_args + {
-                            'password': unquote(server['qsd']['pass']),
-                        }.items()
-                except AttributeError:
-                    pass
-
-                # Store SMTP Host if specified
-                try:
-                    # Extract from password to assocaite with smtp server
-                    if 'smtp' in server['qsd'] and len(server['qsd']['smtp']):
-                        smtp_host = unquote(server['qsd']['smtp'])
-                except AttributeError:
-                    pass
-
-                notify_args = notify_args + {
-                    'to': to_addr,
-                    'from': from_addr,
-                    'smtp_host': smtp_host,
-                    'notify_format': notify_format,
-                }.items()
-
-            # #######################################################################
-            # Notify My Android Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_NMA_SCHEMA:
-
-                notify_format = NotifyFormat.HTML
-
-                if 'format' in server['qsd'] and len(server['qsd']['format']):
-                    # Extract email format (Text/Html)
-                    try:
-                        format = unquote(server['qsd']['format']).lower()
-                        if len(format) > 0 and format[0] == 't':
-                            notify_format = NotifyFormat.TEXT
-                    except AttributeError:
-                        pass
-
-                notify_args = notify_args + {
-                    'apikey': server['host'],
-                }.items()
-
-            # #######################################################################
-            # Join Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_JOIN_SCHEMA:
-
-                # Limit results to just the first 2 line otherwise
-                # there is just to much content to display
-                body = re.split('[\r\n]+', body)
-                body[0] = body[0].strip('#').strip()
-                body = '\r\n'.join(body[0:2])
-
-                try:
-                    devices = ' '.join(
-                        filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    )))
-
-                except (AttributeError, IndexError):
-                    # Force some bad values that will get caught
-                    # in parsing later
-                    devices = None
-
-                notify_args = notify_args + {
-                    'apikey': server['host'],
-                    'devices': devices,
-                }.items()
-
-            # #######################################################################
-            # MatterMost Notification Support
-            # #######################################################################
-            elif server['schema'] in (
-                NOTIFY_MATTERMOST_SCHEMA,
-                NOTIFY_MATTERMOSTS_SCHEMA):
-
-                try:
-                    authtoken = filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    ))[0]
-
-                except (AttributeError, IndexError):
-                    # Force some bad values that will get caught
-                    # in parsing later
-                    authtoken = None
-
-                channel = None
-                if 'channel' in server['qsd'] and len(server['qsd']['channel']):
-                    # Allow the user to specify the channel to post to
-                    try:
-                        channel = unquote(server['qsd']['channel']).strip()
-
-                    except (AttributeError, TypeError, ValueError):
-                        self.logger.warning(
-                            'An invalid MatterMost channel of "%s" ' % server['qsd']['channel'] +\
-                            'was specified and will be ignored.'
-                        )
-                        pass
-
-                notify_args = notify_args + {
-                    'authtoken': authtoken,
-                    'channel': channel,
-                }.items()
-
-            # #######################################################################
-            # GROWL Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_GROWL_SCHEMA:
-
-                version = None
-                if 'version' in server['qsd'] and len(server['qsd']['version']):
-                    # Allow the user to specify the version of the protocol to
-                    # use
-                    try:
-                        version = int(unquote(server['qsd']['version']).strip().split('.')[0])
-                    except (AttributeError, IndexError, TypeError, ValueError):
-                        self.logger.warning(
-                            'An invalid Growl version of "%s" ' % server['qsd']['version'] +\
-                            'was specified and will be ignored.'
-                        )
-                        pass
-
-                # Because of the URL formatting; the password is actually where
-                # the username field is; for this reason, we just preform
-                # this small hack to make it conform correctly; the following
-                # strips out the existing password entry (if exists) so that it
-                # can be swapped with the new one we specify
-                notify_args = dict(notify_args)
-                notify_args['user'] = None
-                notify_args['password'] = server.get('user', None)
-                if version:
-                    notify_args['version'] = version
-                notify_args = notify_args.items()
-
-                # Limit results to just the first 2 line otherwise
-                # there is just to much content to display
-                body = re.split('[\r\n]+', body)
-                body[0] = body[0].strip('#').strip()
-                body = '\r\n'.join(body[0:2])
-
-            # #######################################################################
-            # Telegram Notification Support
-            # Note: since the bot_token has a colon in it; it messes a bit with our
-            #       url parsing.  Instead of being the hostname in this url, it
-            #       becomes the host/port combination.
-            # tgram://bot:token/chat_id1/chat_id2/chat_id3/?format=text
-            # tgram://bot:token/chat_id1/chat_id2/chat_id3/
-            # #######################################################################
-            elif server['schema'] == NOTIFY_TELEGRAM_SCHEMA:
-
-                # The first token is stored in the hostnamee
-                bot_token_a = server['host']
-
-                # Now fetch the remaining tokens
-                try:
-                    bot_token_b = filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    ))[0]
-
-                    bot_token = '%s:%s' % (bot_token_a, bot_token_b)
-
-                except (AttributeError, IndexError):
-                    # Force a bad value that will get caught in parsing later
-                    bot_token = None
-
-                try:
-                    chat_ids = ','.join(
-                        filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    ))[1:])
-
-                except (AttributeError, IndexError):
-                    # Force some bad values that will get caught
-                    # in parsing later
-                    chat_ids = None
-
-                notify_args = notify_args + {
-                    'bot_token': bot_token,
-                    'chat_ids': chat_ids,
-                }.items()
-
-            # #######################################################################
-            # Twitter Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_TWITTER_SCHEMA:
-
-                # The first token is stored in the hostnamee
-                consumer_key = server['host']
-
-                # Now fetch the remaining tokens
-                try:
-                    consumer_secret, access_token_key, access_token_secret = \
-                        filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    ))[0:3]
-
-                except (AttributeError, IndexError):
-                    # Force some bad values that will get caught
-                    # in parsing later
-                    consumer_secret = None
-                    access_token_key = None
-                    access_token_secret = None
-
-                notify_args = notify_args + {
-                    'ckey': consumer_key,
-                    'csecret': consumer_secret,
-                    'akey': access_token_key,
-                    'asecret': access_token_secret,
-                }.items()
-
-            # #######################################################################
-            # Rocket.Chat Notification Support
-            # #######################################################################
-            if server['schema'] in (NOTIFY_ROCKETCHAT_SCHEMA, NOTIFY_ROCKETCHATS_SCHEMA):
-                try:
-                    recipients = unquote(server['fullpath'])
-                except AttributeError:
-                    recipients = ''
-
-                notify_args = notify_args + {
-                    'recipients': recipients,
-                }.items()
-
-            # #######################################################################
-            # Slack Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_SLACK_SCHEMA:
-
-                # The first token is stored in the hostnamee
-                token_a = server['host']
-
-                # Now fetch the remaining tokens
-                try:
-                    token_b, token_c = filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    ))[0:2]
-
-                except (AttributeError, IndexError):
-                    # Force some bad values that will get caught
-                    # in parsing later
-                    token_b = None
-                    token_c = None
-
-                try:
-                    channels = '#'.join(
-                        filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']).lstrip('/'),
-                    ))[2:])
-
-                except (AttributeError, IndexError):
-                    # Force some bad values that will get caught
-                    # in parsing later
-                    channels = None
-
-                notify_args = notify_args + {
-                    'token_a': token_a,
-                    'token_b': token_b,
-                    'token_c': token_c,
-                    'channels': channels,
-                }.items()
-
-            # #######################################################################
-            # PROWL Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_PROWL_SCHEMA:
-
-                # optionally find the provider key
-                try:
-                    providerkey = filter(bool, PATHSPLIT_LIST_DELIM.split(
-                        unquote(server['fullpath']),
-                    ))[0]
-
-                    if not providerkey:
-                        providerkey = None
-
-                except (AttributeError, IndexError):
-                    providerkey = None
-
-                notify_args = notify_args + {
-                    'apikey': server['host'],
-                    'providerkey': providerkey,
-                }.items()
-
-            # #######################################################################
-            # Pushalot Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_PUSHALOT_SCHEMA:
-                notify_args = notify_args + {
-                    'authtoken': server['host'],
-                }.items()
-
-            # #######################################################################
-            # PushBullet Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_PUSHBULLET_SCHEMA:
-                try:
-                    recipients = unquote(server['fullpath'])
-                except AttributeError:
-                    recipients = ''
-
-                notify_args = notify_args + {
-                    'accesstoken': server['host'],
-                    'recipients': recipients,
-                }.items()
-
-            # #######################################################################
-            # Pushover Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_PUSHOVER_SCHEMA:
-                try:
-                    devices = unquote(server['fullpath'])
-                except AttributeError:
-                    devices = ''
-
-                notify_args = notify_args + {
-                    'token': server['host'],
-                    'devices': devices,
-                }.items()
-
-            # #######################################################################
-            # Toasty Notification Support
-            # #######################################################################
-            elif server['schema'] == NOTIFY_TOASTY_SCHEMA:
-                try:
-                    devices = unquote(server['fullpath'])
-                except AttributeError:
-                    devices = ''
-
-                notify_args = notify_args + {
-                    'devices': '%s/%s' % (server['host'], devices),
-                }.items()
-
-            # #######################################################################
-            # XBMC Notification Support
-            # #######################################################################
-            elif server['schema'] in (
-                NOTIFY_XBMC_SCHEMA, NOTIFY_XBMCS_SCHEMA,
-                NOTIFY_KODI_SCHEMA, NOTIFY_KODIS_SCHEMA,
-                                   ):
-                # Limit results to just the first 2 line otherwise
-                # there is just to much content to display
-                body = re.split('[\r\n]+', body)
-                body[0] = body[0].strip('#').strip()
-                body = '\r\n'.join(body[0:2])
-            try:
-                #self.logger.debug('Initializing %s with:\r\n%s' % (
-                #    SCHEMA_MAP[server['schema']].__name__,
-                #    '\r\n'.join([ '%s=\'%s\'' % (k, v) \
-                #               for (k, v) in notify_args ]),
-                #))
-                nobj = SCHEMA_MAP[server['schema']](**dict(notify_args))
-            except TypeError as e:
+            # Add our URL
+            if not a.add(server):
                 # Validation Failure
                 self.logger.error(
-                    'Could not initialize %s instance.' % server['schema'],
+                    'Could not initialize %s instance.' % server,
                 )
-                self.logger.debug('Initialization Exception: %s' % str(e))
                 continue
 
-            nobj.notify(body=body, title=title, notify_type=notify_type)
+        # Notify our servers
+        a.notify(body=body, title=title, notify_type=notify_type)
 
         # Always return true
         return True
@@ -1304,7 +685,6 @@ class NotifyScript(PostProcessScript, QueueScript):
         servers = self.get('Servers', None)
         title = self.get('Title', 'Test Notify Title')
         body = self.get('Body', 'Test Notify Body')
-        notify_type = NotifyType.INFO
 
         if not servers:
             self.logger.info('No servers were specified --servers (-s)')
@@ -1315,7 +695,6 @@ class NotifyScript(PostProcessScript, QueueScript):
             servers,
             title=title,
             body=body,
-            notify_type=notify_type,
         )
 
 # Call your script as follows:
@@ -1436,6 +815,12 @@ if __name__ == "__main__":
         # detected as not being identified
         parser.print_help()
         exit(1)
+
+    # Attach Apprise logging to output by connecting to its namespace
+    logging.getLogger('apprise.plugins.NotifyBase').\
+            addHandler(script.logger.handlers[0])
+    logging.getLogger('apprise.plugins.NotifyBase').\
+            setLevel(script.logger.getEffectiveLevel())
 
     # call run() and exit() using it's returned value
     exit(script.run())
