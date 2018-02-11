@@ -357,6 +357,9 @@ from apprise import Apprise
 from apprise import NotifyType
 from apprise import AppriseAsset
 
+# HTML New Line Delimiter
+NOTIFY_NEWLINE = '\r\n'
+
 
 class IncludeLogOption(object):
     YES = 'YES'

@@ -60,7 +60,7 @@ HTTP_ERROR_MAP = {
 }
 
 # HTML New Line Delimiter
-NOTIFY_NEWLINE = '\n'
+NOTIFY_NEWLINE = '\r\n'
 
 # Used to break a path list into parts
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
