@@ -2484,7 +2484,8 @@ class ScriptBase(object):
                     context=context,
                 )
             except Exception as e:
-                self.logger.debug('API connection failed @ %s' % xmlrpc_url)
+                self.logger.debug(
+                    'API connection failed @ %s' % xmlrpc_url)
                 self.logger.debug('Failure Reason: %s' % str(e))
                 return False
 
@@ -2500,9 +2501,20 @@ class ScriptBase(object):
                         context=context,
                     ),
                 )
+            except TypeError:
+                # One last try for the Python 2.6 users to Python v2.7.4
+                try:
+                    ServerProxy(xmlrpc_url)
+
+                except Exception as e:
+                    self.logger.debug(
+                        'Legacy API connection failed @ %s' % xmlrpc_url)
+                    self.logger.debug('Failure Reason: %s' % str(e))
+                    return False
 
             except Exception as e:
-                self.logger.debug('API connection failed @ %s' % xmlrpc_url)
+                self.logger.debug(
+                    'Fallback API connection failed @ %s' % xmlrpc_url)
                 self.logger.debug('Failure Reason: %s' % str(e))
                 return False
 
