@@ -355,6 +355,7 @@ from nzbget import QueueEvent
 # Inherit Push Notification Scripts
 from apprise import Apprise
 from apprise import NotifyType
+from apprise import NotifyFormat
 from apprise import AppriseAsset
 
 # HTML New Line Delimiter
@@ -484,6 +485,7 @@ class NotifyScript(PostProcessScript, QueueScript):
             title=title,
             body=self.nzbname,
             notify_type=notify_type,
+            body_format=NotifyFormat.MARKDOWN,
         )
 
     def postprocess_main(self, *args, **kwargs):
