@@ -279,20 +279,6 @@ class NotifyTelegram(NotifyBase):
                 # ID
                 payload['chat_id'] = chat_id.group('idno')
 
-            if not self.notify_image(
-                    chat_id=payload['chat_id'], notify_type=notify_type):
-                # Uh oh... The image failed to post if we get here
-
-                if len(chat_ids) > 0:
-                    # Prevent thrashing requests
-                    self.throttle()
-
-                # Flag our error
-                has_error = True
-
-                # Move along
-                continue
-
             self.logger.debug('Telegram POST URL: %s' % url)
             self.logger.debug('Telegram POST URL: %s (cert_verify=%r)' % (
                 url, self.verify_certificate,
