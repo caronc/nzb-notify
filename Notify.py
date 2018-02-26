@@ -3,7 +3,7 @@
 #
 # Notififications Core
 #
-# Copyright (C) 2014-2017 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2018 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of NZB-Notify.
 #
@@ -59,6 +59,7 @@
 # The following services are currently supported:
 #  - boxcar:// -> A Boxcar Notification
 #  - boxcars:// -> A secure Boxcar Notification
+#  - discord:// -> A Discord Notification
 #  - faast:// -> A Faast Notification
 #  - growl:// -> A Growl Notification
 #  - json:// -> A simple json query
@@ -104,6 +105,26 @@
 #  - boxcars://host/alias
 #  - boxcars://host/alias1/alias2/alias1
 #  - boxcars://host/alias/@tag/devicetoken
+#
+#
+# NOTE: Discord requires a webhook to be created.  From there you can extract
+# the Webhook_ID and Webhook_Token to create your notification. Creating a
+# webhook is easy.  You just need to log into your discord account at
+# https://discordapp.com/ and access the the channel settings you want to be
+# able to notify to. You will have an option to create webhooks from here.
+# Once this is done you will recieve a URL that looks like this:
+#  * https://discordapp.com/api/webhooks/4174296316298/JHZ7lQml27KMHI8qBV_js
+#
+# You need to focus on the 2 tokens at the end of the URL
+#  * https://discordapp.com/api/webhooks/Webhook_ID/Webhook_Token
+#
+# Once you have a webhook (and you're tokens), here is how to use this part
+# of the notification:
+#  - discord://Webhook_ID/Webhook_Token
+#  - discord://botname@Webhook_ID/Webhook_Token
+#  - discord://Webhook_ID/Webhook_Token?footer=Yes
+#  - discord://Webhook_ID/Webhook_Token?footer=No&thumbnail=False
+#  - discord://Webhook_ID/Webhook_Token?avatar=No&tts=Yes
 #
 #
 # NOTE: Faast Notifications require an authorization token:
@@ -208,7 +229,7 @@
 # recieve a URL that looks something like this:
 #  * https://hooks.slack.com/services/T1JJ3T3L2/A1BRTD4JD/TIiajkdnlazkcOXrIdevi7F
 #
-# You need to focus on the 3 Tokens at the end of the URL
+# You need to focus on the 3 tokens at the end of the URL
 #  * https://hooks.slack.com/services/TokenA/TokenB/TokenC
 #
 # Once you have a webhook (and you're tokens), here is how to use this part

@@ -220,7 +220,7 @@ class NotifySlack(NotifyBase):
                 'attachments': [{
                     'title': title,
                     'text': body,
-                    'color': self.asset.html_color(notify_type),
+                    'color': self.color(notify_type),
                     # Time
                     'ts': time(),
                     'footer': self.app_id,
@@ -292,7 +292,7 @@ class NotifySlack(NotifyBase):
 
         # Apply our settings now
 
-        # The first token is stored in the hostnamee
+        # The first token is stored in the hostname
         token_a = results['host']
 
         # Now fetch the remaining tokens
