@@ -49,7 +49,6 @@ from json import dumps
 from .NotifyBase import NotifyBase
 from .NotifyBase import HTTP_ERROR_MAP
 from ..common import NotifyFormat
-from ..common import NotifyImageSize
 from ..utils import compat_is_basestring
 
 # Token required as part of the API request
@@ -67,12 +66,6 @@ IS_CHAT_ID_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Disable image support for now
-# The stickers/images are kind of big and consume a lot of space
-# It's not as appealing as just having the post not contain
-# an image at all.
-TELEGRAM_IMAGE_XY = NotifyImageSize.XY_32
-
 # Used to break path apart into list of chat identifiers
 CHAT_ID_LIST_DELIM = re.compile(r'[ \t\r\n,#\\/]+')
 
@@ -89,13 +82,13 @@ class NotifyTelegram(NotifyBase):
     notify_url = 'https://api.telegram.org/bot'
 
     def __init__(self, bot_token, chat_ids, notify_format=NotifyFormat.HTML,
-                 **kwargs):
+                 detect_bot_owner=True, **kwargs):
         """
         Initialize Telegram Object
         """
         super(NotifyTelegram, self).__init__(
             title_maxlen=250, body_maxlen=4096,
-            image_size=TELEGRAM_IMAGE_XY, notify_format=notify_format,
+            notify_format=notify_format,
             **kwargs)
 
         try:
@@ -130,55 +123,46 @@ class NotifyTelegram(NotifyBase):
             # Treat this as a channel too
             self.chat_ids.append(self.user)
 
+        if len(self.chat_ids) == 0 and detect_bot_owner:
+            _id = self.detect_bot_owner()
+            if _id:
+                # Store our id
+                self.chat_ids = [str(_id)]
+
         if len(self.chat_ids) == 0:
             self.logger.warning('No chat_id(s) were specified.')
             raise TypeError('No chat_id(s) were specified.')
 
-    def notify_image(self, chat_id, notify_type, **kwargs):
+    def detect_bot_owner(self):
         """
-        Sends the notification image based on the specified chat id
+        Takes a bot and attempts to detect it's chat id from that
 
         """
-        image_content = self.image_raw(notify_type)
-        if image_content is None:
-            # Nothing to do
-            return True
 
-        # prepare our image URL
+        headers = {
+            'User-Agent': self.app_id,
+        }
+
         url = '%s%s/%s' % (
             self.notify_url,
             self.bot_token,
-            'sendPhoto'
+            'getUpdates'
         )
 
-        # Set up our upload
-        files = {'photo': ('%s.png' % notify_type, image_content)}
-
-        payload = {
-            'chat_id': chat_id,
-            'disable_notification': True,
-        }
-
         self.logger.debug(
-            'Telegram (image) POST URL: %s (cert_verify=%r)' % (
+            'Telegram User Detection GET URL: %s (cert_verify=%r)' % (
                 url, self.verify_certificate))
 
-        self.logger.debug(
-            'Telegram (image) Payload: %s' % str(payload))
-
         try:
-            r = requests.post(
+            r = requests.get(
                 url,
-                data=payload,
-                headers={
-                    'User-Agent': self.app_id,
-                },
-                files=files,
+                headers=headers,
                 verify=self.verify_certificate,
             )
 
             if r.status_code != requests.codes.ok:
                 # We had a problem
+
                 try:
                     # Try to get the error message if we can:
                     error_msg = loads(r.text)['description']
@@ -189,38 +173,72 @@ class NotifyTelegram(NotifyBase):
                 try:
                     if error_msg:
                         self.logger.warning(
-                            'Failed to send Telegram Image:%s '
-                            'notification: (%s) %s.' % (
-                                payload['chat_id'],
+                            'Failed to detect Telegram user: (%s) %s.' % (
                                 r.status_code, error_msg))
 
                     else:
                         self.logger.warning(
-                            'Failed to send Telegram Image:%s '
-                            'notification: %s (error=%s).' % (
-                                payload['chat_id'],
+                            'Failed to detect Telegram user: '
+                            '%s (error=%s).' % (
                                 HTTP_ERROR_MAP[r.status_code],
                                 r.status_code))
 
                 except KeyError:
                     self.logger.warning(
-                        'Failed to send Telegram Image:%s '
-                        'notification (error=%s).' % (
-                            payload['chat_id'],
+                        'Failed to detect Telegram user. (error=%s).' % (
                             r.status_code))
 
-                return False
+                # self.logger.debug('Response Details: %s' % r.raw.read())
+                return 0
 
         except requests.RequestException as e:
             self.logger.warning(
-                'A Connection error occured sending Telegram:%s ' % (
-                    payload['chat_id']) + 'notification.'
-            )
+                'A Connection error occured detecting Telegram User ')
             self.logger.debug('Socket Exception: %s' % str(e))
-            return False
+            return 0
 
-        # We were successful
-        return True
+        # A Response might look something like this:
+        # {
+        #    "ok":true,
+        #    "result":[{
+        #      "update_id":645421321,
+        #      "message":{
+        #        "message_id":1,
+        #        "from":{
+        #          "id":532389719,
+        #          "is_bot":false,
+        #          "first_name":"Chris",
+        #          "language_code":"en-US"
+        #        },
+        #      "chat":{
+        #        "id":532389719,
+        #        "first_name":"Chris",
+        #        "type":"private"
+        #      },
+        #      "date":1519694394,
+        #      "text":"/start",
+        #      "entities":[{"offset":0,"length":6,"type":"bot_command"}]}}]
+
+        # Load our response and attempt to fetch our userid
+        response = loads(r.text)
+        if 'ok' in response and response['ok'] is True:
+            start = re.compile('^\s*\/start', re.I)
+            for _msg in iter(response['result']):
+                # Find /start
+                if not start.search(_msg['message']['text']):
+                    continue
+
+                _id = _msg['message']['from'].get('id', 0)
+                _user = _msg['message']['from'].get('first_name')
+                self.logger.info('Detected telegram user %s (userid=%d)' % (
+                    _user, _id))
+                # Return our detected userid
+                return _id
+
+            self.logger.warning(
+                'Could not detect bot owner. Is it running (/start)?')
+
+        return 0
 
     def notify(self, title, body, notify_type, **kwargs):
         """
@@ -243,19 +261,9 @@ class NotifyTelegram(NotifyBase):
 
         payload = {}
 
-        if self.notify_format == NotifyFormat.HTML:
-            # HTML
-            payload['parse_mode'] = 'HTML'
-            payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
-
-        else:
-            # Text
-            # payload['parse_mode'] = 'Markdown'
-            payload['parse_mode'] = 'HTML'
-            payload['text'] = '<b>%s</b>\r\n%s' % (
-                NotifyBase.escape_html(title),
-                NotifyBase.escape_html(body),
-            )
+        # HTML
+        payload['parse_mode'] = 'HTML'
+        payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
 
         # Create a copy of the chat_ids list
         chat_ids = list(self.chat_ids)
@@ -279,7 +287,6 @@ class NotifyTelegram(NotifyBase):
                 # ID
                 payload['chat_id'] = chat_id.group('idno')
 
-            self.logger.debug('Telegram POST URL: %s' % url)
             self.logger.debug('Telegram POST URL: %s (cert_verify=%r)' % (
                 url, self.verify_certificate,
             ))
@@ -397,7 +404,7 @@ class NotifyTelegram(NotifyBase):
                 ),
             )
 
-        # The first token is stored in the hostnamee
+        # The first token is stored in the hostname
         bot_token_a = results['host']
 
         # Now fetch the remaining tokens
