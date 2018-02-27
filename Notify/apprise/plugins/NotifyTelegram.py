@@ -81,7 +81,7 @@ class NotifyTelegram(NotifyBase):
     # Telegram uses the http protocol with JSON requests
     notify_url = 'https://api.telegram.org/bot'
 
-    def __init__(self, bot_token, chat_ids, notify_format=NotifyFormat.HTML,
+    def __init__(self, bot_token, chat_ids, notify_format=NotifyFormat.TEXT,
                  detect_bot_owner=True, **kwargs):
         """
         Initialize Telegram Object
@@ -261,9 +261,25 @@ class NotifyTelegram(NotifyBase):
 
         payload = {}
 
+
+        # HTML Spaces (&nbsp;) and tabs (&emsp;) aren't supported
+        # See https://core.telegram.org/bots/api#html-style
+        title = re.sub('&nbsp;?', ' ', title, re.I)
+        body = re.sub('&nbsp;?', ' ', body, re.I)
+        # Tabs become 3 spaces
+        title = re.sub('&emsp;?', '   ', title, re.I)
+        body = re.sub('&emsp;?', '   ', body, re.I)
+
         # HTML
+        title = NotifyBase.escape_html(title, whitespace=False)
+        body = NotifyBase.escape_html(body, whitespace=False)
+
         payload['parse_mode'] = 'HTML'
-        payload['text'] = '<b>%s</b>\r\n%s' % (title, body)
+
+        payload['text'] = '<b>%s</b>\r\n%s' % (
+            title,
+            body,
+        )
 
         # Create a copy of the chat_ids list
         chat_ids = list(self.chat_ids)
