@@ -2,7 +2,7 @@
 #
 # Pushover Notify Wrapper
 #
-# Copyright (C) 2017 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2017-2018 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of apprise.
 #
@@ -200,6 +200,9 @@ class NotifyPushover(NotifyBase):
 
                     # Return; we're done
                     has_error = True
+
+                else:
+                    self.logger.info('Sent Pushover notification to %s.' % device)
 
             except requests.RequestException as e:
                 self.logger.warning(

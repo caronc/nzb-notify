@@ -364,7 +364,6 @@ import re
 from os.path import join
 from os.path import abspath
 from os.path import dirname
-from urllib import unquote
 
 sys.path.insert(0, join(dirname(abspath(__file__)), 'Notify'))
 
@@ -401,7 +400,8 @@ class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
     """
-    def notify(self, servers, body, title, notify_type=NotifyType.INFO):
+    def notify(self, servers, body, title, notify_type=NotifyType.INFO,
+               body_format=NotifyFormat.MARKDOWN):
         """
         processes list of servers specified
         """
@@ -466,7 +466,8 @@ class NotifyScript(PostProcessScript, QueueScript):
                 continue
 
         # Notify our servers
-        a.notify(body=body, title=title, notify_type=notify_type)
+        a.notify(body=body, title=title, notify_type=notify_type,
+                 body_format=body_format)
 
         # Always return true
         return True
@@ -506,7 +507,6 @@ class NotifyScript(PostProcessScript, QueueScript):
             title=title,
             body=self.nzbname,
             notify_type=notify_type,
-            body_format=NotifyFormat.MARKDOWN,
         )
 
     def postprocess_main(self, *args, **kwargs):
@@ -721,6 +721,7 @@ class NotifyScript(PostProcessScript, QueueScript):
             servers,
             title=title,
             body=body,
+            body_format=NotifyFormat.TEXT,
         )
 
 # Call your script as follows:

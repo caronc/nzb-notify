@@ -165,7 +165,7 @@ class NotifyTelegram(NotifyBase):
 
                 try:
                     # Try to get the error message if we can:
-                    error_msg = loads(r.text)['description']
+                    error_msg = loads(r.content)['description']
 
                 except:
                     error_msg = None
@@ -220,7 +220,7 @@ class NotifyTelegram(NotifyBase):
         #      "entities":[{"offset":0,"length":6,"type":"bot_command"}]}}]
 
         # Load our response and attempt to fetch our userid
-        response = loads(r.text)
+        response = loads(r.content)
         if 'ok' in response and response['ok'] is True:
             start = re.compile('^\s*\/start', re.I)
             for _msg in iter(response['result']):
@@ -305,7 +305,7 @@ class NotifyTelegram(NotifyBase):
 
                     try:
                         # Try to get the error message if we can:
-                        error_msg = loads(r.text)['description']
+                        error_msg = loads(r.content)['description']
 
                     except:
                         error_msg = None
@@ -336,6 +336,9 @@ class NotifyTelegram(NotifyBase):
 
                     # Flag our error
                     has_error = True
+
+                else:
+                    self.logger.info('Sent Telegram notification.')
 
             except requests.RequestException as e:
                 self.logger.warning(
