@@ -2,7 +2,7 @@
 #
 # Telegram Notify Wrapper
 #
-# Copyright (C) 2017 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2017-2018 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of apprise.
 #
@@ -40,16 +40,24 @@
 #  For example, a url might look like this:
 #    https://api.telegram.org/bot123456789:alphanumeri_characters/getMe
 #
+# Development API Reference::
+#  - https://core.telegram.org/bots/api
 import requests
 import re
+
+from os.path import basename
 
 from json import loads
 from json import dumps
 
 from .NotifyBase import NotifyBase
 from .NotifyBase import HTTP_ERROR_MAP
+from ..common import NotifyImageSize
 from ..common import NotifyFormat
 from ..utils import compat_is_basestring
+from ..utils import parse_bool
+
+TELEGRAM_IMAGE_XY = NotifyImageSize.XY_256
 
 # Token required as part of the API request
 # allow the word 'bot' infront
@@ -82,14 +90,14 @@ class NotifyTelegram(NotifyBase):
     notify_url = 'https://api.telegram.org/bot'
 
     def __init__(self, bot_token, chat_ids, notify_format=NotifyFormat.TEXT,
-                 detect_bot_owner=True, **kwargs):
+                 detect_bot_owner=True, include_image=True, **kwargs):
         """
         Initialize Telegram Object
         """
         super(NotifyTelegram, self).__init__(
             title_maxlen=250, body_maxlen=4096,
             notify_format=notify_format,
-            **kwargs)
+            image_size=TELEGRAM_IMAGE_XY, **kwargs)
 
         try:
             self.bot_token = bot_token.strip()
@@ -133,6 +141,75 @@ class NotifyTelegram(NotifyBase):
             self.logger.warning('No chat_id(s) were specified.')
             raise TypeError('No chat_id(s) were specified.')
 
+        # Track whether or not we want to send an image with our notification
+        # or not.
+        self.include_image = include_image
+
+    def send_image(self, chat_id, notify_type):
+        """
+        Sends a sticker based on the specified notify type
+
+        """
+
+        # The URL; we do not set headers because the api doesn't seem to like
+        # when we set one.
+        url = '%s%s/%s' % (
+            self.notify_url,
+            self.bot_token,
+            'sendPhoto'
+        )
+
+        path = self.image_path(notify_type)
+        if not path:
+            # No image to send
+            self.logger.debug(
+                'Telegram Image does not exist for %s' % (
+                    notify_type))
+            return None
+
+        files = {'photo': (basename(path), open(path), 'rb')}
+
+        payload = {
+            'chat_id': chat_id,
+        }
+
+        self.logger.debug(
+            'Telegram Image POST URL: %s (cert_verify=%r)' % (
+                url, self.verify_certificate))
+
+        try:
+            r = requests.post(
+                url,
+                files=files,
+                data=payload,
+                verify=self.verify_certificate,
+            )
+
+            if r.status_code != requests.codes.ok:
+                # We had a problem
+                try:
+                    self.logger.warning(
+                        'Failed to post Telegram Image: '
+                        '%s (error=%s).' % (
+                            HTTP_ERROR_MAP[r.status_code],
+                            r.status_code))
+
+                except KeyError:
+                    self.logger.warning(
+                        'Failed to detect Telegram Image. (error=%s).' % (
+                            r.status_code))
+
+                # self.logger.debug('Response Details: %s' % r.raw.read())
+                return False
+
+        except requests.RequestException as e:
+            self.logger.warning(
+                'A connection error occured posting Telegram Image.')
+            self.logger.debug('Socket Exception: %s' % str(e))
+            return False
+
+        return True
+
     def detect_bot_owner(self):
         """
         Takes a bot and attempts to detect it's chat id from that
@@ -141,6 +218,7 @@ class NotifyTelegram(NotifyBase):
 
         headers = {
             'User-Agent': self.app_id,
+            'Content-Type': 'application/json',
         }
 
         url = '%s%s/%s' % (
@@ -150,11 +228,11 @@ class NotifyTelegram(NotifyBase):
         )
 
         self.logger.debug(
-            'Telegram User Detection GET URL: %s (cert_verify=%r)' % (
+            'Telegram User Detection POST URL: %s (cert_verify=%r)' % (
                 url, self.verify_certificate))
 
         try:
-            r = requests.get(
+            r = requests.post(
                 url,
                 headers=headers,
                 verify=self.verify_certificate,
@@ -193,7 +271,7 @@ class NotifyTelegram(NotifyBase):
 
         except requests.RequestException as e:
             self.logger.warning(
-                'A Connection error occured detecting Telegram User ')
+                'A connection error occured detecting Telegram User.')
             self.logger.debug('Socket Exception: %s' % str(e))
             return 0
 
@@ -261,7 +339,6 @@ class NotifyTelegram(NotifyBase):
 
         payload = {}
 
-
         # HTML Spaces (&nbsp;) and tabs (&emsp;) aren't supported
         # See https://core.telegram.org/bots/api#html-style
         title = re.sub('&nbsp;?', ' ', title, re.I)
@@ -301,7 +378,16 @@ class NotifyTelegram(NotifyBase):
 
             else:
                 # ID
-                payload['chat_id'] = chat_id.group('idno')
+                payload['chat_id'] = int(chat_id.group('idno'))
+
+            if self.include_image is True:
+                # Send an image
+                if self.send_image(
+                        payload['chat_id'], notify_type) is not None:
+                    # We sent a post (whether we were successful or not)
+                    # we still hit the remote server... just throttle
+                    # before our next hit server query
+                    self.throttle()
 
             self.logger.debug('Telegram POST URL: %s (cert_verify=%r)' % (
                 url, self.verify_certificate,
@@ -358,7 +444,7 @@ class NotifyTelegram(NotifyBase):
 
             except requests.RequestException as e:
                 self.logger.warning(
-                    'A Connection error occured sending Telegram:%s ' % (
+                    'A connection error occured sending Telegram:%s ' % (
                         payload['chat_id']) + 'notification.'
                 )
                 self.logger.debug('Socket Exception: %s' % str(e))
@@ -441,5 +527,9 @@ class NotifyTelegram(NotifyBase):
 
         # Store our chat ids
         results['chat_ids'] = chat_ids
+
+        # Include images with our message
+        results['include_image'] = \
+            parse_bool(results['qsd'].get('image', False))
 
         return results
