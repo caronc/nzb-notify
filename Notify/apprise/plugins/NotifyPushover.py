@@ -202,7 +202,8 @@ class NotifyPushover(NotifyBase):
                     has_error = True
 
                 else:
-                    self.logger.info('Sent Pushover notification to %s.' % device)
+                    self.logger.info(
+                        'Sent Pushover notification to %s.' % device)
 
             except requests.RequestException as e:
                 self.logger.warning(

@@ -2,7 +2,7 @@
 #
 # Our service wrappers
 #
-# Copyright (C) 2017 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2017-2018 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of apprise.
 #
@@ -23,9 +23,11 @@ from . import NotifyEmail as NotifyEmailBase
 from .NotifyBoxcar import NotifyBoxcar
 from .NotifyDiscord import NotifyDiscord
 from .NotifyEmail import NotifyEmail
+from .NotifyEmby import NotifyEmby
 from .NotifyFaast import NotifyFaast
 from .NotifyGrowl.NotifyGrowl import NotifyGrowl
-from .NotifyGrowl import gntp
+from .NotifyIFTTT import NotifyIFTTT
+from .NotifyJoin import NotifyJoin
 from .NotifyJSON import NotifyJSON
 from .NotifyMatterMost import NotifyMatterMost
 from .NotifyMyAndroid import NotifyMyAndroid
@@ -33,17 +35,19 @@ from .NotifyProwl import NotifyProwl
 from .NotifyPushalot import NotifyPushalot
 from .NotifyPushBullet import NotifyPushBullet
 from .NotifyPushjet.NotifyPushjet import NotifyPushjet
-from .NotifyPushjet import pushjet
 from .NotifyPushover import NotifyPushover
 from .NotifyRocketChat import NotifyRocketChat
+from .NotifySlack import NotifySlack
+from .NotifyStride import NotifyStride
 from .NotifyTelegram import NotifyTelegram
 from .NotifyToasty import NotifyToasty
 from .NotifyTwitter.NotifyTwitter import NotifyTwitter
-from .NotifyTwitter import tweepy
 from .NotifyXBMC import NotifyXBMC
 from .NotifyXML import NotifyXML
-from .NotifySlack import NotifySlack
-from .NotifyJoin import NotifyJoin
+
+from .NotifyPushjet import pushjet
+from .NotifyGrowl import gntp
+from .NotifyTwitter import tweepy
 
 from ..common import NotifyImageSize
 from ..common import NOTIFY_IMAGE_SIZES
@@ -52,11 +56,12 @@ from ..common import NOTIFY_TYPES
 
 __all__ = [
     # Notification Services
-    'NotifyBoxcar', 'NotifyEmail', 'NotifyFaast', 'NotifyGrowl', 'NotifyJSON',
-    'NotifyMyAndroid', 'NotifyProwl', 'NotifyPushalot', 'NotifyPushBullet',
-    'NotifyPushover', 'NotifyRocketChat', 'NotifyToasty', 'NotifyTwitter',
-    'NotifyXBMC', 'NotifyXML', 'NotifySlack', 'NotifyJoin', 'NotifyTelegram',
-    'NotifyMatterMost', 'NotifyPushjet', 'NotifyDiscord',
+    'NotifyBoxcar', 'NotifyEmail', 'NotifyEmby', 'NotifyDiscord',
+    'NotifyFaast', 'NotifyGrowl', 'NotifyIFTTT', 'NotifyJoin', 'NotifyJSON',
+    'NotifyMatterMost', 'NotifyMyAndroid', 'NotifyProwl', 'NotifyPushalot',
+    'NotifyPushBullet', 'NotifyPushjet', 'NotifyPushover', 'NotifyRocketChat',
+    'NotifySlack', 'NotifyStride', 'NotifyToasty', 'NotifyTwitter',
+    'NotifyTelegram', 'NotifyXBMC', 'NotifyXML',
 
     # Reference
     'NotifyImageSize', 'NOTIFY_IMAGE_SIZES', 'NotifyType', 'NOTIFY_TYPES',

@@ -60,8 +60,10 @@
 #  - boxcar:// -> A Boxcar Notification
 #  - boxcars:// -> A secure Boxcar Notification
 #  - discord:// -> A Discord Notification
+#  - emby:// -> A Emby Notification
 #  - faast:// -> A Faast Notification
 #  - growl:// -> A Growl Notification
+#  - ifttt:// -> A IFTTT (If This Than That) Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A secure, simple json query
 #  - kodi:// -> A KODI Notification
@@ -78,6 +80,7 @@
 #  - rocket:// -> A Rocket.Chat Notification
 #  - rockets:// -> A Secure Rocket.Chat Notification
 #  - slack:// -> A Slack Notification
+#  - stride:// -> A Stride Notification
 #  - tgram:// -> A Telegram Notification
 #  - tweet:// -> A Twitter Direct Message (DM) Notification
 #  - xml:// -> A simple xml (SOAP) Notification
@@ -142,6 +145,17 @@
 # you need to use the version 1.4 protocol (for an older system)
 # you can specify that switch as part of your url:
 #  - growl://password@growlserver?version=1
+#
+#
+# NOTE: IFTTT interfaces itself through the webhooks service. For each
+# applet you create with it, you can access your event (by name)
+# as the following.  But default:
+#  - The Title will get assigned to the ingredient Value1
+#  - The Body will get assigned to the ingredient Value2
+#  - The Message Type will get assigned to the ingredient Value3
+#
+# The url structure is as follows:
+#  - ifttt://WebhookID/Event/
 #
 #
 # NOTE: Email notifications support a lot of options.
@@ -238,6 +252,31 @@
 #  - slack://TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
 #  - slack://botname@TokenA/TokenB/TokenC/#Channel
 #  - slack://botname@TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
+#
+#
+# NOTE: Stride notifications are the successor to Hipchat.
+# To use this plugin, you'll need to first access https://stride.com and
+# create an account.
+#
+# Then you'll need to create and/or join a channel.  Once you do this you can
+# access the App Manager and choose the option 'Connect your own app'. You'll
+# be required to provide a token name.  Set this to some identifier that will
+# make sense to you later (maybe NZBGet?). It will generate you your app
+# and provide you with some nessisary information you'll need for this
+# notification to work.
+#
+# The first thing it will provide you is a token which will look something like
+# this 'HQFtq4pF8rKFOlKTm9Th'.
+#
+# The second thing it will provide you is a notification URL that looks
+# something like this:
+#  * https://api.atlassian.com/site/ce171c45-09ae-4fac-a73d-5a4b7a322872/conversation/a54a80b3-eaad-4524-9a3a-f6653bcfb100/message
+#
+# You need to focus on the 2 tokens in this URL:
+#  * https://api.atlassian.com/site/{cloud_id}/conversation/{chat_id}/message
+#
+# Now you have enough information to generate a notification:
+#  - stride://auth_token/cloud_id/convo_id
 #
 #
 # NOTE: Telgram notifications work through a bot.
