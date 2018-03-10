@@ -439,6 +439,10 @@ class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
     """
+
+    # Default theme to use
+    default_theme = 'nzbget'
+
     def notify(self, servers, body, title, notify_type=NotifyType.INFO,
                body_format=NotifyFormat.MARKDOWN):
         """
@@ -446,7 +450,11 @@ class NotifyScript(PostProcessScript, QueueScript):
         """
 
         # Apprise Asset Object
-        asset = AppriseAsset()
+        asset = AppriseAsset(theme=self.default_theme)
+        asset.image_path_mask = join(
+            dirname(__file__),
+            'Notify', 'apprise-theme', '{THEME}',
+            'apprise-{TYPE}-{XY}.png')
 
         # Include Image Flag
         _url = self.parse_url(self.get('IncludeImage'))
