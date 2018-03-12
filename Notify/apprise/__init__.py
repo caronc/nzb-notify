@@ -17,10 +17,10 @@
 # GNU Lesser General Public License for more details.
 
 __title__ = 'apprise'
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 __author__ = 'Chris Caron <lead2gold@gmail.com>'
 __license__ = 'GPLv3'
-__copywrite__ = 'Copyright 2017 Chris Caron <lead2gold@gmail.com>'
+__copywrite__ = 'Copyright 2017-2018 Chris Caron <lead2gold@gmail.com>'
 
 from .common import NotifyType
 from .common import NOTIFY_TYPES
