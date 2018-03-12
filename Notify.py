@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Sun, Feb 4th, 2018.
+# Date: Sun, Mar 11th, 2018.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.8.0
+# Script Version: 0.9.0.
 #
 # Home: https://github.com/caronc/nzb-notify
 # Wiki: https://github.com/caronc/nzb-notify/wiki
