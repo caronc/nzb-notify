@@ -451,6 +451,10 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Apprise Asset Object
         asset = AppriseAsset(theme=self.default_theme)
+        asset.app_id = 'NZB-Notify'
+        asset.app_desc = 'NZB Notification'
+        asset.app_url = 'https://github.com/caronc/nzb-notify'
+
         asset.image_path_mask = join(
             dirname(__file__),
             'Notify', 'apprise-theme', '{THEME}',
