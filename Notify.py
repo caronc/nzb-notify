@@ -441,7 +441,7 @@ class NotifyScript(PostProcessScript, QueueScript):
     """
 
     # Default theme to use
-    default_theme = 'nzbget'
+    default_theme = 'general'
 
     def notify(self, servers, body, title, notify_type=NotifyType.INFO,
                body_format=NotifyFormat.MARKDOWN):
@@ -454,6 +454,11 @@ class NotifyScript(PostProcessScript, QueueScript):
         asset.app_id = 'NZB-Notify'
         asset.app_desc = 'NZB Notification'
         asset.app_url = 'https://github.com/caronc/nzb-notify'
+
+        # Source Theme from GitHub Page
+        asset.image_url_mask = 'https://raw.githubusercontent.com' \
+                               '/caronc/nzb-notify/master/Notify' \
+                               '/apprise-theme/{THEME}/apprise-{TYPE}-{XY}.png'
 
         asset.image_path_mask = join(
             dirname(__file__),
