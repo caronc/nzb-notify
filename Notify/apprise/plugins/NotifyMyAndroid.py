@@ -62,7 +62,7 @@ class NotifyMyAndroid(NotifyBase):
     protocol = 'nma'
 
     # Notify My Android uses the http protocol with JSON requests
-    notify_url = 'https://www.notifymyandroid.com/publicapi/notify'
+    notify_url = 'https://notifymyandroid.appspot.com/publicapi/notify'
 
     def __init__(self, apikey, priority=None, devapikey=None, **kwargs):
         """
