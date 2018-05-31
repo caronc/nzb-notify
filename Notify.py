@@ -70,7 +70,6 @@
 #  - kodis:// -> A Secure KODI Notification
 #  - mailto:// -> An email Notification
 #  - mailtos:// -> A secure email Notification
-#  - nma:// -> Notify My Android Notification
 #  - palot:// -> A Pushalot Notification
 #  - pbul:// -> A PushBullet Notification
 #  - prowl:// -> A Prowl Server
@@ -195,11 +194,6 @@
 #  - mmosts://domain.com:8065/WebHookKey
 #  - mmosts://domain.com/WebHookKey?channel=test
 #  - mmosts://user@domain.com/WebHookKey
-#
-#
-# NOTE: Notify My Android requires an API Key it uses to comuncate with the
-# remote server.  This is specified inline with the service request like so:
-#  - nma://apikey
 #
 #
 # NOTE: Pushalot requires an authorization token it uses to comuncate with the
