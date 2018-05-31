@@ -25,9 +25,6 @@ from .NotifyBase import HTTP_ERROR_MAP
 from ..common import NotifyType
 from ..common import NotifyImageSize
 
-# Image Support (128x128)
-XBMC_IMAGE_XY = NotifyImageSize.XY_128
-
 
 class NotifyXBMC(NotifyBase):
     """
@@ -43,6 +40,9 @@ class NotifyXBMC(NotifyBase):
     # XBMC uses the http protocol with JSON requests
     xbmc_default_port = 8080
 
+    # Allows the user to specify the NotifyImageSize object
+    image_size = NotifyImageSize.XY_128
+
     # XBMC default protocol version (v2)
     xbmc_remote_protocol = 2
 
@@ -53,15 +53,19 @@ class NotifyXBMC(NotifyBase):
         """
         Initialize XBMC/KODI Object
         """
-        super(NotifyXBMC, self).__init__(
-            title_maxlen=250, body_maxlen=32768,
-            image_size=XBMC_IMAGE_XY, **kwargs)
+        super(NotifyXBMC, self).__init__(**kwargs)
 
         if self.secure:
             self.schema = 'https'
 
         else:
             self.schema = 'http'
+
+        # Prepare the default header
+        self.headers = {
+            'User-Agent': self.app_id,
+            'Content-Type': 'application/json'
+        }
 
         # Default protocol
         self.protocol = kwargs.get('protocol', self.xbmc_remote_protocol)
@@ -72,50 +76,6 @@ class NotifyXBMC(NotifyBase):
 
         Returns (headers, payload)
         """
-
-        headers = {
-            'User-Agent': self.app_id,
-            'Content-Type': 'application/json'
-        }
-
-        # prepare JSON Object
-        payload = {
-            'jsonrpc': '6.0',
-            'method': 'GUI.ShowNotification',
-            'params': {
-                'title': title,
-                'message': body,
-                # displaytime is defined in microseconds
-                'displaytime': 12000,
-            },
-            'id': 1,
-        }
-
-        image_url = self.image_url(notify_type)
-        if image_url:
-            payload['image'] = image_url
-            if notify_type is NotifyType.FAILURE:
-                payload['type'] = 'error'
-
-            elif notify_type is NotifyType.WARNING:
-                payload['type'] = 'warning'
-
-            else:
-                payload['type'] = 'info'
-
-        return (headers, dumps(payload))
-
-    def _payload_20(self, title, body, notify_type, **kwargs):
-        """
-        Builds payload for XBMC API v2.0
-
-        Returns (headers, payload)
-        """
-
-        headers = {
-            'User-Agent': self.app_id,
-            'Content-Type': 'application/json'
-        }
 
         # prepare JSON Object
         payload = {
@@ -132,9 +92,43 @@ class NotifyXBMC(NotifyBase):
 
         image_url = self.image_url(notify_type)
         if image_url:
-            payload['image'] = image_url
+            payload['params']['image'] = image_url
+            if notify_type is NotifyType.FAILURE:
+                payload['type'] = 'error'
 
-        return (headers, dumps(payload))
+            elif notify_type is NotifyType.WARNING:
+                payload['type'] = 'warning'
+
+            else:
+                payload['type'] = 'info'
+
+        return (self.headers, dumps(payload))
+
+    def _payload_20(self, title, body, notify_type, **kwargs):
+        """
+        Builds payload for XBMC API v2.0
+
+        Returns (headers, payload)
+        """
+
+        # prepare JSON Object
+        payload = {
+            'jsonrpc': '2.0',
+            'method': 'GUI.ShowNotification',
+            'params': {
+                'title': title,
+                'message': body,
+                # displaytime is defined in microseconds
+                'displaytime': 12000,
+            },
+            'id': 1,
+        }
+
+        image_url = self.image_url(notify_type)
+        if image_url:
+            payload['params']['image'] = image_url
+
+        return (self.headers, dumps(payload))
 
     def notify(self, title, body, notify_type, **kwargs):
         """

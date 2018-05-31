@@ -15,7 +15,7 @@ Send notifications to all of the popular notification services (PushBullet, Noti
 You can even run the tool from the command line for your own custom use. Notify.py was written in such a way that there wouldn't be a lot of effort to add more notification services either.  Feel free to contact me if one you would like to use is missing.
 
 ## Installation Instructions
-1. Ensure you have at least Python v2.6 or higher installed onto your system.
+1. Ensure you have Python v2.7 installed onto your system.
 2. Simply place the __Notify.py__ and __Notify__ directory together.
    * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](http://nzbget.net/download).
    * __NZBGet users__: As one additional note; this script makes use of the RPC feature of NZBGet in order to retrive all of the status information it will notify you with.  Its very important that this is configured correctly (in the 'Settings -> Security' area). The out of the box settings should work fine; but worth noting here should experience any issues.
@@ -48,7 +48,6 @@ location that content is retrieved from.
 | [Join](https://github.com/caronc/apprise/wiki/Notify_join) | join://   | (TCP) 443    | join://apikey/device<br />join://apikey/device1/device2/deviceN/<br />join://apikey/group<br />join://apikey/groupA/groupB/groupN<br />join://apikey/DeviceA/groupA/groupN/DeviceN/
 | [KODI](https://github.com/caronc/apprise/wiki/Notify_kodi) | kodi:// or kodis://    | (TCP) 8080 or 443   | kodi://hostname<br />kodi://user@hostname<br />kodi://user:password@hostname:port
 | [Mattermost](https://github.com/caronc/apprise/wiki/Notify_mattermost) | mmost://  | (TCP) 8065 | mmost://hostname/authkey<br />mmost://hostname:80/authkey<br />mmost://user@hostname:80/authkey<br />mmost://hostname/authkey?channel=channel<br />mmosts://hostname/authkey<br />mmosts://user@hostname/authkey<br />
-| [Notify My Android](https://github.com/caronc/apprise/wiki/Notify_my_android) | nma://   | (TCP) 443    | nma://apikey
 | [Prowl](https://github.com/caronc/apprise/wiki/Notify_prowl) | prowl://   | (TCP) 443    | prowl://apikey<br />prowl://apikey/providerkey
 | [Pushalot](https://github.com/caronc/apprise/wiki/Notify_pushalot) | palot://    | (TCP) 443    | palot://authorizationtoken
 | [PushBullet](https://github.com/caronc/apprise/wiki/Notify_pushbullet) | pbul://    | (TCP) 443    | pbul://accesstoken<br />pbul://accesstoken/#channel<br/>pbul://accesstoken/A_DEVICE_ID<br />pbul://accesstoken/email@address.com<br />pbul://accesstoken/#channel/#channel2/email@address.net/DEVICE
@@ -98,7 +97,7 @@ should be known that Notify.py depends on the following packages:
 | pyOpenSSL                    | 17.3.0  | https://pypi.python.org/pypi/pyOpenSSL/17.3.0                                        |
 | pySocks                      | 1.6.7   | https://pypi.python.org/pypi/pySocks/1.6.7                                           |
 | urllib3                      | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
-| apprise                      | 0.0.6   | https://pypi.python.org/pypi/apprise/0.0.6                                            |
+| apprise                      | 0.0.9   | https://pypi.python.org/pypi/apprise/0.0.9                                            |
 
 - Fix bugs to add stability to the overall functionality.
 - Add the nessesary enhancments that benifit this wrapper tool.
