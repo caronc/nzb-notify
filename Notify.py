@@ -339,6 +339,12 @@
 # if you want:
 #  - toasty://user@device
 #  - toasty://user@device1/device2/deviceN
+#
+#
+# NOTE: Windows Notifications require that you have pypiwin32 installed
+# and you are using this 'from' a windows PC. There are no arguments required
+# as the url is as simple as:
+#  - windows://
 #Servers=
 
 # Send Notification when Queued (yes, no).
