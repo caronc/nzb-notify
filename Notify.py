@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Wed, May 30th, 2018.
+# Date: Sun, Sep  9th, 2018.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.9.1.
+# Script Version: 0.9.2.
 #
 # Home: https://github.com/caronc/nzb-notify
 # Wiki: https://github.com/caronc/nzb-notify/wiki
@@ -86,6 +86,7 @@
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
 #  - mmost:// -> A (Unsecure) MatterMost Notification
 #  - mmosts:// -> A Secure MatterMost Notification
+#  - windows:// -> A Microsoft Windows Notification
 #
 #
 # NOTE: If no port is specified, then the default port for the service
