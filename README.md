@@ -60,7 +60,8 @@ location that content is retrieved from.
 | [Telegram](https://github.com/caronc/apprise/wiki/Notify_telegram) | tgram://  | (TCP) 443   | tgram://bottoken/ChatID<br />tgram://bottoken/ChatID1/ChatID2/ChatIDN
 | [Twitter](https://github.com/caronc/apprise/wiki/Notify_twitter) | tweet://  | (TCP) 443   | tweet://user@CKey/CSecret/AKey/ASecret
 | [XBMC](https://github.com/caronc/apprise/wiki/Notify_xbmc) | xbmc:// or xbmcs://    | (TCP) 8080 or 443   | xbmc://hostname<br />xbmc://user@hostname<br />xbmc://user:password@hostname:port
-| [Windows Notifications](https://github.com/caronc/apprise/wiki/Notify_windows) | windows://    |       n/a           | windows://<br />_Note: this only works from within windows. You will have to have pypiwin32 installed as well.
+| [Windows Notification](https://github.com/caronc/apprise/wiki/Notify_windows) | windows://    |        n/a          | windows://
+
 
 ### Email Support
 | Service ID | Default Port | Example Syntax |
@@ -98,7 +99,7 @@ should be known that Notify.py depends on the following packages:
 | pyOpenSSL                    | 17.3.0  | https://pypi.python.org/pypi/pyOpenSSL/17.3.0                                        |
 | pySocks                      | 1.6.7   | https://pypi.python.org/pypi/pySocks/1.6.7                                           |
 | urllib3                      | 1.12    | https://pypi.python.org/pypi/urllib3/1.12                                            |
-| apprise                      | 0.0.9   | https://pypi.python.org/pypi/apprise/0.0.9                                            |
+| apprise                      | 0.5.0   | https://pypi.python.org/pypi/apprise/0.5.0                                            |
 
 - Fix bugs to add stability to the overall functionality.
 - Add the nessesary enhancments that benifit this wrapper tool.

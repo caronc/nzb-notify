@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 SCHEMA_MAP = {}
 
 # Used for attempting to acquire the schema if the URL can't be parsed.
-GET_SCHEMA_RE = re.compile('\s*(?P<schema>[a-z0-9]{3,9})://.*$', re.I)
+GET_SCHEMA_RE = re.compile(r'\s*(?P<schema>[a-z0-9]{3,9})://.*$', re.I)
 
 
 # Load our Lookup Matrix
@@ -205,7 +205,8 @@ class Apprise(object):
             if not instance:
                 return_status = False
                 logging.error(
-                        "Failed to load notification url: {}".format(_server))
+                    "Failed to load notification url: {}".format(_server),
+                )
                 continue
 
             # Add our initialized plugin to our server listings
