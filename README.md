@@ -24,7 +24,7 @@ You can even run the tool from the command line for your own custom use. Notify.
 The Non-NZBGet/SABnzbd users can also use this script from the command line.
 See the __Command Line__ section below for more instructions on how to do this.
 
-**Note:** The _Notify_ directory provides all of the nessisary dependencies
+**Note:** The _Notify_ directory provides all of the necessary dependencies
 in order for this script to work correctly. The directory is only required
 if you do not have the packages already available to your global
 environment. These dependant packages are all identified under the
@@ -102,11 +102,11 @@ should be known that Notify.py depends on the following packages:
 | apprise                      | 0.5.0   | https://pypi.python.org/pypi/apprise/0.5.0                                            |
 
 - Fix bugs to add stability to the overall functionality.
-- Add the nessesary enhancments that benifit this wrapper tool.
+- Add the necessary enhancements that benefit this wrapper tool.
 
 ## Command Line
 Notify.py has a built in command line interface that can be easily tied
-to a cron entry or can be easilly called from the command line to automate
+to a cron entry or can be easily called from the command line to automate
 the fetching of subtitles.
 
 Here are the switches available to you:
@@ -168,7 +168,7 @@ The syntax is very similar except SABnzbd expects 4 distinct arguments.
 |   1   | The type of notification we are sending.  This has an impact on the icon (for those that support it) that you will pass along with the message.
 |   2   | The title of the notification message.  If this is an empty string, then there is enough information based on the notification type you passed in (argument 1) to generate a title. |
 |   3   | The message body. |
-|   4   | Comma delmited URL strings just like the ones already discussed above.
+|   4   | Comma delimited URL strings just like the ones already discussed above.
 
 ### SABnzbd Configuration
 First, make sure you've placed __sabnzb-notify.py__, __Notify.py__, and the __Notify__ inside of the _/path/to/SABnzbd/scripts/_ directory or the instructions below will not work.
