@@ -63,289 +63,40 @@
 #  - emby:// -> A Emby Notification
 #  - faast:// -> A Faast Notification
 #  - growl:// -> A Growl Notification
+#  - gnome:// -> A Gnome Notification
 #  - ifttt:// -> A IFTTT (If This Than That) Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A secure, simple json query
+#  - kde:// -> A KDE Notification
 #  - kodi:// -> A KODI Notification
 #  - kodis:// -> A Secure KODI Notification
+#  - matrix:// -> A Matrix Notification
+#  - matrixs:// -> A Secure Matrix Notification
 #  - mailto:// -> An email Notification
 #  - mailtos:// -> A secure email Notification
-#  - palot:// -> A Pushalot Notification
 #  - pbul:// -> A PushBullet Notification
 #  - prowl:// -> A Prowl Server
 #  - pover:// -> A Pushover Notification
-#  - toasty:// -> A (Super) Toasty Notification
-#  - xbmc:// -> An XBMC Notification (protocol v2)
+#  - pushed:// -> A Pushed Notification
 #  - rocket:// -> A Rocket.Chat Notification
 #  - rockets:// -> A Secure Rocket.Chat Notification
+#  - ryver:// -> A Ryver Notification
 #  - slack:// -> A Slack Notification
-#  - stride:// -> A Stride Notification
+#  - sns:// -> Amazon Web Service (AWS) - Simple Notificaation Service (SNS)
 #  - tgram:// -> A Telegram Notification
 #  - tweet:// -> A Twitter Direct Message (DM) Notification
 #  - xml:// -> A simple xml (SOAP) Notification
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
 #  - mmost:// -> A (Unsecure) MatterMost Notification
 #  - mmosts:// -> A Secure MatterMost Notification
+#  - xbmc:// -> An XBMC Notification (protocol v2)
 #  - windows:// -> A Microsoft Windows Notification
 #
+# Note: For details on how to use each notification checkout this link:
+# https://github.com/caronc/apprise/wiki
 #
-# NOTE: If no port is specified, then the default port for the service
-# identifed is always used instead.
-#
-# NOTE: If no user and/or password is specified, then it is assumed there
-# isn't one.
-#
-# NOTE: Boxcar requires an api key and host in order to use it. Boxcar can
-# optionally support tags, aliases and device tokens which can be specified
-# on the path:
-#  - boxcars://host
-#  - boxcars://user:host
-#  - boxcars://user@pass:host
-#  - boxcars://host/@tag
-#  - boxcars://host/@tag1/@tag2/@tagN
-#  - boxcars://host/devicetoken
-#  - boxcars://host/devicetoken1/devicetoken2/devicetokenN
-#  - boxcars://host/alias
-#  - boxcars://host/alias1/alias2/alias1
-#  - boxcars://host/alias/@tag/devicetoken
-#
-#
-# NOTE: Discord requires a webhook to be created.  From there you can extract
-# the Webhook_ID and Webhook_Token to create your notification. Creating a
-# webhook is easy.  You just need to log into your discord account at
-# https://discordapp.com/ and access the the channel settings you want to be
-# able to notify to. You will have an option to create webhooks from here.
-# Once this is done you will recieve a URL that looks like this:
-#  * https://discordapp.com/api/webhooks/4174296316298/JHZ7lQml27KMHI8qBV_js
-#
-# You need to focus on the 2 tokens at the end of the URL
-#  * https://discordapp.com/api/webhooks/Webhook_ID/Webhook_Token
-#
-# Once you have a webhook (and you're tokens), here is how to use this part
-# of the notification:
-#  - discord://Webhook_ID/Webhook_Token
-#  - discord://botname@Webhook_ID/Webhook_Token
-#  - discord://Webhook_ID/Webhook_Token?footer=Yes
-#  - discord://Webhook_ID/Webhook_Token?footer=No&thumbnail=False
-#  - discord://Webhook_ID/Webhook_Token?avatar=No&tts=Yes
-#
-#
-# NOTE: Faast Notifications require an authorization token:
-#  - faast://authorizationtoken
-#
-#
-# NOTE: Growl requires this script to register the notifications it
-# sends before being able to actually send something.
-# Make sure you are configured to allow application registration. The
-# syntax looks as follows:
-#  - growl://growlserver
-#  - growl://password@growlserver
-#
-# Growl assumes you're using the v2 (or greater) protocol; if
-# you need to use the version 1.4 protocol (for an older system)
-# you can specify that switch as part of your url:
-#  - growl://password@growlserver?version=1
-#
-#
-# NOTE: IFTTT interfaces itself through the webhooks service. For each
-# applet you create with it, you can access your event (by name)
-# as the following.  But default:
-#  - The Title will get assigned to the ingredient Value1
-#  - The Body will get assigned to the ingredient Value2
-#  - The Message Type will get assigned to the ingredient Value3
-#
-# The url structure is as follows:
-#  - ifttt://WebhookID/Event/
-#
-#
-# NOTE: Email notifications support a lot of options.
-#
-# The following would try to send an email to user@example.com
-# and would attempt to detect the smtp server.
-#  - mailtos://user@pass:port/example.com
-#
-# Emails are sent using html by default; but if you don't like this, you can turn it
-# off like this:
-#  - mailtos://user:pass@address.com?format=text
-#
-# There are many other options you can over-ride with an email too
-#  - mailtos://user:pass@domain.com?smtp=mail.serverhost.com
-#  - mailtos://user:pass@domain.com?smtp=example.com&from=from@address2.com&name=FooBar
-#
-# Some mail services are pretty mainstream (such as gmail.com, hotmail.com,
-# etc). Specifying one of these hosts for the domain will result in the
-# proper port, security, and SMTP mail server configuration automatically.
-#
-#
-# NOTE: MattterMost notifications require you to generate a WebHook Key.
-# By default it will use port 8065 unless otherwise specified.
-#
-# Once you've got this information; here is the structure of the message:
-#  - mmost://domain.com/WebHookKey
-#  - mmost://domain.com:8065/WebHookKey
-#
-# You can send a notification to a channel with the following:
-#  - mmost://domain.com/WebHookKey?channel=test
-#
-# Or as a user:
-#  - mmost://user@domain.com/WebHookKey
-#
-# If you're running an https setup, then just use mmosts://
-#  - mmosts://domain.com/WebHookKey
-#  - mmosts://domain.com:8065/WebHookKey
-#  - mmosts://domain.com/WebHookKey?channel=test
-#  - mmosts://user@domain.com/WebHookKey
-#
-#
-# NOTE: Pushalot requires an authorization token it uses to comuncate with the
-# remote server.  This is specified inline with the service request like so:
-#  - palot://authorizationtoken
-#
-#
-# NOTE: PushBullet notifications require a access token, They can support
-# emails, devices and channels, you can also do this by specifying them on the
-# path; as an example (mix and match as you feel). If no path is specified,
-# then it is assumed you want to notify all devices:
-#  - pbul://accesstoken
-#  - pbul://accesstoken/#channel
-#  - pbul://accesstoken/device
-#  - pbul://accesstoken/email@domain.net
-#  - pbul://accesstoken/#channel/#channel2/device/email@email.com
-#
-#
-# NOTE: Rocket.Chat notifications require a login and password. They can
-# support room_id's and channels, you can also do this by specifying them on
-# the path; as an example (mix and match as you feel). Use rocket:// for an
-# insecure connection and rockets:// for a secure one.
-#  - rocket://user:pass@hostname/#channel
-#  - rocket://user:pass@hostname:port/#channel
-#  - rocket://user:pass@hostname/room_id
-#  - rocket://user:pass@hostname:port/room_id
-#  - rocket://user:pass@hostname/room_id/#channel/room_id2/#channel2
-#  - rockets://user:pass@hostname/#channel
-#  - rockets://user:pass@hostname:port/#channel
-#  - rockets://user:pass@hostname/room_id
-#  - rockets://user:pass@hostname:port/room_id
-#  - rockets://user:pass@hostname/room_id/#channel/room_id2/#channel2
-#
-#
-# NOTE: Slack notifications require an incoming-webhook it can connect to.
-# To use this plugin, you'll need to first access https://api.slack.com.
-# Specifically https://my.slack.com/services/new/incoming-webhook/
-# to create a new incoming-webhook for your account. You'll need to
-# follow the wizard to pre-determine the channel(s) you want your
-# message to broadcast to, and when you're complete, you will
-# recieve a URL that looks something like this:
-#  * https://hooks.slack.com/services/T1JJ3T3L2/A1BRTD4JD/TIiajkdnlazkcOXrIdevi7F
-#
-# You need to focus on the 3 tokens at the end of the URL
-#  * https://hooks.slack.com/services/TokenA/TokenB/TokenC
-#
-# Once you have a webhook (and you're tokens), here is how to use this part
-# of the notification:
-#  - slack://TokenA/TokenB/TokenC/#Channel
-#  - slack://TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
-#  - slack://botname@TokenA/TokenB/TokenC/#Channel
-#  - slack://botname@TokenA/TokenB/TokenC/#Channel1/#Channel2/#ChannelN
-#
-#
-# NOTE: Stride notifications are the successor to Hipchat.
-# To use this plugin, you'll need to first access https://stride.com and
-# create an account.
-#
-# Then you'll need to create and/or join a channel.  Once you do this you can
-# access the App Manager and choose the option 'Connect your own app'. You'll
-# be required to provide a token name.  Set this to some identifier that will
-# make sense to you later (maybe NZBGet?). It will generate you your app
-# and provide you with some nessisary information you'll need for this
-# notification to work.
-#
-# The first thing it will provide you is a token which will look something like
-# this 'HQFtq4pF8rKFOlKTm9Th'.
-#
-# The second thing it will provide you is a notification URL that looks
-# something like this:
-#  * https://api.atlassian.com/site/ce171c45-09ae-4fac-a73d-5a4b7a322872/conversation/a54a80b3-eaad-4524-9a3a-f6653bcfb100/message
-#
-# You need to focus on the 2 tokens in this URL:
-#  * https://api.atlassian.com/site/{cloud_id}/conversation/{chat_id}/message
-#
-# Now you have enough information to generate a notification:
-#  - stride://auth_token/cloud_id/convo_id
-#
-#
-# NOTE: Telgram notifications work through a bot.
-# You'll need to set one up an get the bot_token and at least
-# one chat_id of where the bot you created is assigned to.
-#
-# Once you've got this information; here is the structure of the message:
-#  - tgram://BotToken/ChatID
-#  - tgram://BotToken/ChatID1/ChatID2/ChatIDN
-#
-# This works too if you want to place your ChatID in the user spot:
-#  - tgram://ChatID@BotToken
-#  - tgram://ChatID1@BotToken/ChatID2/ChatIDN
-#
-# NOTE: Twitter Notifications
-# You'll need to first visit https://apps.twitter.com and generate an
-# app you can reference here.
-#
-# Once you create the app, you'll need to generate the Access Tokens. This
-# Is done from the "Keys and Access Tokens" Tab.
-#
-# You'll have 4 Tokens to work with at this point on this same page.
-#  - A Consumer Key
-#  - A Consumer Secret
-#  - An Access Token
-#  - An Access Token Secret
-#
-# You will also need either your UserID (or Owner ID) plus the 4 keys
-# to assemble your tweet url:
-#  - tweet://userid@ConsumerKey/ConsumerSecret/AccessToken/AccessSecret
-#  - tweet://ownerid@ConsumerKey/ConsumerSecret/AccessToken/AccessSecret
-#
-#
-# NOTE: Join notifications pretty much work out of the box. Just visit
-#       https://play.google.com/store/apps/details?id=com.joaomgcd.join and
-#       download the app. Then visit https://joinjoaomgcd.appspot.com/ to
-#       sign in (make sure you aren't blocking pop-ups) and acquire your
-#       APIKey and DeviceID.  You'll need this to make up the Notify URL
-#
-# The URL looks something like this:
-#  - join://APIKey/DeviceID
-#  - join://APIKey/DeviceID1/DeviceID2/DeviceIDN
-#  - join://APIKey/group.all
-#  - join://APIKey/group.chrome/group.tablet/group.android
-#  - join://APIKey/chrome/tablet/android
-#  - join://APIKey/chrome/DeviceID1/tablet/DeviceID2/android
-#
-#
-# NOTE: Pushover notifications require a user and a token to work
-# correctly. You can optionally specify devices associated with the
-# account if you wish to target them specifically. Otherwise it is assumed
-# you wish to notify all devices if none are specified:
-#  - pover://user@token
-#  - pover://user@token/device/
-#  - pover://user@token/device1/device2/devicen
-#
-#
-# NOTE: Prowl notifications require an api key to work correctly.
-# you can optionally specify a provider key if you have one too.
-#  - prowl://apikey
-#  - prowl://apikey/providerkey
-#
-#
-# NOTE: (Super) Toasty notifications requires at the very minimum at least
-# one device to notify, you can additionally specify more then one too
-# if you want:
-#  - toasty://user@device
-#  - toasty://user@device1/device2/deviceN
-#
-#
-# NOTE: Windows Notifications require that you have pypiwin32 installed
-# and you are using this 'from' a windows PC. There are no arguments required
-# as the url is as simple as:
-#  - windows://
+# Note: You may specify as many servers as you wish so long as they're
+# separated by a comma and/or space.
 #Servers=
 
 # Send Notification when Queued (yes, no).
@@ -399,20 +150,18 @@
 ### NZBGET QUEUE/POST-PROCESSING SCRIPT
 ###########################################################################
 import logging
-import sys
 import re
 from os.path import join
-from os.path import abspath
 from os.path import dirname
+from os.path import isfile
 
-sys.path.insert(0, join(dirname(abspath(__file__)), 'Notify'))
-
+# pip install nzbget
 from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
 from nzbget import QueueScript
 from nzbget import QueueEvent
 
-# Inherit Push Notification Scripts
+# pip install apprise
 from apprise import Apprise
 from apprise import NotifyType
 from apprise import NotifyFormat
@@ -427,6 +176,7 @@ class IncludeLogOption(object):
     NO = 'NO'
     ONFAILURE = 'ONFAILURE'
 
+
 INCLUDE_LOG_OPTIONS = (
     IncludeLogOption.YES,
     IncludeLogOption.NO,
@@ -435,6 +185,7 @@ INCLUDE_LOG_OPTIONS = (
 
 # Used to break a path list into parts
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
+
 
 class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
@@ -478,17 +229,17 @@ class NotifyScript(PostProcessScript, QueueScript):
             include_image = True
 
             # Get some more details
-            if not re.match('^(https?|file)$', _url['schema'] ,re.IGNORECASE):
+            if not re.match('^(https?|file)$', _url['schema'], re.IGNORECASE):
                 self.logger.error(
-                    'An invalid image url protocol (%s://) was specified.' % \
-                     _url['schema'],
+                    'An invalid image url protocol (%s://) was specified.' %
+                    _url['schema'],
                 )
                 return False
 
             if _url['schema'] == 'file':
-                if not isile(_url['fullpath']):
+                if not isfile(_url['fullpath']):
                     self.logger.error(
-                        'The specified file %s was not found.' % \
+                        'The specified file %s was not found.' %
                         _url['fullpath'],
                     )
                     return False
@@ -499,8 +250,8 @@ class NotifyScript(PostProcessScript, QueueScript):
                 image_url = _url['url']
 
         else:
-            # Dealing with the old way of doing things; just toggling a true/false
-            # flag
+            # Dealing with the old way of doing things; just toggling a
+            # true/false flag
             include_image = self.parse_bool(self.get('IncludeImage'), False)
 
         if isinstance(servers, basestring):
@@ -703,7 +454,8 @@ class NotifyScript(PostProcessScript, QueueScript):
             logs = self.get_logs(25)
             if logs:
                 body += NOTIFY_NEWLINE + NOTIFY_NEWLINE + '### Logs ###' + \
-                    ('%s * ' % NOTIFY_NEWLINE) + ('%s * ' % NOTIFY_NEWLINE).join(logs)
+                    ('%s * ' % NOTIFY_NEWLINE) + \
+                    ('%s * ' % NOTIFY_NEWLINE).join(logs)
 
         # Preform Notifications
         return self.notify(
@@ -739,8 +491,8 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Prepare our Test Response
         notify_type = NotifyType.INFO
-        title='NZBGet-Notify Configuration Test'
-        body='## NZBGet-Notify Configuration Test ##\r\n'
+        title = 'NZBGet-Notify Configuration Test'
+        body = '## NZBGet-Notify Configuration Test ##\r\n'
         body += '- **OnFailure**: %s\r\n' % (
             'Yes' if on_failure else 'No')
         body += '- **OnSuccess**: %s\r\n' % (
@@ -781,6 +533,7 @@ class NotifyScript(PostProcessScript, QueueScript):
             body_format=NotifyFormat.TEXT,
         )
 
+
 # Call your script as follows:
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -791,7 +544,7 @@ if __name__ == "__main__":
         "-s",
         "--servers",
         dest="servers",
-        help="Specify 1 or more servers in their URL format ie: " + \
+        help="Specify 1 or more servers in their URL format ie: " +
             "growl://mypass@localhost",
         metavar="URL(s)",
     )
