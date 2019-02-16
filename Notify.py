@@ -167,6 +167,9 @@ from apprise import NotifyType
 from apprise import NotifyFormat
 from apprise import AppriseAsset
 
+# Used for character detection
+from chardet import detect as chardet_detect
+
 # HTML New Line Delimiter
 NOTIFY_NEWLINE = '\r\n'
 
@@ -187,6 +190,46 @@ INCLUDE_LOG_OPTIONS = (
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
 
+def decode(str_data, encoding=None):
+    """
+    Returns the unicode string of the data passed in
+    otherwise it throws a ValueError() exception. This function makes
+    use of the chardet library
+
+    If encoding == None then it is attempted to be detected by chardet
+    If encoding is a string, then only that encoding is used
+    """
+    if isinstance(str_data, unicode):
+        return str_data
+
+    default_encoding = 'utf-8'
+    if encoding is None:
+        decoded = chardet_detect(str_data)
+        if decoded:
+            encoding = decoded.get('encoding', default_encoding)
+        else:
+            encoding = default_encoding
+
+    try:
+        str_data = str_data.decode(
+            encoding,
+            errors='ignore',
+        )
+        return str_data
+
+    except UnicodeError:
+        raise ValueError(
+            '%s contains invalid characters' % (
+                str_data,
+        ))
+    except KeyError:
+        raise ValueError(
+            '%s encoding could not be detected ' % (
+                str_data,
+        ))
+    return None
+
+
 class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
@@ -200,6 +243,10 @@ class NotifyScript(PostProcessScript, QueueScript):
         """
         processes list of servers specified
         """
+
+        # Decode our data
+        body = decode(body)
+        title = decode(title)
 
         # Apprise Asset Object
         asset = AppriseAsset(theme=self.default_theme)
