@@ -15,7 +15,7 @@ Send notifications to all of the popular notification services (PushBullet, Noti
 You can even run the tool from the command line for your own custom use. Notify.py was written in such a way that there wouldn't be a lot of effort to add more notification services either.  Feel free to contact me if one you would like to use is missing.
 
 ## Installation Instructions
-1. Ensure you have Python v2.7 installed onto your system.
+1. Ensure you have Python v2.7 or later installed onto your system.
 ```bash
 # Pull in dependencies:
 pip install -r requirements.txt
@@ -28,19 +28,12 @@ pip install -r requirements.txt
 The Non-NZBGet/SABnzbd users can also use this script from the command line.
 See the __Command Line__ section below for more instructions on how to do this.
 
-**Note:** The _Notify_ directory provides all of the necessary dependencies
-in order for this script to work correctly. The directory is only required
-if you do not have the packages already available to your global
-environment. These dependant packages are all identified under the
-_Dependencies_ section below.
-
 ## Supported Notifications
 The section identifies all of the services supported by this script.
 
 ### Popular Notification Services
 The table below identifies the provider _Notify.py_ supports and the
 location that content is retrieved from.
-
 
 | Notification Service | Service ID | Default Port | Example Syntax |
 | -------------------- | ---------- | ------------ | -------------- |
@@ -84,6 +77,8 @@ Apprise have some email services built right into it (such as yahoo, fastmail, h
 | -------------------- | ---------- | ------------ | -------------- |
 | [JSON](https://github.com/caronc/apprise/wiki/Notify_Custom_JSON)       | json:// or jsons://   | (TCP) 80 or 443 | json://hostname<br />json://user@hostname<br />json://user:password@hostname:port<br />json://hostname/a/path/to/post/to
 | [XML](https://github.com/caronc/apprise/wiki/Notify_Custom_XML)         | xml:// or xmls://   | (TCP) 80 or 443 | xml://hostname<br />xml://user@hostname<br />xml://user:password@hostname:port<br />xml://hostname/a/path/to/post/to
+
+**For a complete list of supported notification services, check out what is listed for [Apprise](https://github.com/caronc/apprise/).
 
 ## Command Line
 Notify.py has a built in command line interface that can be easily tied

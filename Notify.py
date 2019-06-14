@@ -151,6 +151,7 @@
 ###########################################################################
 import logging
 import re
+import six
 from os.path import join
 from os.path import dirname
 from os.path import isfile
@@ -199,6 +200,10 @@ def decode(str_data, encoding=None):
     If encoding == None then it is attempted to be detected by chardet
     If encoding is a string, then only that encoding is used
     """
+    if six.PY3:
+        # nothing to do for Python 3
+        return str_data
+
     if isinstance(str_data, unicode):
         return str_data
 
@@ -301,7 +306,7 @@ class NotifyScript(PostProcessScript, QueueScript):
             # true/false flag
             include_image = self.parse_bool(self.get('IncludeImage'), False)
 
-        if isinstance(servers, basestring):
+        if isinstance(servers, six.string_types):
             # servers can be a list of URLs, or it can be
             # a string which will be parsed into this list
             # we wanted.
