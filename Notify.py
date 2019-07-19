@@ -3,7 +3,7 @@
 #
 # Notififications Core
 #
-# Copyright (C) 2014-2018 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2019 Chris Caron <lead2gold@gmail.com>
 #
 # This file is part of NZB-Notify.
 #
@@ -31,9 +31,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Sun, Sep  9th, 2018.
+# Date: Fri, Jul 19th, 2019.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 0.9.2.
+# Script Version: 0.9.3.
 #
 # Home: https://github.com/caronc/nzb-notify
 # Wiki: https://github.com/caronc/nzb-notify/wiki
@@ -60,23 +60,33 @@
 #  - boxcar:// -> A Boxcar Notification
 #  - boxcars:// -> A secure Boxcar Notification
 #  - discord:// -> A Discord Notification
+#  - d7sms:// -> A D7 Networks SMS Notification
 #  - emby:// -> A Emby Notification
 #  - faast:// -> A Faast Notification
-#  - growl:// -> A Growl Notification
+#  - flock:// -> A Flock Notification
+#  - gitter:// -> A Gitter Notification
 #  - gnome:// -> A Gnome Notification
+#  - growl:// -> A Growl Notification
+#  - gotify:// -> A Gotify Notification
 #  - ifttt:// -> A IFTTT (If This Than That) Notification
+#  - join:// -> A Join Notification
 #  - json:// -> A simple json query
 #  - jsons:// -> A secure, simple json query
 #  - kde:// -> A KDE Notification
 #  - kodi:// -> A KODI Notification
 #  - kodis:// -> A Secure KODI Notification
+#  - mailgun:// -> An Mailgun Notification
 #  - matrix:// -> A Matrix Notification
 #  - matrixs:// -> A Secure Matrix Notification
 #  - mailto:// -> An email Notification
 #  - mailtos:// -> A secure email Notification
-#  - pbul:// -> A PushBullet Notification
+#  - mattermost:// -> A Mattermost Notification
+#  - msteams:// -> A Microsoft Teams Notification
+#  - nexmo:// -> A Nexmo Notification
 #  - prowl:// -> A Prowl Server
+#  - pbul:// -> A PushBullet Notification
 #  - pover:// -> A Pushover Notification
+#  - pjet:// -> A Pushjet Notification
 #  - pushed:// -> A Pushed Notification
 #  - rocket:// -> A Rocket.Chat Notification
 #  - rockets:// -> A Secure Rocket.Chat Notification
@@ -84,13 +94,18 @@
 #  - slack:// -> A Slack Notification
 #  - sns:// -> Amazon Web Service (AWS) - Simple Notificaation Service (SNS)
 #  - tgram:// -> A Telegram Notification
-#  - tweet:// -> A Twitter Direct Message (DM) Notification
+#  - twilio:// -> A Twilio Notification
+#  - twitter:// -> A Twitter Direct Message (DM) Notification
+#  - twist:// -> A Twist Notification
 #  - xml:// -> A simple xml (SOAP) Notification
 #  - xmls:// -> A secure, simple xml (SOAP) Notification
 #  - mmost:// -> A (Unsecure) MatterMost Notification
 #  - mmosts:// -> A Secure MatterMost Notification
 #  - xbmc:// -> An XBMC Notification (protocol v2)
+#  - xmpp:// -> An XMPP Notification
+#  - wxteams:// -> An Cisco Webex Teams Notification
 #  - windows:// -> A Microsoft Windows Notification
+#  - zulip:// -> An Zulip Chat Notification
 #
 # Note: For details on how to use each notification checkout this link:
 # https://github.com/caronc/apprise/wiki
