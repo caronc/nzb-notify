@@ -1,4 +1,5 @@
 apprise >= 0.7.0
+setuptools
 pynzbget
 chardet
 six
