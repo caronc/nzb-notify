@@ -255,9 +255,6 @@ class NotifyScript(PostProcessScript, QueueScript):
        throughout this wiki
     """
 
-    # Default theme to use
-    default_theme = 'general'
-
     def notify(self, servers, body, title, notify_type=NotifyType.INFO,
                body_format=NotifyFormat.MARKDOWN):
         """
@@ -269,20 +266,27 @@ class NotifyScript(PostProcessScript, QueueScript):
         title = decode(title)
 
         # Apprise Asset Object
-        asset = AppriseAsset(theme=self.default_theme)
+        asset = AppriseAsset()
         asset.app_id = 'NZB-Notify'
         asset.app_desc = 'NZB Notification'
         asset.app_url = 'https://github.com/caronc/nzb-notify'
-
-        # Source Theme from GitHub Page
-        asset.image_url_mask = 'https://raw.githubusercontent.com' \
-                               '/caronc/nzb-notify/master/Notify' \
-                               '/apprise-theme/{THEME}/apprise-{TYPE}-{XY}.png'
 
         asset.image_path_mask = join(
             dirname(__file__),
             'Notify', 'apprise-theme', '{THEME}',
             'apprise-{TYPE}-{XY}.png')
+
+        # Image URL Mask
+        asset.image_url_mask = \
+            'https://raw.githubusercontent.com/caronc/nzb-notify/master/' \
+            'Notify/apprise-theme/{THEME}/' \
+            'apprise-{TYPE}-{XY}{EXTENSION}'
+
+        # Application Logo
+        asset.image_url_logo = \
+            'https://raw.githubusercontent.com/caronc/nzb-notify/master/' \
+            'Notify/apprise-theme/{THEME}/' \
+            'apprise-logo.png'
 
         # Include Image Flag
         _url = self.parse_url(self.get('IncludeImage'))
