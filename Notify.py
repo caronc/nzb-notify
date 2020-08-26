@@ -169,7 +169,6 @@ import re
 import six
 from os.path import join
 from os.path import dirname
-from os.path import isfile
 
 # pip install nzbget
 from nzbget import SCRIPT_MODE
@@ -180,6 +179,7 @@ from nzbget import QueueEvent
 # pip install apprise
 from apprise import Apprise
 from apprise import NotifyType
+from apprise import NOTIFY_TYPES
 from apprise import NotifyFormat
 from apprise import AppriseAsset
 
@@ -188,6 +188,18 @@ from chardet import detect as chardet_detect
 
 # HTML New Line Delimiter
 NOTIFY_NEWLINE = '\r\n'
+
+NOTIFY_THEMES_MAP = {
+    # ideally this should be the id 'nzbget' but to be backwards
+    # compatible with the previous version, we'll leave the directory
+    # structure as it is. For this reason, we need the mapping this table
+    # provides.
+    'nzbget': 'general',
+    'sabnzbd': 'sabnzbd',
+
+    # Support our own lookup
+    'general': 'general',
+}
 
 
 class IncludeLogOption(object):
@@ -219,7 +231,7 @@ def decode(str_data, encoding=None):
         # nothing to do for Python 3
         return str_data
 
-    if isinstance(str_data, unicode):
+    elif isinstance(str_data, unicode):
         return str_data
 
     default_encoding = 'utf-8'
@@ -256,7 +268,7 @@ class NotifyScript(PostProcessScript, QueueScript):
     """
 
     def notify(self, servers, body, title, notify_type=NotifyType.INFO,
-               body_format=NotifyFormat.MARKDOWN):
+               body_format=NotifyFormat.MARKDOWN, theme=None):
         """
         processes list of servers specified
         """
@@ -288,42 +300,8 @@ class NotifyScript(PostProcessScript, QueueScript):
             'Notify/apprise-theme/{THEME}/' \
             'apprise-logo.png'
 
-        # Include Image Flag
-        _url = self.parse_url(self.get('IncludeImage'))
-
-        # Define some globals to use in this function
-        image_path = None
-        image_url = None
-
-        if _url:
-            # Toggle our include image flag right away to True
-            include_image = True
-
-            # Get some more details
-            if not re.match('^(https?|file)$', _url['schema'], re.IGNORECASE):
-                self.logger.error(
-                    'An invalid image url protocol (%s://) was specified.' %
-                    _url['schema'],
-                )
-                return False
-
-            if _url['schema'] == 'file':
-                if not isfile(_url['fullpath']):
-                    self.logger.error(
-                        'The specified file %s was not found.' %
-                        _url['fullpath'],
-                    )
-                    return False
-                image_path = _url['fullpath']
-
-            else:
-                # We're dealing with a web request
-                image_url = _url['url']
-
-        else:
-            # Dealing with the old way of doing things; just toggling a
-            # true/false flag
-            include_image = self.parse_bool(self.get('IncludeImage'), False)
+        # Assign theme
+        asset.theme = 'general' if not theme else theme
 
         if isinstance(servers, six.string_types):
             # servers can be a list of URLs, or it can be
@@ -592,6 +570,15 @@ class NotifyScript(PostProcessScript, QueueScript):
         title = self.get('Title', 'Test Notify Title')
         body = self.get('Body', 'Test Notify Body')
 
+        # Acquire our theme
+        theme = NOTIFY_THEMES_MAP[self.get('Theme', 'general')]
+        notify_type = self.get('NotificationType', 'info')
+        if notify_type not in NOTIFY_TYPES:
+            notify_type = 'info'
+            self.logger.warning(
+                "%s is an invalid notification type; using '%s'." % (
+                    str(self.get('NotificationType', 'info')), notify_type))
+
         if not servers:
             self.logger.info('No servers were specified --servers (-s)')
             return False
@@ -602,6 +589,8 @@ class NotifyScript(PostProcessScript, QueueScript):
             title=title,
             body=body,
             body_format=NotifyFormat.TEXT,
+            notify_type=notify_type,
+            theme=theme,
         )
 
 
@@ -641,12 +630,16 @@ if __name__ == "__main__":
         help="Include image in message if the protocol supports it.",
     )
     parser.add_option(
-        "-u",
-        "--image_url",
-        dest="image_url",
-        help="Provide url to image; should be either http://, " + \
-            "https://, or file://. This option implies that " + \
-            "--include_image (-i) is set automatically.",
+        "-T",
+        "--theme",
+        dest="theme",
+        help="Provide the theme to use (nzbget or sabnzbd)"
+    )
+    parser.add_option(
+        "-n",
+        "--notification-type",
+        dest="ntype",
+        help="Provide the notification type to use (info, success, warning, or failure)"
     )
     parser.add_option(
         "-L",
@@ -675,7 +668,8 @@ if __name__ == "__main__":
     _body = options.body
     _title = options.title
     _include_image = options.include_image
-    _image_url = options.image_url
+    _theme = None if not options.theme else options.theme.lower().strip()
+    _ntype = None if not options.ntype else options.ntype.lower().strip()
 
     if _servers:
         # By specifying a scandir, we know for sure the user is
@@ -705,18 +699,11 @@ if __name__ == "__main__":
     if not script.get('IncludeImage') and _include_image:
         script.set('IncludeImage', _include_image)
 
-    if _image_url:
-        # if the _image_url is set, then we want to use it.
-        # but before we do; check that it is valid first
-        _url = script.parse_url(_image_url)
-        if _url is None:
-            # An invalid URL was specified
-            script.logger.error('An invalid image url was specified.')
-            exit(1)
+    if _theme:
+        script.set('Theme', _theme)
 
-        # Store IncludeImage path
-        script.set('IncludeImage', _image_url)
-
+    if _ntype:
+        script.set('NotificationType', _ntype)
 
     if not script.script_mode and not script.get('Servers'):
         # Provide some CLI help when VideoPaths has been

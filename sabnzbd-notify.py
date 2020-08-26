@@ -70,57 +70,57 @@ SABNZBD_NOTIFICATION_MAP = {
     # Startup/Shutdown
     'startup': (
         'Startup/Shutdown',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'info',
     ),
     # Added NZB
     'download': (
         'Added NZB',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'info',
     ),
     # Post-processing started
     'pp': (
         'Post-Processing Started',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'info',
     ),
     # Job finished
     'complete': (
         'Job Finished',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'success',
     ),
     # Job failed
     'failed': (
         'Job Failed',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'failure',
     ),
     # Warning
     'warning': (
         'Warning',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'warning',
     ),
     # Error
     'error': (
         'Error',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'failure',
     ),
     # Disk full
     'disk_full': (
         'Disk Full',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'warning',
     ),
     # Queue finished
     'queue_done': (
         'Queue Finished',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'info',
     ),
     # User logged in
     'new_login': (
         'User Logged In',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'info',
     ),
     # Other Messages
     'other': (
         'Other Messages',
-        'https://sabnzbd.org/images/icons/apple-touch-icon-76x76-precomposed.png',
+        'info',
     ),
 }
 
@@ -157,7 +157,8 @@ def notify(ntype, title, body, urls, debug=None):
             NOTIFY_SCRIPT,
             '-t', title,
             '-b', body,
-            '-u', SABNZBD_NOTIFICATION_MAP[ntype][1],
+            '-T', 'sabnzbd',
+            '-n', SABNZBD_NOTIFICATION_MAP[ntype][1],
             '-s', urls,
         ]
     else:
@@ -167,7 +168,8 @@ def notify(ntype, title, body, urls, debug=None):
             NOTIFY_SCRIPT,
             '-t', title,
             '-b', body,
-            '-u', SABNZBD_NOTIFICATION_MAP[ntype][1],
+            '-T', 'sabnzbd',
+            '-n', SABNZBD_NOTIFICATION_MAP[ntype][1],
             '-s', urls,
         ]
 
