@@ -267,7 +267,7 @@ class NotifyScript(PostProcessScript, QueueScript):
        throughout this wiki
     """
 
-    def notify(self, servers, body, title, notify_type=NotifyType.INFO,
+    def notify(self, body, title, notify_type=NotifyType.INFO, servers=None,
                body_format=NotifyFormat.MARKDOWN, theme=None):
         """
         processes list of servers specified
@@ -303,24 +303,17 @@ class NotifyScript(PostProcessScript, QueueScript):
         # Assign theme
         asset.theme = 'general' if not theme else theme
 
-        if isinstance(servers, six.string_types):
+        if not isinstance(servers, six.string_types):
             # servers can be a list of URLs, or it can be
             # a string which will be parsed into this list
             # we wanted.
-            servers = self.parse_list(self.get('Servers', ''))
+            servers = self.get('Servers', '')
 
         # Create our apprise object
         a = Apprise(asset=asset)
 
-        for server in servers:
-
-            # Add our URL
-            if not a.add(server):
-                # Validation Failure
-                self.logger.error(
-                    'Could not initialize %s instance.' % server,
-                )
-                continue
+        # Add our URL(s)
+        a.add(servers)
 
         # Notify our servers
         a.notify(body=body, title=title, notify_type=notify_type,
@@ -347,7 +340,6 @@ class NotifyScript(PostProcessScript, QueueScript):
         if self.event != QueueEvent.NZB_ADDED:
             return None
 
-        servers = self.parse_list(self.get('Servers', ''))
         notify_type = NotifyType.INFO
 
         # Contents
@@ -360,7 +352,6 @@ class NotifyScript(PostProcessScript, QueueScript):
             return None
 
         return self.notify(
-            servers,
             title=title,
             body=self.nzbname,
             notify_type=notify_type,
@@ -381,7 +372,6 @@ class NotifyScript(PostProcessScript, QueueScript):
         )):
             return False
 
-        servers = self.parse_list(self.get('Servers', ''))
         on_failure = self.parse_bool(self.get('OnFailure'))
         on_success = self.parse_bool(self.get('OnSuccess'))
 
@@ -508,7 +498,6 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Preform Notifications
         return self.notify(
-            servers,
             title=title,
             body=body,
             notify_type=notify_type,
@@ -530,7 +519,6 @@ class NotifyScript(PostProcessScript, QueueScript):
         )):
             return False
 
-        servers = self.parse_list(self.get('Servers', ''))
         on_failure = self.parse_bool(self.get('OnFailure'))
         on_success = self.parse_bool(self.get('OnSuccess'))
 
@@ -555,7 +543,6 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Preform Notifications
         return self.notify(
-            servers,
             title=title,
             body=body,
             notify_type=notify_type,
@@ -585,9 +572,9 @@ class NotifyScript(PostProcessScript, QueueScript):
 
         # Preform Notifications
         return self.notify(
-            servers,
             title=title,
             body=body,
+            servers=servers,
             body_format=NotifyFormat.TEXT,
             notify_type=notify_type,
             theme=theme,
