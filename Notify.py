@@ -712,9 +712,9 @@ if __name__ == "__main__":
         exit(1)
 
     # Attach Apprise logging to output by connecting to its namespace
-    logging.getLogger('apprise.plugins.NotifyBase').\
+    logging.getLogger('apprise').\
             addHandler(script.logger.handlers[0])
-    logging.getLogger('apprise.plugins.NotifyBase').\
+    logging.getLogger('apprise').\
             setLevel(script.logger.getEffectiveLevel())
 
     # call run() and exit() using it's returned value
