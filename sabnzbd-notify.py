@@ -72,6 +72,11 @@ SABNZBD_NOTIFICATION_MAP = {
         'Startup/Shutdown',
         'info',
     ),
+    # Pause/Resume
+    'pause_resume': (
+        'Pause/Resume',
+        'info',
+    ),
     # Added NZB
     'download': (
         'Added NZB',
