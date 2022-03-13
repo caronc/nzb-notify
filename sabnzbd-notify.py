@@ -3,7 +3,7 @@
 #
 # Notifification wrapper for SABnzbd
 #
-# Copyright (C) 2014-2018 Chris Caron <lead2gold@gmail.com>
+# Copyright (C) 2014-2022 Chris Caron <lead2gold@gmail.com>
 #
 # This file adds support for SABnzbd v1.1.0 or higher
 #
