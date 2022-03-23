@@ -154,29 +154,17 @@ def notify(ntype, title, body, urls, debug=None):
     if debug is None:
         debug = DEBUG_MODE
 
-    if sys.platform[0:3] == 'win':
-        # Windows systems require the executable 'python'
-        # up front
-        cmd = [
-            'python',
-            NOTIFY_SCRIPT,
-            '-t', title,
-            '-b', body,
-            '-T', 'sabnzbd',
-            '-n', SABNZBD_NOTIFICATION_MAP[ntype][1],
-            '-s', urls,
-        ]
-    else:
-        # Other systems determine the environment from
-        # the executable's first line #!
-        cmd = [
-            NOTIFY_SCRIPT,
-            '-t', title,
-            '-b', body,
-            '-T', 'sabnzbd',
-            '-n', SABNZBD_NOTIFICATION_MAP[ntype][1],
-            '-s', urls,
-        ]
+    # We use the Python interpreter that was also used by  
+    # SABnzbd when it executed this script
+    cmd = [
+        sys.executable if sys.executable else "python",
+        NOTIFY_SCRIPT,
+        '-t', title,
+        '-b', body,
+        '-T', 'sabnzbd',
+        '-n', SABNZBD_NOTIFICATION_MAP[ntype][1],
+        '-s', urls,
+    ]
 
     if debug:
         # Debug Mode Enabled
