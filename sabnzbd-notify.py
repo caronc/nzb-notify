@@ -143,7 +143,9 @@ def syntax():
         "description of the <Type> is used instead." + os.linesep +\
         "* All remaining arguments are treated as URLs. You can also " +\
         "delimit multiple" + os.linesep + "\tURLs in a single " +\
-        "string/argument with the use of a comma (,)."
+        "string/argument with the use of a comma (,)." + os.linesep +\
+        "\tURLs can also be provided as the SAB_NOTIFICATION_PARAMETERS " +\
+        "environment variable."
 
 
 def notify(ntype, title, body, urls, debug=None):
@@ -154,7 +156,7 @@ def notify(ntype, title, body, urls, debug=None):
     if debug is None:
         debug = DEBUG_MODE
 
-    # We use the Python interpreter that was also used by  
+    # We use the Python interpreter that was also used by
     # SABnzbd when it executed this script
     cmd = [
         sys.executable if sys.executable else "python",
@@ -206,8 +208,9 @@ def notify(ntype, title, body, urls, debug=None):
     return True
 
 if __name__ == "__main__":
-    # Simple parsing of the command line
-    if len(sys.argv) <= 4:
+    # Simple parsing of the command line and env variable
+    notify_urls_string = os.environ.get("SAB_NOTIFICATION_PARAMETERS", None)
+    if len(sys.argv) <= 3 and not notify_urls_string:
         logger.error('Not enough arguments specified.')
         print(syntax())
         exit(1)
@@ -233,9 +236,14 @@ if __name__ == "__main__":
     # Store body (empty or not)
     notify_body = sys.argv[3].strip()
 
+    # Environment variable takes precedence over the command line parameter
     # The URLs are complex and very depending on what we're notifying
     # so we'll let Notify.py take care of them at this point.
-    notify_urls =  ','.join([ v.strip() for v in sys.argv[4:]])
+    if notify_urls_string:
+        notify_urls = notify_urls_string.split()
+    else:
+        notify_urls = sys.argv[4:]
+    notify_urls = ','.join([v.strip() for v in notify_urls])
 
     # Perform Notification
     exit(int(not notify(
