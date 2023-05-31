@@ -240,9 +240,10 @@ if __name__ == "__main__":
     # The URLs are complex and very depending on what we're notifying
     # so we'll let Notify.py take care of them at this point.
     if notify_urls_string:
-        notify_urls = notify_urls_string
+        notify_urls = notify_urls_string.split()
     else:
-        notify_urls = ','.join([v.strip() for v in sys.argv[4:]])
+        notify_urls = sys.argv[4:]
+    notify_urls = ','.join([v.strip() for v in notify_urls])
 
     # Perform Notification
     exit(int(not notify(
