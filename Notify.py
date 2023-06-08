@@ -33,7 +33,7 @@
 # Author: Chris Caron (lead2gold@gmail.com).
 # Date: Sun, Mar 13th, 2022.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 1.0.0.
+# Script Version: 1.0.1.
 #
 # Home: https://github.com/caronc/nzb-notify
 # Wiki: https://github.com/caronc/nzb-notify/wiki
