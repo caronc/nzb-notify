@@ -17,17 +17,35 @@ For a complete list of supported notification services and examples on how to bu
 
 ## Installation and usage instructions
 
-1. Ensure you have Python v2.7 or later installed onto your system.
+1. Ensure you have Python v3.9 or later installed onto your system.
 ```bash
 # Pull in dependencies:
 pip install -r requirements.txt
 ```
 2. Simply place the `Notify.py` and `Notify` directory together.
-   * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](https://nzbget.net/download).
+   * __NZBGet users__: you'll want to place these inside of your _nzbget/scripts_ directory. Please ensure you are running _(at least)_ NZBGet v11.0 or higher. You can acquire the latest version of of it from [here](https://nzbget.com/download).
    * __NZBGet users__: As one additional note; this script makes use of the RPC feature of NZBGet in order to retrive all of the status information it will notify you with.  Its very important that this is configured correctly (in the 'Settings -> Security' area). The out of the box settings should work fine; but worth noting here should experience any issues.
    * __SABnzbd users__: You'll point your SABnzbd configuration to reference `sabnzbd-notify.py` via the _Script_ entry and _not_ `Notify.py`. However, please note that the `Notify.py` script is still required (as `sabnzbd-notify.py` is a wrapper to it).  You will use the _Parameters_ section to provide the services you wish to notify (see below how they are constructed).
 
 See the __Command Line__ section below for more instructions on how to call the script from the command line.
+
+### NZBGet v23+ (Extension Manager)
+
+Newer NZBGet versions expect each script in its own folder, with every
+package it needs bundled inside. To make one:
+
+```bash
+./build-extension.sh
+```
+
+You get:
+
+- `build/Notify/`: copy this into NZBGet's scripts folder, then restart
+  NZBGet (or reload it from **Settings > Extension Manager**)
+- `build/notify-<version>-dist.zip`: the same folder, zipped for a release
+
+There's no `pip install` needed on the NZBGet side; everything is in
+`Notify/lib/`.
 
 ## SABnzbd Users
 SABnzbd users can test that their script is working okay manually as well if they're having issues with it through their application.  This is also a great way to test out that you've created the correct URL string.
@@ -110,4 +128,4 @@ python Notify.py \
 ```
 
 ## Donations
-If you like this script and feel like donating, you can do so through either [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E) or [sponsor me](https://github.com/sponsors/caronc)! Thank you so much to everyone who has donated in the past!
+If you like this script and feel like donating, you can do so through either [PayPal](https://www.paypal.com/donate/?hosted_button_id=CR6YF7KLQWQ5E) or [sponsor me](https://github.com/sponsors/caronc)! Thank you so much to everyone who has donated in the past!

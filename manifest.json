@@ -1,0 +1,169 @@
+{
+    "main": "Notify.py",
+    "name": "Notify",
+    "homepage": "https://github.com/caronc/nzb-notify",
+    "kind": "QUEUE/POST-PROCESSING",
+    "displayName": "Notify",
+    "version": "1.0.1",
+    "nzbgetMinVersion": "23.0",
+    "author": "Chris Caron",
+    "license": "GPLv2",
+    "about": "Sends download notifications to Discord, Telegram, email and 100+ other services.",
+    "queueEvents": "NZB_ADDED",
+    "requirements": [
+        "This extension requires Python 3.9 or newer."
+    ],
+    "description": [
+        "Notify uses Apprise to tell you when a download is queued,",
+        "finishes or fails."
+    ],
+    "options": [
+        {
+            "name": "Servers",
+            "displayName": "Servers",
+            "value": "",
+            "description": [
+                "Servers.",
+                "",
+                "One or more Apprise URLs to notify, separated by a comma and/or space.",
+                "For example:",
+                " - discord://webhook_id/webhook_token",
+                " - tgram://bot_token/chat_id",
+                " - mailto://user:password@gmail.com",
+                "",
+                "See https://appriseit.com for every supported service and how to",
+                "build its URL."
+            ],
+            "select": []
+        },
+        {
+            "name": "OnQueue",
+            "displayName": "OnQueue",
+            "value": "yes",
+            "description": [
+                "Send Notification when Queued.",
+                "",
+                "Send a notification when a new entry is queued into NZBGet for",
+                "download."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        },
+        {
+            "name": "OnFailure",
+            "displayName": "OnFailure",
+            "value": "yes",
+            "description": [
+                "Send Notification on Failure.",
+                "",
+                "Send a notification if the download failed."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        },
+        {
+            "name": "OnSuccess",
+            "displayName": "OnSuccess",
+            "value": "yes",
+            "description": [
+                "Send Notification on Success.",
+                "",
+                "Send a notification if the download was successful."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        },
+        {
+            "name": "IncludeStats",
+            "displayName": "IncludeStats",
+            "value": "yes",
+            "description": [
+                "Include Statistics.",
+                "",
+                "Include statistics (if possible) in notification(s)"
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        },
+        {
+            "name": "IncludeFiles",
+            "displayName": "IncludeFiles",
+            "value": "yes",
+            "description": [
+                "Include Files.",
+                "",
+                "Include a file listing (if possible) of content retrieved.",
+                "Note: File listings are excempted if the download failed."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        },
+        {
+            "name": "IncludeLogs",
+            "displayName": "IncludeLogs",
+            "value": "OnFailure",
+            "description": [
+                "Include Logs.",
+                "",
+                "Include the log entries in the notification"
+            ],
+            "select": [
+                "yes",
+                "no",
+                "OnFailure"
+            ]
+        },
+        {
+            "name": "IncludeImage",
+            "displayName": "IncludeImage",
+            "value": "yes",
+            "description": [
+                "Send a notification image when supported.",
+                "",
+                "Instruct the script to include a supported image with the notification",
+                "if the protocol supports it."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        },
+        {
+            "name": "Debug",
+            "displayName": "Debug",
+            "value": "no",
+            "description": [
+                "Enable debugging mode.",
+                "",
+                "Logging will be much more verbose, but if you are experiencing issues,",
+                "developers and support staff will only be able to help you much easier",
+                "if they have this extra bit of detail in your logging output."
+            ],
+            "select": [
+                "yes",
+                "no"
+            ]
+        }
+    ],
+    "commands": [
+        {
+            "name": "TestServers",
+            "action": "Test Server Configuration",
+            "displayName": "TestServers",
+            "description": [
+                "You can test your server configuration here."
+            ]
+        }
+    ],
+    "taskTime": ""
+}

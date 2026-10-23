@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 #
 # Notififications Core
@@ -166,9 +166,15 @@
 ###########################################################################
 import logging
 import re
-import six
+import sys
+from os.path import abspath
 from os.path import join
 from os.path import dirname
+
+# NZBGet Extension Manager installs ship their dependencies in lib/
+sys.path.insert(0, join(dirname(abspath(__file__)), 'lib'))
+
+import six
 
 # pip install nzbget
 from nzbget import SCRIPT_MODE
@@ -315,12 +321,11 @@ class NotifyScript(PostProcessScript, QueueScript):
         # Add our URL(s)
         a.add(servers)
 
-        # Notify our servers
-        a.notify(body=body, title=title, notify_type=notify_type,
-                 body_format=body_format)
-
-        # Always return true
-        return True
+        # Notify our servers; Apprise v2 returns a result object, so turn
+        # it into True (everything was sent) or False (something failed)
+        return bool(a.notify(
+            body=body, title=title, notify_type=notify_type,
+            body_format=body_format))
 
     def queue_main(self, *args, **kwargs):
         """Queue Script
@@ -571,14 +576,14 @@ class NotifyScript(PostProcessScript, QueueScript):
             return False
 
         # Preform Notifications
-        return self.notify(
+        return bool(self.notify(
             title=title,
             body=body,
             servers=servers,
             body_format=NotifyFormat.TEXT,
             notify_type=notify_type,
             theme=theme,
-        )
+        ))
 
 
 # Call your script as follows:
@@ -696,7 +701,7 @@ if __name__ == "__main__":
         # Provide some CLI help when VideoPaths has been
         # detected as not being identified
         parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     # Attach Apprise logging to output by connecting to its namespace
     logging.getLogger('apprise').\
@@ -705,4 +710,4 @@ if __name__ == "__main__":
             setLevel(script.logger.getEffectiveLevel())
 
     # call run() and exit() using it's returned value
-    exit(script.run())
+    sys.exit(script.run())
