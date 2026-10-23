@@ -30,9 +30,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Sun, Mar 13th, 2022.
+# Date: Fri, Oct 23th, 2026.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 2.0.0.
+# Script Version: 2.0.1.
 #
 # Home: https://github.com/caronc/nzb-notify
 # Docs: https://appriseit.com
@@ -275,12 +275,8 @@ class NotifyScript(PostProcessScript, QueueScript):
 
     def has_servers(self):
         """
-        Returns True if the Servers option is set, otherwise logs how to
-        fix it.
-
-        NZBGet only passes options that were saved, so on a fresh install
-        nothing is set until "Save all changes" is clicked. Every other
-        option falls back to its default.
+        Returns True if the Servers option has something in it, otherwise
+        logs how to fix it.
         """
         if self.get('Servers', '').strip():
             return True
@@ -294,7 +290,12 @@ class NotifyScript(PostProcessScript, QueueScript):
         """Queue Script
         """
 
-        if not self.validate() or not self.has_servers():
+        # Don't run unless our settings were saved
+        if not self.validate(keys=(
+            'Servers',
+            'IncludeImage',
+            'OnQueue',
+        )) or not self.has_servers():
             return False
 
         on_queue = self.parse_bool(self.get('OnQueue', 'yes'))
@@ -325,10 +326,18 @@ class NotifyScript(PostProcessScript, QueueScript):
         """Post Processing Script
         """
 
-        if not self.validate() or not self.has_servers():
+        # Don't run unless our settings were saved
+        if not self.validate(keys=(
+            'Servers',
+            'IncludeImage',
+            'IncludeFiles',
+            'IncludeStats',
+            'IncludeLogs',
+            'OnFailure',
+            'OnSuccess',
+        )) or not self.has_servers():
             return False
 
-        # Use the same defaults NZBGet shows in its settings page
         on_failure = self.parse_bool(self.get('OnFailure', 'yes'))
         on_success = self.parse_bool(self.get('OnSuccess', 'yes'))
 
@@ -465,10 +474,18 @@ class NotifyScript(PostProcessScript, QueueScript):
         Execute the TestServers Test Action
         """
 
-        if not self.validate() or not self.has_servers():
+        # Don't run unless our settings were saved
+        if not self.validate(keys=(
+            'Servers',
+            'IncludeImage',
+            'IncludeFiles',
+            'IncludeStats',
+            'IncludeLogs',
+            'OnFailure',
+            'OnSuccess',
+        )) or not self.has_servers():
             return False
 
-        # Use the same defaults NZBGet shows in its settings page
         on_failure = self.parse_bool(self.get('OnFailure', 'yes'))
         on_success = self.parse_bool(self.get('OnSuccess', 'yes'))
 
