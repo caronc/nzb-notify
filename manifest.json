@@ -8,7 +8,7 @@
     "nzbgetMinVersion": "23.0",
     "author": "Chris Caron",
     "license": "GPLv2",
-    "about": "Sends download notifications to Discord, Telegram, email and 100+ other services.",
+    "about": "Sends download notifications to Discord, Telegram, email and 160+ other services.",
     "queueEvents": "NZB_ADDED",
     "requirements": [
         "This extension requires Python 3.9 or newer."

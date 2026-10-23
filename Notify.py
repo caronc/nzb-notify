@@ -273,18 +273,31 @@ class NotifyScript(PostProcessScript, QueueScript):
             body=body, title=title, notify_type=notify_type,
             body_format=body_format))
 
+    def has_servers(self):
+        """
+        Returns True if the Servers option is set, otherwise logs how to
+        fix it.
+
+        NZBGet only passes options that were saved, so on a fresh install
+        nothing is set until "Save all changes" is clicked. Every other
+        option falls back to its default.
+        """
+        if self.get('Servers', '').strip():
+            return True
+
+        self.logger.error(
+            'No servers are set. Add your Apprise URL(s) to Servers, then '
+            'click "Save all changes" in NZBGet.')
+        return False
+
     def queue_main(self, *args, **kwargs):
         """Queue Script
         """
 
-        if not self.validate(keys=(
-            'Servers',
-            'IncludeImage',
-            'OnQueue',
-        )):
+        if not self.validate() or not self.has_servers():
             return False
 
-        on_queue = self.parse_bool(self.get('OnQueue'))
+        on_queue = self.parse_bool(self.get('OnQueue', 'yes'))
         if not on_queue:
             return None
 
@@ -312,23 +325,16 @@ class NotifyScript(PostProcessScript, QueueScript):
         """Post Processing Script
         """
 
-        if not self.validate(keys=(
-            'Servers',
-            'IncludeImage',
-            'IncludeFiles',
-            'IncludeStats',
-            'IncludeLogs',
-            'OnFailure',
-            'OnSuccess',
-        )):
+        if not self.validate() or not self.has_servers():
             return False
 
-        on_failure = self.parse_bool(self.get('OnFailure'))
-        on_success = self.parse_bool(self.get('OnSuccess'))
+        # Use the same defaults NZBGet shows in its settings page
+        on_failure = self.parse_bool(self.get('OnFailure', 'yes'))
+        on_success = self.parse_bool(self.get('OnSuccess', 'yes'))
 
-        include_stats = self.parse_bool(self.get('IncludeStats'))
-        include_files = self.parse_bool(self.get('IncludeFiles'))
-        include_logs = self.get('IncludeLogs', 'NO').upper()
+        include_stats = self.parse_bool(self.get('IncludeStats', 'yes'))
+        include_files = self.parse_bool(self.get('IncludeFiles', 'yes'))
+        include_logs = self.get('IncludeLogs', 'OnFailure').upper()
 
         health_okay = self.health_check()
 
@@ -459,23 +465,16 @@ class NotifyScript(PostProcessScript, QueueScript):
         Execute the TestServers Test Action
         """
 
-        if not self.validate(keys=(
-            'Servers',
-            'IncludeImage',
-            'IncludeFiles',
-            'IncludeStats',
-            'IncludeLogs',
-            'OnFailure',
-            'OnSuccess',
-        )):
+        if not self.validate() or not self.has_servers():
             return False
 
-        on_failure = self.parse_bool(self.get('OnFailure'))
-        on_success = self.parse_bool(self.get('OnSuccess'))
+        # Use the same defaults NZBGet shows in its settings page
+        on_failure = self.parse_bool(self.get('OnFailure', 'yes'))
+        on_success = self.parse_bool(self.get('OnSuccess', 'yes'))
 
-        include_stats = self.parse_bool(self.get('IncludeStats'))
-        include_files = self.parse_bool(self.get('IncludeFiles'))
-        include_logs = self.get('IncludeLogs', 'NO').upper()
+        include_stats = self.parse_bool(self.get('IncludeStats', 'yes'))
+        include_files = self.parse_bool(self.get('IncludeFiles', 'yes'))
+        include_logs = self.get('IncludeLogs', 'OnFailure').upper()
 
         # Prepare our Test Response
         notify_type = NotifyType.INFO
@@ -489,8 +488,11 @@ class NotifyScript(PostProcessScript, QueueScript):
             'Yes' if include_stats else 'No')
         body += '- **Include File Listings**: %s\r\n' % (
             'Yes' if include_files else 'No')
-        body += '- **Include Log Details**: %s\r\n' % (
-            'Yes' if include_logs else 'No')
+        body += '- **Include Log Details**: %s\r\n' % {
+            IncludeLogOption.YES: 'Yes',
+            IncludeLogOption.NO: 'No',
+            IncludeLogOption.ONFAILURE: 'On Failure',
+        }.get(include_logs, include_logs)
 
         # Preform Notifications
         return self.notify(
