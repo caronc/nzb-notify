@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8 -*-
 #
 # Notifification wrapper for SABnzbd
 #
@@ -27,8 +26,7 @@ try:
     from signal import SIGKILL
 
 except ImportError:
-    # Windows 10 with 2.7.10 gave this error to a user for some reason
-    # hopefully this will handle this situation
+    # SIGKILL doesn't exist on Windows
     SIGKILL = 9
 
 from os import getpid
@@ -213,20 +211,20 @@ if __name__ == "__main__":
     if len(sys.argv) <= 3 and not notify_urls_string:
         logger.error('Not enough arguments specified.')
         print(syntax())
-        exit(1)
+        sys.exit(1)
 
     # Make sure our Notify.py script is available to us
     if not (os.path.isfile(NOTIFY_SCRIPT) and \
             os.access(NOTIFY_SCRIPT, os.X_OK)):
         logger.error('The engine %s was not found!' % NOTIFY_SCRIPT)
-        exit(1)
+        sys.exit(1)
 
     # Parse our arguments to make sure they're valid
     notify_type = sys.argv[1].strip().lower()
     if notify_type not in SABNZBD_NOTIFICATION_MAP.keys():
         logger.error('Invalid <Type> specified (argument 1)')
         print(syntax())
-        exit(1)
+        sys.exit(1)
 
     # Take on specified title
     notify_title = sys.argv[2].strip()
@@ -246,7 +244,7 @@ if __name__ == "__main__":
     notify_urls = ','.join([v.strip() for v in notify_urls])
 
     # Perform Notification
-    exit(int(not notify(
+    sys.exit(int(not notify(
         ntype=notify_type,
         title=notify_title,
         body=notify_body,

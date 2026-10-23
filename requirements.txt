@@ -1,5 +1,2 @@
 apprise >= 2.0
-setuptools
 pynzbget
-chardet
-six

@@ -1,6 +1,6 @@
 ## Notify Processing Script
 
-[![Paypal](https://repo.nuxref.com/pub/img/paypaldonate.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MHANV39UZNQ5E)
+[![Paypal](https://img.shields.io/badge/paypal-donate-green.svg)](https://www.paypal.com/donate/?hosted_button_id=CR6YF7KLQWQ5E)
 
 Send notifications to all of the popular notification services (PushBullet, NotifyMyAndroid, XBMC, Email etc) from NZBGet or SABnzbd. 
 You can chain as many notification services as you want and support most of the advance features each service offers you too.
@@ -31,21 +31,57 @@ See the __Command Line__ section below for more instructions on how to call the 
 
 ### NZBGet v23+ (Extension Manager)
 
-Newer NZBGet versions expect each script in its own folder, with every
-package it needs bundled inside. To make one:
+Newer NZBGet versions can run Notify as a ready-made extension. Everything
+it needs is already inside, so there's nothing to `pip install`.
+
+1. Download `notify-<version>-dist.zip` and `notify-<version>-dist.zip.sha256`
+   from the [releases page](https://github.com/caronc/nzb-notify/releases).
+
+2. Check the download isn't damaged (optional, but quick):
+   ```bash
+   # Linux
+   sha256sum -c notify-<version>-dist.zip.sha256
+
+   # macOS
+   shasum -a 256 -c notify-<version>-dist.zip.sha256
+   ```
+   You should see `OK`. On Windows, run this in PowerShell and compare the
+   result with the number inside the `.sha256` file:
+   ```powershell
+   Get-FileHash notify-<version>-dist.zip
+   ```
+
+3. Unzip it into NZBGet's scripts folder. You'll find that folder under
+   **Settings > Paths > ScriptDir** (in the official Docker image it's
+   `/downloads/scripts`).
+   ```bash
+   # The zip already holds a Notify/ folder, so unzip it right into
+   # the scripts folder
+   unzip notify-<version>-dist.zip -d /path/to/nzbget/scripts
+   ```
+   You should end up with `scripts/Notify/Notify.py`. If you're replacing
+   an older copy, delete the old `scripts/Notify/` folder first.
+
+4. Restart NZBGet.
+
+5. In NZBGet, open **Settings > Notify**, add your Apprise URLs to
+   **Servers**, and click **Save all changes**. Then turn Notify on in
+   **Settings > Extension Manager**.
+
+Press **Test Server Configuration** on the Notify settings page to make
+sure your notifications arrive.
+
+#### Building the Extension
 
 ```bash
 ./build-extension.sh
 ```
 
-You get:
+This creates, in `build/`:
 
-- `build/Notify/`: copy this into NZBGet's scripts folder, then restart
-  NZBGet (or reload it from **Settings > Extension Manager**)
-- `build/notify-<version>-dist.zip`: the same folder, zipped for a release
-
-There's no `pip install` needed on the NZBGet side; everything is in
-`Notify/lib/`.
+- `Notify/`: the extension folder
+- `notify-<version>-dist.zip`: that folder zipped, for a release
+- `notify-<version>-dist.zip.sha256`: its checksum; upload it with the zip
 
 ## SABnzbd Users
 SABnzbd users can test that their script is working okay manually as well if they're having issues with it through their application.  This is also a great way to test out that you've created the correct URL string.

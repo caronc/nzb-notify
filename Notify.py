@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8 -*-
 #
 # Notififications Core
 #
@@ -33,10 +32,10 @@
 # Author: Chris Caron (lead2gold@gmail.com).
 # Date: Sun, Mar 13th, 2022.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 1.0.1.
+# Script Version: 2.0.0.
 #
 # Home: https://github.com/caronc/nzb-notify
-# Wiki: https://github.com/caronc/nzb-notify/wiki
+# Docs: https://appriseit.com
 
 ###########################################################################
 ### OPTIONS
@@ -174,9 +173,7 @@ from os.path import dirname
 # NZBGet Extension Manager installs ship their dependencies in lib/
 sys.path.insert(0, join(dirname(abspath(__file__)), 'lib'))
 
-import six
-
-# pip install nzbget
+# pip install pynzbget
 from nzbget import SCRIPT_MODE
 from nzbget import PostProcessScript
 from nzbget import QueueScript
@@ -188,9 +185,6 @@ from apprise import NotifyType
 from apprise import NOTIFY_TYPES
 from apprise import NotifyFormat
 from apprise import AppriseAsset
-
-# Used for character detection
-from chardet import detect as chardet_detect
 
 # HTML New Line Delimiter
 NOTIFY_NEWLINE = '\r\n'
@@ -208,7 +202,7 @@ NOTIFY_THEMES_MAP = {
 }
 
 
-class IncludeLogOption(object):
+class IncludeLogOption:
     YES = 'YES'
     NO = 'NO'
     ONFAILURE = 'ONFAILURE'
@@ -224,50 +218,6 @@ INCLUDE_LOG_OPTIONS = (
 PATHSPLIT_LIST_DELIM = re.compile(r'[ \t\r\n,\\/]+')
 
 
-def decode(str_data, encoding=None):
-    """
-    Returns the unicode string of the data passed in
-    otherwise it throws a ValueError() exception. This function makes
-    use of the chardet library
-
-    If encoding == None then it is attempted to be detected by chardet
-    If encoding is a string, then only that encoding is used
-    """
-    if six.PY3:
-        # nothing to do for Python 3
-        return str_data
-
-    elif isinstance(str_data, unicode):
-        return str_data
-
-    default_encoding = 'utf-8'
-    if encoding is None:
-        decoded = chardet_detect(str_data)
-        if decoded:
-            encoding = decoded.get('encoding', default_encoding)
-        else:
-            encoding = default_encoding
-
-    try:
-        str_data = str_data.decode(
-            encoding,
-            errors='ignore',
-        )
-        return str_data
-
-    except UnicodeError:
-        raise ValueError(
-            '%s contains invalid characters' % (
-                str_data,
-        ))
-    except KeyError:
-        raise ValueError(
-            '%s encoding could not be detected ' % (
-                str_data,
-        ))
-    return None
-
-
 class NotifyScript(PostProcessScript, QueueScript):
     """Inheriting PostProcessScript grants you access to of the API defined
        throughout this wiki
@@ -278,10 +228,6 @@ class NotifyScript(PostProcessScript, QueueScript):
         """
         processes list of servers specified
         """
-
-        # Decode our data
-        body = decode(body)
-        title = decode(title)
 
         # Apprise Asset Object
         asset = AppriseAsset()
@@ -309,7 +255,7 @@ class NotifyScript(PostProcessScript, QueueScript):
         # Assign theme
         asset.theme = 'general' if not theme else theme
 
-        if not isinstance(servers, six.string_types):
+        if not isinstance(servers, str):
             # servers can be a list of URLs, or it can be
             # a string which will be parsed into this list
             # we wanted.
