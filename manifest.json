@@ -31,8 +31,8 @@
                 " - tgram://bot_token/chat_id",
                 " - mailto://user:password@gmail.com",
                 "",
-                "See https://appriseit.com for every supported service and how to",
-                "build its URL."
+                "See https://appriseit.com/services/ for every supported service and ",
+                "how to build its URL."
             ],
             "select": []
         },
