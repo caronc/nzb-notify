@@ -1,0 +1,47 @@
+name: extension tasks
+
+on:
+  push:
+    branches:
+    - master
+    tags:
+    - "v*"
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  manifest:
+    uses: nzbgetcom/nzbget-extensions/.github/workflows/manifest.yml@main
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [manifest]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    # Installs the dependencies into build/Notify/lib and zips the result
+    - name: Build
+      run: ./build-extension.sh
+
+    - name: Check the archive
+      run: |
+        set -euo pipefail
+        version=$(python3 -c "import json; print(json.load(open('manifest.json'))['version'])")
+        test "v${version}" = "${GITHUB_REF_NAME}"
+        if [ -n "$(find build/Notify/lib \( -name '*.so' -o -name '*.pyd' \) -print -quit)" ]; then
+            echo "compiled extensions left in lib/"
+            exit 1
+        fi
+        unzip -l "build/notify-${version}-dist.zip" | grep "Notify/lib/apprise/__init__.py"
+
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "build/*-dist.zip,build/*.sha256"
