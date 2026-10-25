@@ -20,8 +20,8 @@ ZIP="notify-${VERSION}-dist.zip"
 rm -rf build
 mkdir -p "${OUT}"
 
-# Copy in the script, its images, the manifest and the docs
-cp -r Notify.py Notify manifest.json README.md LICENSE "${OUT}/"
+# Copy in the script, its images, the manifest, docs and the locales
+cp -r Notify.py Notify manifest.json README.md LICENSE _locales "${OUT}/"
 
 # Install every package Notify needs into lib/, picking versions that
 # still work on Python 3.9 (the oldest Python Apprise v2 supports)
