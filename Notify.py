@@ -30,9 +30,9 @@
 #
 # Info about this Notify NZB Script:
 # Author: Chris Caron (lead2gold@gmail.com).
-# Date: Fri, Oct 23th, 2026.
+# Date: Sun, Oct 25th, 2026.
 # License: GPLv2 (http://www.gnu.org/licenses/gpl.html).
-# Script Version: 2.0.1.
+# Script Version: 2.0.2.
 #
 # Home: https://github.com/caronc/nzb-notify
 # Docs: https://appriseit.com
@@ -137,7 +137,7 @@
 # Include Files (yes, no).
 #
 # Include a file listing (if possible) of content retrieved.
-# Note: File listings are excempted if the download failed.
+# Note: File listings are exempted if the download failed.
 #IncludeFiles=yes
 
 # Include Logs (yes, no, OnFailure).
@@ -154,7 +154,7 @@
 # Enable debugging mode (yes, no).
 #
 # Logging will be much more verbose, but if you are experiencing issues,
-# developers and support staff will only be able to help you much easier
+# developers and support staff will be able to help you much more easily
 # if they have this extra bit of detail in your logging output.
 #Debug=no
 
