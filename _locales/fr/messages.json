@@ -1,0 +1,15 @@
+{
+  "about": "Envoie des notifications de téléchargement vers Discord, Telegram, e-mail et plus de 160 autres services.",
+  "debug_desc": "Activer le mode débogage.\n\nLa journalisation sera beaucoup plus détaillée, mais si vous rencontrez des problèmes,\nles développeurs et le personnel d'assistance pourront vous aider bien plus facilement\ns'ils disposent de ces informations supplémentaires dans votre sortie de journalisation.",
+  "description": "Notify utilise Apprise pour vous informer lorsqu'un téléchargement est mis en file d'attente,\nse termine ou échoue.",
+  "includefiles_desc": "Inclure les fichiers.\n\nInclure une liste de fichiers (si possible) du contenu récupéré.\nRemarque : Les listes de fichiers sont exclues si le téléchargement a échoué.",
+  "includeimage_desc": "Envoyer une image de notification lorsque cela est pris en charge.\n\nIndiquer au script d'inclure une image prise en charge avec la notification\nsi le protocole le permet.",
+  "includelogs_desc": "Inclure les journaux.\n\nInclure les entrées du journal dans la notification.",
+  "includestats_desc": "Inclure les statistiques.\n\nInclure des statistiques (si possible) dans la ou les notifications.",
+  "onfailure_desc": "Envoyer une notification en cas d'échec.\n\nEnvoyer une notification si le téléchargement a échoué.",
+  "onqueue_desc": "Envoyer une notification lors de la mise en file d'attente.\n\nEnvoyer une notification lorsqu'une nouvelle entrée est mise en file d'attente dans NZBGet pour\nle téléchargement.",
+  "onsuccess_desc": "Envoyer une notification en cas de succès.\n\nEnvoyer une notification si le téléchargement a réussi.",
+  "requirements": "Cette extension nécessite Python 3.9 ou une version plus récente.",
+  "servers_desc": "Serveurs.\n\nUne ou plusieurs URLs Apprise à notifier, séparées par une virgule et/ou un espace.\nPar exemple :\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nConsultez https://appriseit.com/services/ pour chaque service pris en charge et\ncomment construire son URL.",
+  "testservers_desc": "Vous pouvez tester votre configuration de serveur ici."
+}

@@ -1,0 +1,15 @@
+{
+  "about": "Stuurt downloadmeldingen naar Discord, Telegram, e-mail en 160+ andere diensten.",
+  "debug_desc": "Foutopsporingsmodus inschakelen.\n\nDe logboekregistratie zal veel uitgebreider zijn, maar als je problemen ondervindt,\nkunnen ontwikkelaars en ondersteuningsmedewerkers je veel gemakkelijker helpen\nals ze dit extra detail in je logboekuitvoer hebben.",
+  "description": "Notify gebruikt Apprise om je te informeren wanneer een download in de wachtrij staat,\nklaar is of mislukt.",
+  "includefiles_desc": "Bestanden opnemen.\n\nNeem een bestandslijst (indien mogelijk) op van opgehaalde inhoud.\nOpmerking: Bestandslijsten worden weggelaten als de download mislukt is.",
+  "includeimage_desc": "Stuur een meldingsafbeelding indien ondersteund.\n\nGeef de script de opdracht om een ondersteunde afbeelding bij de melding te voegen\nals het protocol dit ondersteunt.",
+  "includelogs_desc": "Logboeken opnemen.\n\nNeem de logboekregels op in de melding",
+  "includestats_desc": "Statistieken opnemen.\n\nNeem statistieken (indien mogelijk) op in de melding(en)",
+  "onfailure_desc": "Melding verzenden bij mislukking.\n\nStuur een melding als de download mislukt is.",
+  "onqueue_desc": "Melding verzenden bij toevoegen aan wachtrij.\n\nStuur een melding wanneer een nieuw item in de wachtrij van NZBGet wordt\ngeplaatst voor download.",
+  "onsuccess_desc": "Melding verzenden bij succes.\n\nStuur een melding als de download geslaagd is.",
+  "requirements": "Deze extensie vereist Python 3.9 of nieuwer.",
+  "servers_desc": "Servers.\n\nEén of meer Apprise-URL's om te melden, gescheiden door een komma en/of spatie.\nBijvoorbeeld:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nZie https://appriseit.com/services/ voor elke ondersteunde dienst en\nhoe je de URL opbouwt.",
+  "testservers_desc": "Je kunt hier je serverconfiguratie testen."
+}

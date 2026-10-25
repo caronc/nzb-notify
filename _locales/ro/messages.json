@@ -1,0 +1,15 @@
+{
+  "about": "Trimite notificări de descărcare către Discord, Telegram, email și peste 160 de alte servicii.",
+  "debug_desc": "Activează modul de depanare.\n\nJurnalizarea va fi mult mai detaliată, dar dacă întâmpinați probleme,\ndeveloperii și personalul de asistență vă vor putea ajuta mult mai ușor\ndacă au acest detaliu suplimentar în rezultatul jurnalizării dvs.",
+  "description": "Notify folosește Apprise pentru a vă anunța când o descărcare este pusă în coadă,\nse finalizează sau eșuează.",
+  "includefiles_desc": "Include fișiere.\n\nInclude o listă de fișiere (dacă este posibil) a conținutului recuperat.\nNotă: Listele de fișiere sunt excluse dacă descărcarea a eșuat.",
+  "includeimage_desc": "Trimite o imagine de notificare când este acceptat.\n\nInstruiește scriptul să includă o imagine acceptată cu notificarea\ndacă protocolul o permite.",
+  "includelogs_desc": "Include jurnale.\n\nInclude intrările din jurnal în notificare",
+  "includestats_desc": "Include statistici.\n\nInclude statistici (dacă este posibil) în notificare(i)",
+  "onfailure_desc": "Trimite notificare la eșec.\n\nTrimite o notificare dacă descărcarea a eșuat.",
+  "onqueue_desc": "Trimite notificare când este pusă în coadă.\n\nTrimite o notificare când o nouă intrare este pusă în coada NZBGet pentru\ndescărcare.",
+  "onsuccess_desc": "Trimite notificare la succes.\n\nTrimite o notificare dacă descărcarea a fost realizată cu succes.",
+  "requirements": "Această extensie necesită Python 3.9 sau mai nou.",
+  "servers_desc": "Servere.\n\nUnul sau mai multe URL-uri Apprise pentru notificare, separate prin virgulă și/sau spațiu.\nDe exemplu:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nConsultați https://appriseit.com/services/ pentru fiecare serviciu acceptat și\ncum să construiți URL-ul acestuia.",
+  "testservers_desc": "Puteți testa configurația serverului dvs. aici."
+}

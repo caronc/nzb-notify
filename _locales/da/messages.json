@@ -1,0 +1,15 @@
+{
+  "about": "Sender download-notifikationer til Discord, Telegram, e-mail og 160+ andre tjenester.",
+  "debug_desc": "Aktivér fejlfindingstilstand.\n\nLogning vil være meget mere detaljeret, men hvis du oplever problemer,\nvil udviklere og supportpersonale kunne hjælpe dig meget nemmere,\nhvis de har denne ekstra detalje i dit logoutput.",
+  "description": "Notify bruger Apprise til at fortælle dig, når et download er sat i kø,\nfuldføres eller mislykkes.",
+  "includefiles_desc": "Inkluder filer.\n\nInkluder en filliste (hvis muligt) over hentet indhold.\nBemærk: Fillister udelades, hvis downloaden mislykkedes.",
+  "includeimage_desc": "Send et notifikationsbillede, når det understøttes.\n\nInstruér scriptet til at inkludere et understøttet billede med notifikationen,\nhvis protokollen understøtter det.",
+  "includelogs_desc": "Inkluder logfiler.\n\nInkluder logposterne i notifikationen",
+  "includestats_desc": "Inkluder statistik.\n\nInkluder statistik (hvis muligt) i notifikation(er)",
+  "onfailure_desc": "Send notifikation ved fejl.\n\nSend en notifikation, hvis downloaden mislykkedes.",
+  "onqueue_desc": "Send notifikation ved kø.\n\nSend en notifikation, når en ny post sættes i kø i NZBGet til\ndownload.",
+  "onsuccess_desc": "Send notifikation ved succes.\n\nSend en notifikation, hvis downloaden lykkedes.",
+  "requirements": "Denne udvidelse kræver Python 3.9 eller nyere.",
+  "servers_desc": "Servere.\n\nEn eller flere Apprise-URL'er til notifikation, adskilt af komma og/eller mellemrum.\nFor eksempel:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nSe https://appriseit.com/services/ for alle understøttede tjenester og\nhvordan du opbygger dens URL.",
+  "testservers_desc": "Du kan teste din serverkonfiguration her."
+}

@@ -1,0 +1,15 @@
+{
+  "about": "Envia notificações de transferência para Discord, Telegram, email e mais de 160 outros serviços.",
+  "debug_desc": "Ativar modo de depuração.\n\nO registo será muito mais detalhado, mas se estiver a ter problemas,\nos programadores e a equipa de suporte poderão ajudá-lo muito mais facilmente\nse tiverem este detalhe extra no resultado do seu registo.",
+  "description": "O Notify utiliza o Apprise para informá-lo quando uma transferência está em fila,\nconclui ou falha.",
+  "includefiles_desc": "Incluir Ficheiros.\n\nIncluir uma listagem de ficheiros (se possível) do conteúdo obtido.\nNota: As listagens de ficheiros são omitidas se a transferência falhou.",
+  "includeimage_desc": "Enviar uma imagem de notificação quando suportado.\n\nInstruir o script a incluir uma imagem suportada com a notificação\nse o protocolo o permitir.",
+  "includelogs_desc": "Incluir Registos.\n\nIncluir as entradas de registo na notificação",
+  "includestats_desc": "Incluir Estatísticas.\n\nIncluir estatísticas (se possível) na(s) notificação(ões)",
+  "onfailure_desc": "Enviar Notificação em caso de Falha.\n\nEnviar uma notificação se a transferência falhou.",
+  "onqueue_desc": "Enviar Notificação quando em Fila.\n\nEnviar uma notificação quando uma nova entrada é colocada em fila no NZBGet para\ntransferência.",
+  "onsuccess_desc": "Enviar Notificação em caso de Sucesso.\n\nEnviar uma notificação se a transferência foi bem-sucedida.",
+  "requirements": "Esta extensão requer Python 3.9 ou mais recente.",
+  "servers_desc": "Servidores.\n\nUm ou mais URLs do Apprise para notificar, separados por vírgula e/ou espaço.\nPor exemplo:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nConsulte https://appriseit.com/services/ para todos os serviços suportados e\ncomo construir o respetivo URL.",
+  "testservers_desc": "Pode testar a configuração do seu servidor aqui."
+}

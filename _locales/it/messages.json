@@ -1,0 +1,15 @@
+{
+  "about": "Invia notifiche di download a Discord, Telegram, email e altri 160+ servizi.",
+  "debug_desc": "Abilita la modalità di debug.\n\nIl logging sarà molto più dettagliato, ma se stai riscontrando problemi,\nsviluppatori e personale di supporto potranno aiutarti molto più facilmente\nse dispongono di questi dettagli aggiuntivi nell'output del log.",
+  "description": "Notify utilizza Apprise per informarti quando un download è in coda,\nterminato o fallito.",
+  "includefiles_desc": "Includi file.\n\nIncludi un elenco dei file (se possibile) del contenuto scaricato.\nNota: gli elenchi di file sono esclusi se il download è fallito.",
+  "includeimage_desc": "Invia un'immagine di notifica quando supportato.\n\nIstruisci lo script a includere un'immagine supportata con la notifica\nse il protocollo lo consente.",
+  "includelogs_desc": "Includi log.\n\nIncludi le voci del log nella notifica",
+  "includestats_desc": "Includi statistiche.\n\nIncludi le statistiche (se possibile) nella/e notifica/e",
+  "onfailure_desc": "Invia notifica in caso di errore.\n\nInvia una notifica se il download è fallito.",
+  "onqueue_desc": "Invia notifica quando in coda.\n\nInvia una notifica quando una nuova voce viene aggiunta alla coda di NZBGet per\nil download.",
+  "onsuccess_desc": "Invia notifica in caso di successo.\n\nInvia una notifica se il download è andato a buon fine.",
+  "requirements": "Questa estensione richiede Python 3.9 o versione successiva.",
+  "servers_desc": "Server.\n\nUno o più URL Apprise a cui inviare notifiche, separati da una virgola e/o spazio.\nAd esempio:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nVedi https://appriseit.com/services/ per ogni servizio supportato e\ncome costruire il suo URL.",
+  "testservers_desc": "Puoi testare la configurazione del server qui."
+}

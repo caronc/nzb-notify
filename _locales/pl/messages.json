@@ -1,0 +1,15 @@
+{
+  "about": "Wysyła powiadomienia o pobieraniu do Discorda, Telegrama, e-maila i ponad 160 innych usług.",
+  "debug_desc": "Włącz tryb debugowania.\n\nRejestrowanie będzie znacznie bardziej szczegółowe, ale jeśli napotykasz problemy,\nprogramiści i personel pomocy technicznej będą mogli Ci pomóc znacznie łatwiej,\njeśli będą mieli te dodatkowe szczegóły w danych wyjściowych dziennika.",
+  "description": "Notify używa Apprise, aby informować Cię, gdy pobieranie zostało dodane do kolejki,\nzakończone lub nieudane.",
+  "includefiles_desc": "Dołącz pliki.\n\nDołącz listę plików (jeśli to możliwe) pobranej zawartości.\nUwaga: Listy plików są pomijane, jeśli pobieranie nie powiodło się.",
+  "includeimage_desc": "Wyślij obraz powiadomienia, gdy jest obsługiwany.\n\nPoleć skryptowi dołączenie obsługiwanego obrazu do powiadomienia,\njeśli protokół to obsługuje.",
+  "includelogs_desc": "Dołącz dzienniki.\n\nDołącz wpisy dziennika do powiadomienia.",
+  "includestats_desc": "Dołącz statystyki.\n\nDołącz statystyki (jeśli to możliwe) do powiadomień.",
+  "onfailure_desc": "Wyślij powiadomienie w przypadku niepowodzenia.\n\nWyślij powiadomienie, jeśli pobieranie nie powiodło się.",
+  "onqueue_desc": "Wyślij powiadomienie po dodaniu do kolejki.\n\nWyślij powiadomienie, gdy nowy wpis zostanie dodany do kolejki NZBGet do\npobrania.",
+  "onsuccess_desc": "Wyślij powiadomienie w przypadku sukcesu.\n\nWyślij powiadomienie, jeśli pobieranie zakończyło się pomyślnie.",
+  "requirements": "To rozszerzenie wymaga Pythona 3.9 lub nowszego.",
+  "servers_desc": "Serwery.\n\nJeden lub więcej adresów URL Apprise do powiadamiania, oddzielonych przecinkiem i/lub spacją.\nNa przykład:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nZobacz https://appriseit.com/services/ dla każdej obsługiwanej usługi i\njak zbudować jej adres URL.",
+  "testservers_desc": "Możesz tutaj przetestować konfigurację serwera."
+}

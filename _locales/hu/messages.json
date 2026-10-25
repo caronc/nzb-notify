@@ -1,0 +1,15 @@
+{
+  "about": "Letöltési értesítéseket küld Discord-ra, Telegramra, e-mailre és 160+ egyéb szolgáltatásra.",
+  "debug_desc": "Hibakeresési mód engedélyezése.\n\nA naplózás sokkal részletesebb lesz, de ha problémákat tapasztal,\na fejlesztők és a támogatási munkatársak sokkal könnyebben tudnak segíteni,\nha rendelkeznek ezzel a plusz részlettel a naplókimenetben.",
+  "description": "A Notify az Apprise-t használja, hogy értesítsen, amikor egy letöltés sorba kerül,\nbefejez vagy meghiúsul.",
+  "includefiles_desc": "Fájlok belefoglalása.\n\nA letöltött tartalom fájllistájának belefoglalása (ha lehetséges).\nMegjegyzés: A fájllisták nem szerepelnek, ha a letöltés meghiúsult.",
+  "includeimage_desc": "Értesítési kép küldése, ha támogatott.\n\nUtasítsa a szkriptet, hogy támogatott képet mellékeljen az értesítéshez,\nha a protokoll ezt lehetővé teszi.",
+  "includelogs_desc": "Naplók belefoglalása.\n\nA naplóbejegyzések belefoglalása az értesítésbe.",
+  "includestats_desc": "Statisztikák belefoglalása.\n\nStatisztikák belefoglalása (ha lehetséges) az értesítés(ek)be.",
+  "onfailure_desc": "Értesítés küldése hiba esetén.\n\nÉrtesítés küldése, ha a letöltés meghiúsult.",
+  "onqueue_desc": "Értesítés küldése sorba állításkor.\n\nÉrtesítés küldése, amikor egy új elem sorba kerül az NZBGet-ben\nletöltésre.",
+  "onsuccess_desc": "Értesítés küldése sikeres letöltés esetén.\n\nÉrtesítés küldése, ha a letöltés sikeres volt.",
+  "requirements": "Ez a bővítmény Python 3.9 vagy újabb verziót igényel.",
+  "servers_desc": "Szerverek.\n\nEgy vagy több Apprise URL, amelyekre értesítést kell küldeni, vesszővel és/vagy szóközzel elválasztva.\nPéldául:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nLásd: https://appriseit.com/services/ az összes támogatott szolgáltatásért és\na URL felépítéséhez.",
+  "testservers_desc": "Itt tesztelheti a szerver konfigurációját."
+}

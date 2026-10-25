@@ -1,0 +1,15 @@
+{
+  "about": "Sendet Download-Benachrichtigungen an Discord, Telegram, E-Mail und über 160 weitere Dienste.",
+  "debug_desc": "Debugging-Modus aktivieren.\n\nDie Protokollierung wird deutlich ausführlicher. Wenn Sie Probleme haben,\nkönnen Entwickler und Support-Mitarbeiter Ihnen viel einfacher helfen,\nwenn diese zusätzlichen Details in Ihrer Protokollausgabe vorhanden sind.",
+  "description": "Notify verwendet Apprise, um Sie zu benachrichtigen, wenn ein Download in die Warteschlange gestellt wird,\nabgeschlossen ist oder fehlschlägt.",
+  "includefiles_desc": "Dateien einbeziehen.\n\nEine Dateiliste (wenn möglich) der abgerufenen Inhalte einbeziehen.\nHinweis: Dateilisten werden ausgeschlossen, wenn der Download fehlgeschlagen ist.",
+  "includeimage_desc": "Ein Benachrichtigungsbild senden, wenn unterstützt.\n\nDas Skript anweisen, ein unterstütztes Bild in die Benachrichtigung einzubeziehen,\nwenn das Protokoll dies unterstützt.",
+  "includelogs_desc": "Protokolle einbeziehen.\n\nDie Protokolleinträge in die Benachrichtigung einbeziehen.",
+  "includestats_desc": "Statistiken einbeziehen.\n\nStatistiken (wenn möglich) in die Benachrichtigung(en) einbeziehen.",
+  "onfailure_desc": "Benachrichtigung bei Fehler senden.\n\nEine Benachrichtigung senden, wenn der Download fehlgeschlagen ist.",
+  "onqueue_desc": "Benachrichtigung bei Einreihung in die Warteschlange senden.\n\nEine Benachrichtigung senden, wenn ein neuer Eintrag in NZBGet zur\nDownload-Warteschlange hinzugefügt wird.",
+  "onsuccess_desc": "Benachrichtigung bei Erfolg senden.\n\nEine Benachrichtigung senden, wenn der Download erfolgreich war.",
+  "requirements": "Diese Erweiterung erfordert Python 3.9 oder neuer.",
+  "servers_desc": "Server.\n\nEine oder mehrere Apprise-URLs für Benachrichtigungen, getrennt durch Komma und/oder Leerzeichen.\nZum Beispiel:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nSiehe https://appriseit.com/services/ für alle unterstützten Dienste und\nwie deren URL aufgebaut wird.",
+  "testservers_desc": "Sie können Ihre Serverkonfiguration hier testen."
+}

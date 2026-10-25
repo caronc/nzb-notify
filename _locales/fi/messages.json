@@ -1,0 +1,15 @@
+{
+  "about": "Lähettää latausilmoituksia Discordiin, Telegramiin, sähköpostiin ja yli 160 muuhun palveluun.",
+  "debug_desc": "Ota virheenkorjaustila käyttöön.\n\nLokit ovat huomattavasti yksityiskohtaisempia, mutta jos sinulla on ongelmia,\nkehittäjät ja tukihenkilöstö pystyvät auttamaan sinua paljon helpommin,\njos heillä on nämä lisätiedot lokitulosteessasi.",
+  "description": "Notify käyttää Apprisea ilmoittaakseen sinulle, kun lataus on jonossa,\nvalmistuu tai epäonnistuu.",
+  "includefiles_desc": "Sisällytä tiedostot.\n\nSisällytä tiedostoluettelo (jos mahdollista) haetuista sisällöistä.\nHuomio: Tiedostoluettelot jätetään pois, jos lataus epäonnistui.",
+  "includeimage_desc": "Lähetä ilmoituskuva, kun se on tuettu.\n\nOhjaa skripti sisällyttämään tuettu kuva ilmoitukseen,\njos protokolla tukee sitä.",
+  "includelogs_desc": "Sisällytä lokit.\n\nSisällytä lokimerkinnät ilmoitukseen.",
+  "includestats_desc": "Sisällytä tilastot.\n\nSisällytä tilastot (jos mahdollista) ilmoitukseen/ilmoituksiin.",
+  "onfailure_desc": "Lähetä ilmoitus epäonnistumisesta.\n\nLähetä ilmoitus, jos lataus epäonnistui.",
+  "onqueue_desc": "Lähetä ilmoitus jonoon lisäämisestä.\n\nLähetä ilmoitus, kun uusi kohde lisätään NZBGetin latausjonoon.",
+  "onsuccess_desc": "Lähetä ilmoitus onnistumisesta.\n\nLähetä ilmoitus, jos lataus onnistui.",
+  "requirements": "Tämä laajennus vaatii Python 3.9:n tai uudemman.",
+  "servers_desc": "Palvelimet.\n\nYksi tai useampi Apprise-URL ilmoituksia varten, erotettu pilkulla ja/tai välilyönnillä.\nEsimerkiksi:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nKatso https://appriseit.com/services/ kaikkia tuettuja palveluita ja\nohjeet URL-osoitteen muodostamiseen.",
+  "testservers_desc": "Voit testata palvelinkonfiguraatiotasi täällä."
+}

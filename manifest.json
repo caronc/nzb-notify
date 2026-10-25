@@ -31,7 +31,7 @@
                 " - tgram://bot_token/chat_id",
                 " - mailto://user:password@gmail.com",
                 "",
-                "See https://appriseit.com/services/ for every supported service and ",
+                "See https://appriseit.com/services/ for every supported service and",
                 "how to build its URL."
             ],
             "select": []
@@ -101,7 +101,7 @@
                 "Include Files.",
                 "",
                 "Include a file listing (if possible) of content retrieved.",
-                "Note: File listings are excempted if the download failed."
+                "Note: File listings are exempted if the download failed."
             ],
             "select": [
                 "yes",
@@ -146,7 +146,7 @@
                 "Enable debugging mode.",
                 "",
                 "Logging will be much more verbose, but if you are experiencing issues,",
-                "developers and support staff will only be able to help you much easier",
+                "developers and support staff will be able to help you much more easily",
                 "if they have this extra bit of detail in your logging output."
             ],
             "select": [

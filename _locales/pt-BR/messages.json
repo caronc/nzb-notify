@@ -1,0 +1,15 @@
+{
+  "about": "Envia notificações de download para Discord, Telegram, e-mail e mais de 160 outros serviços.",
+  "debug_desc": "Ativar modo de depuração.\n\nO registro será muito mais detalhado, mas se você estiver enfrentando problemas,\nos desenvolvedores e a equipe de suporte poderão ajudá-lo com muito mais facilidade\nse tiverem esse detalhe extra na saída de registro.",
+  "description": "Notify usa Apprise para informar quando um download está na fila,\nconclui ou falha.",
+  "includefiles_desc": "Incluir Arquivos.\n\nIncluir uma lista de arquivos (se possível) do conteúdo obtido.\nObservação: As listas de arquivos são omitidas se o download falhar.",
+  "includeimage_desc": "Enviar uma imagem de notificação quando suportado.\n\nInstruir o script a incluir uma imagem compatível com a notificação\nse o protocolo oferecer suporte a isso.",
+  "includelogs_desc": "Incluir Logs.\n\nIncluir as entradas de log na notificação",
+  "includestats_desc": "Incluir Estatísticas.\n\nIncluir estatísticas (se possível) na(s) notificação(ões)",
+  "onfailure_desc": "Enviar Notificação em Caso de Falha.\n\nEnvia uma notificação se o download falhar.",
+  "onqueue_desc": "Enviar Notificação ao Enfileirar.\n\nEnvia uma notificação quando uma nova entrada é adicionada à fila do NZBGet para\ndownload.",
+  "onsuccess_desc": "Enviar Notificação em Caso de Sucesso.\n\nEnvia uma notificação se o download for bem-sucedido.",
+  "requirements": "Esta extensão requer Python 3.9 ou mais recente.",
+  "servers_desc": "Servidores.\n\nUm ou mais URLs do Apprise para notificar, separados por vírgula e/ou espaço.\nPor exemplo:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nConsulte https://appriseit.com/services/ para todos os serviços suportados e\ncomo construir sua URL.",
+  "testservers_desc": "Você pode testar a configuração do seu servidor aqui."
+}

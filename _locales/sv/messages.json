@@ -1,0 +1,15 @@
+{
+  "about": "Skickar nedladdningsaviseringar till Discord, Telegram, e-post och 160+ andra tjänster.",
+  "debug_desc": "Aktivera felsökningsläge.\n\nLoggningen blir mycket mer detaljerad, men om du upplever problem\nkommer utvecklare och supportpersonal att kunna hjälpa dig mycket enklare\nom de har denna extra information i din loggutdata.",
+  "description": "Notify använder Apprise för att meddela dig när en nedladdning är köad,\navslutas eller misslyckas.",
+  "includefiles_desc": "Inkludera filer.\n\nInkludera en fillista (om möjligt) över hämtat innehåll.\nObs: Fillistor undantas om nedladdningen misslyckades.",
+  "includeimage_desc": "Skicka en aviseringsbild när det stöds.\n\nInstruera skriptet att inkludera en bild som stöds med aviseringen\nom protokollet stöder det.",
+  "includelogs_desc": "Inkludera loggar.\n\nInkludera loggposterna i aviseringen",
+  "includestats_desc": "Inkludera statistik.\n\nInkludera statistik (om möjligt) i avisering(ar)",
+  "onfailure_desc": "Skicka avisering vid misslyckande.\n\nSkicka en avisering om nedladdningen misslyckades.",
+  "onqueue_desc": "Skicka avisering när köad.\n\nSkicka en avisering när en ny post köas i NZBGet för\nnedladdning.",
+  "onsuccess_desc": "Skicka avisering vid framgång.\n\nSkicka en avisering om nedladdningen lyckades.",
+  "requirements": "Det här tillägget kräver Python 3.9 eller senare.",
+  "servers_desc": "Servrar.\n\nEn eller flera Apprise-URL:er att meddela, separerade med komma och/eller mellanslag.\nTill exempel:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nSe https://appriseit.com/services/ för varje tjänst som stöds och\nhur du bygger dess URL.",
+  "testservers_desc": "Du kan testa din serverkonfiguration här."
+}

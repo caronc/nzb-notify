@@ -1,0 +1,54 @@
+{
+    "about": {
+        "message": "Sends download notifications to Discord, Telegram, email and 160+ other services.",
+        "description": "Short description of the Notify extension shown in settings."
+    },
+    "description": {
+        "message": "Notify uses Apprise to tell you when a download is queued,\nfinishes or fails.",
+        "description": "Full description of the extension shown in settings. DO NOT translate 'Notify'."
+    },
+    "requirements": {
+        "message": "This extension requires Python 3.9 or newer.",
+        "description": "System requirements (each requirement is a separate string). DO NOT translate technical version strings (e.g., Python 3.8.x)."
+    },
+    "servers_desc": {
+        "message": "Servers.\n\nOne or more Apprise URLs to notify, separated by a comma and/or space.\nFor example:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nSee https://appriseit.com/services/ for every supported service and\nhow to build its URL.",
+        "description": "Help text for the Servers option in Notify. DO NOT translate URLs."
+    },
+    "onqueue_desc": {
+        "message": "Send Notification when Queued.\n\nSend a notification when a new entry is queued into NZBGet for\ndownload.",
+        "description": "Help text for the OnQueue option in Notify."
+    },
+    "onfailure_desc": {
+        "message": "Send Notification on Failure.\n\nSend a notification if the download failed.",
+        "description": "Help text for the OnFailure option in Notify."
+    },
+    "onsuccess_desc": {
+        "message": "Send Notification on Success.\n\nSend a notification if the download was successful.",
+        "description": "Help text for the OnSuccess option in Notify."
+    },
+    "includestats_desc": {
+        "message": "Include Statistics.\n\nInclude statistics (if possible) in notification(s)",
+        "description": "Help text for the IncludeStats option in Notify."
+    },
+    "includefiles_desc": {
+        "message": "Include Files.\n\nInclude a file listing (if possible) of content retrieved.\nNote: File listings are exempted if the download failed.",
+        "description": "Help text for the IncludeFiles option in Notify."
+    },
+    "includelogs_desc": {
+        "message": "Include Logs.\n\nInclude the log entries in the notification",
+        "description": "Help text for the IncludeLogs option in Notify."
+    },
+    "includeimage_desc": {
+        "message": "Send a notification image when supported.\n\nInstruct the script to include a supported image with the notification\nif the protocol supports it.",
+        "description": "Help text for the IncludeImage option in Notify."
+    },
+    "debug_desc": {
+        "message": "Enable debugging mode.\n\nLogging will be much more verbose, but if you are experiencing issues,\ndevelopers and support staff will be able to help you much more easily\nif they have this extra bit of detail in your logging output.",
+        "description": "Help text for the Debug option in Notify."
+    },
+    "testservers_desc": {
+        "message": "You can test your server configuration here.",
+        "description": "Help text for the TestServers option in Notify."
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "about": "Odesílá oznámení o stažení na Discord, Telegram, e-mail a více než 160 dalších služeb.",
+  "debug_desc": "Povolit režim ladění.\n\nProtokol bude mnohem podrobnější, ale pokud máte problémy,\nvývojáři a pracovníci podpory vám budou schopni pomoci mnohem snadněji,\npokud budou mít tyto dodatečné podrobnosti ve výstupu protokolu.",
+  "description": "Notify používá Apprise, aby vás informoval, když je stažení zařazeno do fronty,\ndokončeno nebo selhalo.",
+  "includefiles_desc": "Zahrnout soubory.\n\nZahrnout seznam souborů (pokud je to možné) získaného obsahu.\nPoznámka: Seznamy souborů jsou vynechány, pokud stažení selhalo.",
+  "includeimage_desc": "Odeslat obrázek oznámení, pokud je podporován.\n\nPokyn skriptu, aby zahrnul podporovaný obrázek do oznámení,\npokud to protokol podporuje.",
+  "includelogs_desc": "Zahrnout záznamy.\n\nZahrnout záznamy protokolu do oznámení.",
+  "includestats_desc": "Zahrnout statistiky.\n\nZahrnout statistiky (pokud je to možné) do oznámení.",
+  "onfailure_desc": "Odeslat oznámení při selhání.\n\nOdešle oznámení, pokud stažení selhalo.",
+  "onqueue_desc": "Odeslat oznámení při zařazení do fronty.\n\nOdešle oznámení, když je nová položka zařazena do NZBGet ke\nstažení.",
+  "onsuccess_desc": "Odeslat oznámení při úspěchu.\n\nOdešle oznámení, pokud bylo stažení úspěšné.",
+  "requirements": "Toto rozšíření vyžaduje Python 3.9 nebo novější.",
+  "servers_desc": "Servery.\n\nJedna nebo více URL adres Apprise pro oznámení, oddělených čárkou a/nebo mezerou.\nNapříklad:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nViz https://appriseit.com/services/ pro každou podporovanou službu a\njak sestavit její URL.",
+  "testservers_desc": "Zde můžete otestovat konfiguraci serveru."
+}

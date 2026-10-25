@@ -1,0 +1,15 @@
+{
+  "about": "Discord, Telegram, e-posta ve 160'tan fazla diğer servise indirme bildirimleri gönderir.",
+  "debug_desc": "Hata ayıklama modunu etkinleştir.\n\nGünlük kaydı çok daha ayrıntılı olacaktır, ancak sorun yaşıyorsanız,\ngeliştiriciler ve destek ekibi günlük çıktınızda bu ekstra ayrıntı varsa\nsize çok daha kolay yardımcı olabilir.",
+  "description": "Notify, bir indirme sıraya alındığında,\ntamamlandığında veya başarısız olduğunda sizi bilgilendirmek için Apprise kullanır.",
+  "includefiles_desc": "Dosyaları Dahil Et.\n\nAlınan içeriğin dosya listesini dahil et (mümkünse).\nNot: İndirme başarısız olursa dosya listeleri hariç tutulur.",
+  "includeimage_desc": "Desteklendiğinde bildirimle birlikte bir görsel gönder.\n\nProtokol destekliyorsa betiğe bildirime desteklenen bir görsel eklemesini söyle.",
+  "includelogs_desc": "Günlükleri Dahil Et.\n\nBildirime günlük girişlerini dahil et",
+  "includestats_desc": "İstatistikleri Dahil Et.\n\nBildirim(ler)e istatistikleri dahil et (mümkünse)",
+  "onfailure_desc": "Başarısızlıkta Bildirim Gönder.\n\nİndirme başarısız olursa bildirim gönder.",
+  "onqueue_desc": "Sıraya Alındığında Bildirim Gönder.\n\nNZBGet'e indirme için yeni bir giriş sıraya alındığında bildirim gönder.",
+  "onsuccess_desc": "Başarıda Bildirim Gönder.\n\nİndirme başarılı olursa bildirim gönder.",
+  "requirements": "Bu eklenti Python 3.9 veya daha yenisini gerektirir.",
+  "servers_desc": "Sunucular.\n\nBildirim gönderilecek bir veya daha fazla Apprise URL'si, virgül ve/veya boşlukla ayrılmış.\nÖrneğin:\n - discord://webhook_id/webhook_token\n - tgram://bot_token/chat_id\n - mailto://user:password@gmail.com\n\nDesteklenen her servis ve URL'sinin nasıl oluşturulacağı için\nhttps://appriseit.com/services/ adresine bakın.",
+  "testservers_desc": "Sunucu yapılandırmanızı burada test edebilirsiniz."
+}
