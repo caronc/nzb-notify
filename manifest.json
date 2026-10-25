@@ -4,7 +4,7 @@
     "homepage": "https://github.com/caronc/nzb-notify",
     "kind": "QUEUE/POST-PROCESSING",
     "displayName": "Notify",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "nzbgetMinVersion": "23.0",
     "author": "Chris Caron",
     "license": "GPLv2",
